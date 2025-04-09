@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Готовые сборки ПК - PC Tech Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/toast.js"></script>
+    <script src="js/common.js"></script>
+    <style>
+        .pagination-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--primary-color);
+            background: white;
+            color: var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .pagination-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-name {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .user-name:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 4px;
+            padding: 10px 0;
+        }
+
+        .user-dropdown a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .user-dropdown a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #logoutBtn {
+            color: #dc2626;
+        }
+
+        #logoutBtn:hover {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .build-btn {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .add-to-cart-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .details-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .details-btn:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="builds.html" class="active">Готовые сборки</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html" class="login-link">Войти</a>
+                <div class="user-menu" style="display: none;">
+                    <span class="user-name">
+                        <i class="fas fa-user"></i>
+                        <span id="userDisplayName"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="user-dropdown">
+                        <a href="profile.html">Мой профиль</a>
+                        <a href="admin.html" class="admin-panel-link" style="display: none;">Панель администратора</a>
+                        <a href="#" id="logoutBtn">Выйти</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="hero" style="height: 300px; background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+        <div class="hero-content">
+            <h2>Готовые сборки ПК</h2>
+            <p>Выберите оптимальную конфигурацию для ваших задач</p>
+        </div>
+    </div>
+
+    <section class="featured-products">
+        <div class="container">
+            <h2>Популярные сборки</h2>
+            
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
+                <!-- Боковая панель с фильтрами -->
+                <div class="filters-section" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: fit-content;">
+                    <h3 style="margin-bottom: 20px;">Фильтры</h3>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Ценовой диапазон -->
+                        <div class="filter-group">
+                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Ценовой диапазон</label>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="number" id="min-price" placeholder="От" style="width: 100%; padding: 8px;">
+                                <input type="number" id="max-price" placeholder="До" style="width: 100%; padding: 8px;">
+                            </div>
+                        </div>
+
+                        <!-- Назначение -->
+                        <div class="filter-group">
+                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Назначение</label>
+                            <select id="purpose" style="width: 100%; padding: 8px;">
+                                <option value="">Все</option>
+                                <option value="gaming">Игровой</option>
+                                <option value="work">Рабочий</option>
+                                <option value="universal">Универсальный</option>
+                            </select>
+                        </div>
+
+                        <!-- Производитель процессора -->
+                        <div class="filter-group">
+                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Процессор</label>
+                            <select id="processor" style="width: 100%; padding: 8px;">
+                                <option value="">Все</option>
+                                <option value="intel">Intel</option>
+                                <option value="amd">AMD</option>
+                            </select>
+                        </div>
+
+                        <!-- Объем видеопамяти -->
+                        <div class="filter-group">
+                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Видеопамять</label>
+                            <select id="vram" style="width: 100%; padding: 8px;">
+                                <option value="">Все</option>
+                                <option value="4">4 ГБ</option>
+                                <option value="6">6 ГБ</option>
+                                <option value="8">8 ГБ</option>
+                                <option value="12">12 ГБ</option>
+                                <option value="16">16 ГБ</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button onclick="applyFilters()" style="padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Применить</button>
+                            <button onclick="resetFilters()" style="padding: 10px; background: #f0f0f0; color: #333; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Сбросить</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Список сборок -->
+                <div>
+                    <div class="products-grid" id="builds-container" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Сборки будут добавляться здесь -->
+                    </div>
+                    <div class="pagination" id="pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <!-- Кнопки пагинации будут добавляться здесь -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе компьютерной техники</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Социальные сети</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allBuilds = [];
+        let currentPage = 1;
+        const buildsPerPage = 5;
+
+        // Функция для получения параметра из URL
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Функция для загрузки конкретной сборки
+        async function loadBuildById(id) {
+            try {
+                const response = await fetch(`http://localhost:8080/builds/${id}`);
+                if (!response.ok) {
+                    throw new Error('Сборка не найдена');
+                }
+                const build = await response.json();
+                
+                // Очищаем контейнер и отображаем только одну сборку
+                const container = document.getElementById('builds-container');
+                container.innerHTML = `
+                    <div class="build-card">
+                        <div class="build-image">
+                            <img src="${build.image_url || 'images/placeholder.jpg'}" alt="${build.name}">
+                        </div>
+                        <div class="build-info">
+                            <h2>${build.name}</h2>
+                            <p>${build.description}</p>
+                            <div class="build-price">
+                                <span class="price">${build.total_price.toLocaleString()} ₽</span>
+                                <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
+                                    <i class="fas fa-shopping-cart"></i> Добавить в корзину
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Ошибка при загрузке сборки:', error);
+                const container = document.getElementById('builds-container');
+                container.innerHTML = '<p class="error-message">Ошибка при загрузке сборки. Пожалуйста, попробуйте позже.</p>';
+            }
+        }
+
+        // Функция для загрузки сборок
+        async function loadBuilds() {
+            try {
+                const response = await fetch('http://localhost:8080/builds');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const builds = await response.json();
+                console.log('Все сборки:', builds);
+
+                if (!builds || builds.length === 0) {
+                    throw new Error('Сборки не найдены');
+                }
+
+                const buildsContainer = document.getElementById('builds-container');
+                if (!buildsContainer) {
+                    console.error('Элемент builds-container не найден');
+                    return;
+                }
+
+                buildsContainer.innerHTML = '';
+
+                builds.forEach(build => {
+                    const buildCard = document.createElement('div');
+                    buildCard.className = 'build-card';
+                    buildCard.innerHTML = `
+                        <div class="build-image">
+                            <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" alt="${build.name || 'Сборка ПК'}">
+                        </div>
+                        <div class="build-info">
+                            <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name || 'Сборка ПК'}</a></h3>
+                            <p>${build.description || 'Готовая сборка компьютера'}</p>
+                            <div class="build-price">
+                                <span class="price">${build.total_price ? build.total_price.toLocaleString() : '0'} ₽</span>
+                                <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    buildsContainer.appendChild(buildCard);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке сборок:', error);
+                const buildsContainer = document.getElementById('builds-container');
+                if (buildsContainer) {
+                    buildsContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>Ошибка при загрузке сборок. Пожалуйста, попробуйте позже.</p>
+                            <p>Детали ошибки: ${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Проверяем, есть ли параметр id в URL
+        const buildId = getUrlParameter('id');
+        if (buildId) {
+            loadBuildById(buildId);
+        } else {
+            loadBuilds();
+        }
+
+        // Функция для обновления имени пользователя и меню
+        function updateUserName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            const userDisplayName = document.getElementById('userDisplayName');
+            const loginLink = document.querySelector('.login-link');
+            const userMenu = document.querySelector('.user-menu');
+            const adminPanelLink = document.querySelector('.admin-panel-link');
+
+            if (user && token) {
+                userDisplayName.textContent = user.name || user.email || 'Пользователь';
+                loginLink.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Проверяем роль пользователя
+                if (user.role === 'admin') {
+                    adminPanelLink.style.display = 'block';
+                } else {
+                    adminPanelLink.style.display = 'none';
+                }
+            } else {
+                userDisplayName.textContent = '';
+                loginLink.style.display = 'block';
+                userMenu.style.display = 'none';
+                adminPanelLink.style.display = 'none';
+            }
+        }
+
+        // Загружаем сборки при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM загружен, начинаем инициализацию...');
+            
+            // Сначала загружаем сборки
+            console.log('Загружаем сборки...');
+            loadBuilds();
+            
+            // Затем обновляем UI
+            console.log('Обновляем UI...');
+            updateCartCount();
+            updateUserName();
+
+            // Добавляем обработчик для кнопки выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.reload();
+                });
+            }
+
+            // Добавляем обработчик для выпадающего меню
+            const userMenu = document.querySelector('.user-menu');
+            if (userMenu) {
+                userMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', () => {
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = 'none';
+                });
+            }
+        });
+
+        // Функция для обновления количества товаров в корзине
+        async function updateCartCount() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    document.querySelector('.cart-count').textContent = '0';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:8080/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+                    document.querySelector('.cart-count').textContent = totalItems;
+                } else {
+                    document.querySelector('.cart-count').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.querySelector('.cart-count').textContent = '0';
+            }
+        }
+
+        // Функция для добавления товара в корзину
+        async function addToCart(buildId) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showToast(
+                        'Требуется авторизация',
+                        'Для добавления товара в корзину необходимо авторизоваться',
+                        'info'
+                    );
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+
+                const response = await fetch('http://localhost:8080/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        pcbuild_id: buildId,
+                        quantity: 1,
+                        type: 'build'
+                    })
+                });
+
+                if (response.ok) {
+                    showToast(
+                        'Успешно',
+                        'Товар добавлен в корзину',
+                        'success'
+                    );
+                    updateCartCount();
+                } else {
+                    const data = await response.json();
+                    showToast(
+                        'Ошибка',
+                        data.error || 'Ошибка при добавлении в корзину',
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showToast(
+                    'Ошибка',
+                    'Произошла ошибка при добавлении в корзину',
+                    'error'
+                );
+            }
+        }
+
+        // Функция для просмотра деталей сборки
+        function showBuildDetails(buildId) {
+            window.location.href = `product.html?id=${buildId}&category=build`;
+        }
+
+        // Проверка прав администратора и обновление меню
+        function updateUserMenu() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const adminPanelLink = document.querySelector('.admin-panel-link');
+            const userName = document.querySelector('.user-name');
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            if (user) {
+                userName.textContent = user.name + ' ▼';
+                if (isAdmin) {
+                    adminPanelLink.style.display = 'block';
+                }
+            }
+
+            // Обработчик выхода
+            document.querySelector('.logout').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('isAdmin');
+                window.location.reload();
+            });
+        }
+
+        // Функция для отображения ошибок
+        function showError(message) {
+            showToast(
+                'Ошибка',
+                message,
+                'error'
+            );
+        }
+
+        // Функция для отображения сборок
+        function displayBuilds(builds) {
+            const buildsContainer = document.getElementById('builds-container');
+            buildsContainer.innerHTML = '';
+
+            if (!builds || builds.length === 0) {
+                buildsContainer.innerHTML = '<p class="empty-message">Сборки не найдены</p>';
+                return;
+            }
+
+            builds.forEach(build => {
+                const buildCard = document.createElement('div');
+                buildCard.className = 'product-card';
+                buildCard.innerHTML = `
+                    <div class="product-image" style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" 
+                             alt="${build.name}"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="product-info" style="flex: 1; padding: 20px;">
+                        <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name}</a></h3>
+                        <p>${build.description}</p>
+                        <div class="product-price">
+                            <span class="price">${build.total_price.toLocaleString()} ₽</span>
+                            <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                buildsContainer.appendChild(buildCard);
+            });
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            displayBuilds();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Функция для применения фильтров
+        function applyFilters() {
+            const minPrice = document.getElementById('min-price').value;
+            const maxPrice = document.getElementById('max-price').value;
+            const purpose = document.getElementById('purpose').value;
+            const processor = document.getElementById('processor').value;
+            const vram = document.getElementById('vram').value;
+
+            let filteredBuilds = allBuilds.filter(build => {
+                // Фильтр по цене
+                if (minPrice && build.total_price < parseFloat(minPrice)) return false;
+                if (maxPrice && build.total_price > parseFloat(maxPrice)) return false;
+
+                // Фильтр по назначению (на основе названия)
+                if (purpose) {
+                    const name = build.name.toLowerCase();
+                    if (purpose === 'gaming' && !name.includes('игровой')) return false;
+                    if (purpose === 'work' && !name.includes('рабочий')) return false;
+                    if (purpose === 'universal' && !name.includes('универсальный')) return false;
+                }
+
+                // Фильтр по производителю процессора
+                if (processor) {
+                    const cpuName = build.cpu.name.toLowerCase();
+                    if (processor === 'intel' && !cpuName.includes('intel')) return false;
+                    if (processor === 'amd' && !cpuName.includes('amd')) return false;
+                }
+
+                // Фильтр по объему видеопамяти
+                if (vram && build.gpu.vram !== parseInt(vram)) return false;
+
+                return true;
+            });
+
+            displayBuilds(filteredBuilds);
+        }
+
+        // Функция для сброса фильтров
+        function resetFilters() {
+            document.getElementById('min-price').value = '';
+            document.getElementById('max-price').value = '';
+            document.getElementById('purpose').value = '';
+            document.getElementById('processor').value = '';
+            document.getElementById('vram').value = '';
+            displayBuilds(allBuilds);
+        }
+
+        // Добавляем проверку загрузки скрипта
+        console.log('Скрипт builds.html загружен');
+    </script>
+</body>
+</html> 

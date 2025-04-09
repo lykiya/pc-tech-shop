@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали товара - PC Tech Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="builds.html">Готовые сборки</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html" class="login-link">Войти</a>
+                <div class="user-menu" style="display: none;">
+                    <span class="user-name">
+                        <i class="fas fa-user"></i>
+                        <span id="userDisplayName"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="user-dropdown">
+                        <a href="profile.html">Мой профиль</a>
+                        <a href="admin.html" class="admin-panel-link" style="display: none;">Панель администратора</a>
+                        <a href="#" id="logoutBtn">Выйти</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <a href="builds.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                Вернуться к сборкам
+            </a>
+
+            <div class="product-details">
+                <div class="product-header">
+                    <div class="product-gallery">
+                        <img src="" alt="" class="product-main-image" id="mainImage">
+                        <div class="product-thumbnails" id="thumbnails">
+                            <!-- Миниатюры будут добавлены динамически -->
+                        </div>
+                    </div>
+
+                    <div class="product-info">
+                        <h1 class="product-title" id="productTitle"></h1>
+                        <div class="product-price" id="productPrice"></div>
+                        <p class="product-description" id="productDescription"></p>
+                        <div class="product-actions">
+                            <button class="add-to-cart" onclick="addToCart()">
+                                <i class="fas fa-shopping-cart"></i>
+                                Добавить в корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-specs">
+                    <div class="specs-section">
+                        <h3>Характеристики</h3>
+                        <div class="specs-grid" id="specsGrid">
+                            <!-- Спецификации будут добавлены динамически -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе компьютерной техники</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Социальные сети</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Функция для проверки авторизации
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return token;
+        }
+
+        // Функция для отображения ошибок
+        function showError(message) {
+            alert(message); // В будущем можно заменить на более красивое отображение ошибок
+        }
+
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const productType = urlParams.get('type');
+
+        // Функция для загрузки деталей товара
+        async function loadProductDetails() {
+            try {
+                if (!productId) {
+                    showError('ID товара не указан');
+                    return;
+                }
+
+                if (!productType) {
+                    showError('Тип товара не указан');
+                    return;
+                }
+
+                console.log(`Загрузка товара: ID=${productId}, тип=${productType}`);
+
+                let response;
+                if (productType === 'build') {
+                    response = await fetch(`http://localhost:8080/builds/${productId}`);
+                } else if (productType === 'product') {
+                    response = await fetch(`http://localhost:8080/products/${productId}`);
+                } else {
+                    throw new Error('Неверный тип товара');
+                }
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Товар не найден');
+                    } else if (response.status === 400) {
+                        throw new Error('Неверный запрос. Проверьте параметры.');
+                    } else {
+                        throw new Error(`Ошибка при загрузке данных: ${response.status} ${response.statusText}`);
+                    }
+                }
+
+                const product = await response.json();
+                console.log('Полученные данные:', product);
+                
+                if (!product) {
+                    throw new Error('Данные о товаре не получены');
+                }
+
+                displayProductDetails(product);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError(error.message || 'Не удалось загрузить информацию о товаре');
+            }
+        }
+
+        // Функция для отображения деталей товара
+        function displayProductDetails(product) {
+            if (!product) {
+                showError('Данные о товаре не получены');
+                return;
+            }
+
+            // Заголовок страницы
+            document.title = `${product.name} - PC Tech Shop`;
+
+            // Основная информация
+            document.getElementById('productTitle').textContent = product.name;
+            document.getElementById('productPrice').textContent = `${(product.total_price || product.price).toLocaleString()} ₽`;
+            document.getElementById('productDescription').textContent = product.description || 'Описание отсутствует';
+
+            // Изображения
+            const mainImage = document.getElementById('mainImage');
+            const thumbnails = document.getElementById('thumbnails');
+            
+            if (product.image_url) {
+                mainImage.src = product.image_url;
+                mainImage.alt = product.name;
+            } else {
+                mainImage.src = 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80';
+                mainImage.alt = product.name;
+            }
+
+            // Спецификации
+            const specsGrid = document.getElementById('specsGrid');
+            
+            if (productType === 'build') {
+                // Отображение спецификаций сборки
+                specsGrid.innerHTML = `
+                    <div class="component-group">
+                        <div class="component-title">Процессор</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.cpu ? product.cpu.name : 'Не указан'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Производитель</span>
+                            <span class="spec-value">${product.cpu ? product.cpu.manufacturer : 'Не указан'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Характеристики</span>
+                            <span class="spec-value">${product.cpu ? `${product.cpu.cores} ядер, ${product.cpu.threads} потоков` : 'Не указаны'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Сокет</span>
+                            <span class="spec-value">${product.cpu ? product.cpu.socket : 'Не указан'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Видеокарта</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.gpu ? product.gpu.name : 'Не указана'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Производитель</span>
+                            <span class="spec-value">${product.gpu ? product.gpu.manufacturer : 'Не указан'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Характеристики</span>
+                            <span class="spec-value">${product.gpu ? `${product.gpu.vram} ГБ ${product.gpu.memory_type}` : 'Не указаны'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Частота</span>
+                            <span class="spec-value">${product.gpu ? `${product.gpu.gpu_clock} МГц` : 'Не указана'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Материнская плата</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.motherboard ? product.motherboard.name : 'Не указана'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Производитель</span>
+                            <span class="spec-value">${product.motherboard ? product.motherboard.manufacturer : 'Не указан'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Сокет</span>
+                            <span class="spec-value">${product.motherboard ? product.motherboard.socket : 'Не указан'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Оперативная память</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.ram ? product.ram.name : 'Не указана'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Характеристики</span>
+                            <span class="spec-value">${product.ram ? `${product.ram.capacity} ${product.ram.ddr}` : 'Не указаны'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Блок питания</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.power_unit ? product.power_unit.name : 'Не указан'}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Мощность</span>
+                            <span class="spec-value">${product.power_unit ? `${product.power_unit.wattage} Вт` : 'Не указана'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Корпус</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.body ? product.body.name : 'Не указан'}</span>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">Накопитель</div>
+                        <div class="spec-item">
+                            <span class="spec-label">Модель</span>
+                            <span class="spec-value">${product.hdd ? product.hdd.name : (product.ssd ? product.ssd.name : 'Не указан')}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Тип</span>
+                            <span class="spec-value">${product.hdd ? 'HDD' : (product.ssd ? 'SSD' : 'Не указан')}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Отображение спецификаций отдельного товара
+                specsGrid.innerHTML = `
+                    <div class="component-group">
+                        <div class="component-title">Основные характеристики</div>
+                        ${Object.entries(product)
+                            .filter(([key]) => !['id', 'name', 'price', 'description', 'image_url', 'created_at', 'updated_at'].includes(key))
+                            .map(([key, value]) => `
+                                <div class="spec-item">
+                                    <span class="spec-label">${formatSpecLabel(key)}</span>
+                                    <span class="spec-value">${value || 'Не указано'}</span>
+                                </div>
+                            `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Функция для форматирования названий характеристик
+        function formatSpecLabel(key) {
+            const labels = {
+                'manufacturer': 'Производитель',
+                'cores': 'Количество ядер',
+                'threads': 'Количество потоков',
+                'socket': 'Сокет',
+                'vram': 'Объем видеопамяти',
+                'memory_type': 'Тип памяти',
+                'gpu_clock': 'Частота GPU',
+                'capacity': 'Объем',
+                'ddr': 'Тип памяти',
+                'wattage': 'Мощность',
+                'form_factor': 'Форм-фактор',
+                'speed': 'Скорость',
+                'interface': 'Интерфейс'
+            };
+            return labels[key] || key;
+        }
+
+        // Функция для добавления товара в корзину
+        async function addToCart() {
+            try {
+                const token = checkAuth();
+                if (!token) return;
+
+                const response = await fetch('http://localhost:8080/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        pcbuild_id: parseInt(productId),
+                        quantity: 1,
+                        type: productType
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Товар успешно добавлен в корзину!');
+                } else {
+                    const data = await response.json();
+                    showError(data.error || 'Ошибка при добавлении в корзину');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError('Произошла ошибка при добавлении в корзину');
+            }
+        }
+
+        // Функция для обновления имени пользователя и меню
+        function updateUserName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            const userDisplayName = document.getElementById('userDisplayName');
+            const loginLink = document.querySelector('.login-link');
+            const userMenu = document.querySelector('.user-menu');
+            const adminPanelLink = document.querySelector('.admin-panel-link');
+
+            if (user && token) {
+                userDisplayName.textContent = user.name || user.email || 'Пользователь';
+                loginLink.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Проверяем роль пользователя
+                if (user.role === 'admin') {
+                    adminPanelLink.style.display = 'block';
+                } else {
+                    adminPanelLink.style.display = 'none';
+                }
+            } else {
+                userDisplayName.textContent = '';
+                loginLink.style.display = 'block';
+                userMenu.style.display = 'none';
+                adminPanelLink.style.display = 'none';
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM загружен, начинаем инициализацию...');
+            
+            // Сначала загружаем данные
+            console.log('Загружаем данные...');
+            loadProductDetails();
+            
+            // Затем обновляем UI
+            console.log('Обновляем UI...');
+            updateCartCount();
+            updateUserName();
+
+            // Добавляем обработчик для кнопки выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.reload();
+                });
+            }
+
+            // Добавляем обработчик для выпадающего меню
+            const userMenu = document.querySelector('.user-menu');
+            if (userMenu) {
+                userMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', () => {
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = 'none';
+                });
+            }
+        });
+
+        // Добавляем проверку загрузки скрипта
+        console.log('Скрипт product-details.html загружен');
+    </script>
+</body>
+</html> 

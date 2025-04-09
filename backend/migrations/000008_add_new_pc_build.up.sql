@@ -1,0 +1,2 @@
+INSERT INTO pcbuild (name, description, cpu_id, gpu_id, motherboard_id, body_id, ram_id, power_unit_id, hdd_id, ssd_id, total_price, image_url) VALUES
+('Streaming PC Elite', 'Профессиональная сборка для стриминга и контент-мейкеров', 1, 1, 1, 1, 1, 1, 1, 1, 6999.99, 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'); 

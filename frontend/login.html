@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - PC Tech Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="builds.html">Готовые сборки</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html" class="active">Войти</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-form-container">
+                <h2 class="auth-title">Вход</h2>
+                <form class="auth-form" id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="auth-button">Войти</button>
+                    <div id="message" class="auth-message"></div>
+                </form>
+                <div class="auth-links">
+                    <p>Нет аккаунта? <a href="registration.html">Зарегистрироваться</a></p>
+                    <p><a href="#">Забыли пароль?</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе и покупке компьютерной техники. Мы предлагаем только качественные товары по лучшим ценам.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (XXX) XXX-XX-XX</p>
+                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, д. 123</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Социальные сети</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/common.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

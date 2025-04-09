@@ -1,0 +1,1 @@
+DELETE FROM pcbuild WHERE name = 'Streaming PC Elite'; 

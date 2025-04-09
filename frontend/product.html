@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали сборки - PC Tech Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/toast.js"></script>
+    <script src="js/common.js"></script>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="builds.html">Готовые сборки</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html">Войти</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <a href="builds.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                Вернуться к сборкам
+            </a>
+
+            <div class="product-details">
+                <div class="product-header">
+                    <div class="product-gallery">
+                        <img src="" alt="" class="product-main-image" id="productImage">
+                    </div>
+
+                    <div class="product-info">
+                        <h1 class="product-title" id="productName"></h1>
+                        <p class="manufacturer" id="productManufacturer"></p>
+                        <div class="product-price" id="productPrice"></div>
+                        <div class="product-actions">
+                            <button class="add-to-cart" id="addToCart">
+                                <i class="fas fa-shopping-cart"></i>
+                                Добавить в корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-specs">
+                    <div class="specs-section">
+                        <h3>Характеристики сборки</h3>
+                        <div class="specs-grid" id="componentSpecs">
+                            <!-- Спецификации будут добавлены динамически -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе компьютерной техники</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Социальные сети</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Get product ID and category from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const category = urlParams.get('category');
+
+        // Fetch product details
+        async function loadProduct() {
+            try {
+                if (!productId || !category) {
+                    console.error('Missing product ID or category');
+                    return;
+                }
+
+                const response = await fetch(`http://localhost:8080/builds/${productId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const build = await response.json();
+                
+                // Update DOM
+                document.getElementById('productName').textContent = build.name;
+                document.getElementById('productManufacturer').textContent = 'Сборка от PC Tech Shop';
+                document.getElementById('productPrice').textContent = `${build.total_price.toLocaleString()} ₽`;
+                
+                // Handle component specs
+                const specsDiv = document.getElementById('componentSpecs');
+                specsDiv.innerHTML = `
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-microchip"></i>
+                            Процессор
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-microchip"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.cpu ? build.cpu.name : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-microchip"></i>
+                            <div class="spec-content">
+                                <strong>Производитель</strong>
+                                <span>${build.cpu ? build.cpu.manufacturer : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-microchip"></i>
+                            <div class="spec-content">
+                                <strong>Характеристики</strong>
+                                <span>${build.cpu ? `${build.cpu.cores} ядер, ${build.cpu.threads} потоков` : 'Не указаны'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-desktop"></i>
+                            Видеокарта
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-desktop"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.gpu ? build.gpu.name : 'Не указана'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-desktop"></i>
+                            <div class="spec-content">
+                                <strong>Производитель</strong>
+                                <span>${build.gpu ? build.gpu.manufacturer : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-desktop"></i>
+                            <div class="spec-content">
+                                <strong>Характеристики</strong>
+                                <span>${build.gpu ? `${build.gpu.vram} ГБ ${build.gpu.memory_type}` : 'Не указаны'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-server"></i>
+                            Материнская плата
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-server"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.motherboard ? build.motherboard.name : 'Не указана'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-server"></i>
+                            <div class="spec-content">
+                                <strong>Производитель</strong>
+                                <span>${build.motherboard ? build.motherboard.manufacturer : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-server"></i>
+                            <div class="spec-content">
+                                <strong>Сокет</strong>
+                                <span>${build.motherboard ? build.motherboard.socket : 'Не указан'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-memory"></i>
+                            Оперативная память
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-memory"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.ram ? build.ram.name : 'Не указано'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-memory"></i>
+                            <div class="spec-content">
+                                <strong>Характеристики</strong>
+                                <span>${build.ram ? `${build.ram.capacity} ${build.ram.ddr}` : 'Не указаны'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-plug"></i>
+                            Блок питания
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-plug"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.power_unit ? build.power_unit.name : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-plug"></i>
+                            <div class="spec-content">
+                                <strong>Мощность</strong>
+                                <span>${build.power_unit ? build.power_unit.wattage : 'Не указана'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-box"></i>
+                            Корпус
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-box"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.body ? build.body.name : 'Не указан'}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-box"></i>
+                            <div class="spec-content">
+                                <strong>Производитель</strong>
+                                <span>${build.body ? build.body.manufacturer : 'Не указан'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="component-group">
+                        <div class="component-title">
+                            <i class="fas fa-hdd"></i>
+                            Накопитель
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-hdd"></i>
+                            <div class="spec-content">
+                                <strong>Модель</strong>
+                                <span>${build.hdd ? build.hdd.name : (build.ssd ? build.ssd.name : 'Не указан')}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-hdd"></i>
+                            <div class="spec-content">
+                                <strong>Производитель</strong>
+                                <span>${build.hdd ? build.hdd.manufacturer : (build.ssd ? build.ssd.manufacturer : 'Не указан')}</span>
+                            </div>
+                        </div>
+                        <div class="spec-item">
+                            <i class="fas fa-hdd"></i>
+                            <div class="spec-content">
+                                <strong>Объем</strong>
+                                <span>${build.hdd ? build.hdd.capacity : (build.ssd ? build.ssd.capacity : 'Не указан')}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Set image if available
+                if (build.image_url) {
+                    document.getElementById('productImage').src = build.image_url;
+                } else {
+                    document.getElementById('productImage').src = 'images/placeholder.jpg';
+                }
+                
+                // Enable/disable add to cart button
+                const addToCartBtn = document.getElementById('addToCart');
+                addToCartBtn.disabled = false;
+            } catch (error) {
+                console.error('Error loading product:', error);
+                alert('Ошибка загрузки информации о сборке. Пожалуйста, попробуйте позже.');
+            }
+        }
+
+        // Add to cart functionality
+        document.getElementById('addToCart').addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch('http://localhost:8080/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        pcbuild_id: parseInt(productId),
+                        quantity: 1
+                    })
+                });
+
+                if (response.ok) {
+                    showToast(
+                        'Успешно!',
+                        'Товар добавлен в корзину',
+                        'success'
+                    );
+                    updateCartCount();
+                } else {
+                    const data = await response.json();
+                    showToast(
+                        'Ошибка',
+                        data.error || 'Ошибка при добавлении в корзину',
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(
+                    'Ошибка',
+                    'Произошла ошибка при добавлении в корзину',
+                    'error'
+                );
+            }
+        });
+
+        // Load product when page loads
+        document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</body>
+</html> 

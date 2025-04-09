@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Tech Shop - Магазин компьютерной техники</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/common.js"></script>
+    <script src="js/toast.js"></script>
+    <script>
+        // Функция для загрузки популярных товаров
+        async function loadPopularProducts() {
+            try {
+                const response = await fetch('http://localhost:8080/builds');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const allBuilds = await response.json();
+                console.log('Все сборки:', allBuilds);
+
+                if (!allBuilds || allBuilds.length === 0) {
+                    throw new Error('Сборки не найдены');
+                }
+
+                const randomBuilds = allBuilds.sort(() => 0.5 - Math.random()).slice(0, 4);
+                console.log('Выбранные сборки:', randomBuilds);
+
+                const productsContainer = document.getElementById('featured-products');
+                if (!productsContainer) {
+                    console.error('Элемент featured-products не найден');
+                    return;
+                }
+
+                productsContainer.innerHTML = '';
+
+                randomBuilds.forEach(build => {
+                    const productCard = document.createElement('div');
+                    productCard.className = 'product-card';
+                    productCard.innerHTML = `
+                        <div class="product-image">
+                            <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" alt="${build.name || 'Сборка ПК'}">
+                        </div>
+                        <div class="product-info">
+                            <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name || 'Сборка ПК'}</a></h3>
+                            <p>${build.description || 'Готовая сборка компьютера'}</p>
+                            <div class="product-price">
+                                <span class="price">${build.total_price ? build.total_price.toLocaleString() : '0'} ₽</span>
+                                <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    productsContainer.appendChild(productCard);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке сборок:', error);
+                const productsContainer = document.getElementById('featured-products');
+                if (productsContainer) {
+                    productsContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>Ошибка при загрузке сборок. Пожалуйста, попробуйте позже.</p>
+                            <p>Детали ошибки: ${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM загружен, начинаем инициализацию...');
+            loadPopularProducts();
+
+            document.getElementById('requestForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const requestData = {
+                    name: document.getElementById('requestName').value,
+                    phone: document.getElementById('requestPhone').value,
+                    message: document.getElementById('requestMessage').value
+                };
+
+                try {
+                    const response = await fetch('http://localhost:8080/requests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при отправке запроса');
+                    }
+
+                    alert('Ваш запрос успешно отправлен! Мы свяжемся с вами в ближайшее время.');
+                    document.getElementById('requestForm').reset();
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при отправке запроса. Пожалуйста, попробуйте позже.');
+                }
+            });
+        });
+    </script>
+    <style>
+        .request-section {
+            background: var(--primary-color);
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+
+        .request-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .request-container h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .request-container p {
+            margin-bottom: 30px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .request-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .request-form input,
+        .request-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .request-form textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .request-form .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .request-form .btn:hover {
+            background: #f0f0f0;
+        }
+
+        .build-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .build-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="active">Главная</a>
+                <a href="builds.html">Готовые сборки</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html" class="login-link">Войти</a>
+                <div class="user-menu">
+                    <span class="user-name">
+                        <i class="fas fa-user"></i>
+                        <span id="userDisplayName">Загрузка...</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="user-dropdown">
+                        <a href="profile.html">Мой профиль</a>
+                        <a href="admin.html">Панель администратора</a>
+                        <a href="#" id="logoutBtn">Выйти</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Найди свой идеальный компьютер</h2>
+                <p>Широкий выбор готовых сборок по лучшим ценам</p>
+                <div class="hero-buttons">
+                    <a href="builds.html" class="cta-button primary">Готовые сборки</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="featured-products">
+            <div class="container">
+                <h2>Популярные товары</h2>
+                <div class="products-grid" id="featured-products">
+                    <!-- Products will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <section class="advantages">
+            <div class="container">
+                <h2>Почему выбирают нас</h2>
+                <div class="advantages-grid">
+                    <div class="advantage-card">
+                        <i class="fas fa-truck"></i>
+                        <h3>Быстрая доставка</h3>
+                        <p>Доставка по всей России</p>
+                    </div>
+                    <div class="advantage-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Гарантия качества</h3>
+                        <p>Официальная гарантия на все товары</p>
+                    </div>
+                    <div class="advantage-card">
+                        <i class="fas fa-tools"></i>
+                        <h3>Профессиональная сборка</h3>
+                        <p>Сборка ПК опытными специалистами</p>
+                    </div>
+                    <div class="advantage-card">
+                        <i class="fas fa-headset"></i>
+                        <h3>Поддержка 24/7</h3>
+                        <p>Всегда на связи с клиентами</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="request-section">
+            <div class="request-container">
+                <h2>Нужна помощь с выбором?</h2>
+                <p>Оставьте свои контакты, и наш специалист поможет вам подобрать идеальную сборку</p>
+                <form id="requestForm" class="request-form">
+                    <div class="form-group">
+                        <input type="text" id="requestName" placeholder="Ваше имя" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" id="requestPhone" placeholder="Номер телефона" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="requestMessage" placeholder="Опишите, какая сборка вас интересует (необязательно)"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе и покупке компьютерной техники. Мы предлагаем только качественные товары по лучшим ценам.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (XXX) XXX-XX-XX</p>
+                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, д. 123</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Социальные сети</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
