@@ -56,4 +56,5 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	// Public routes for builds
 	router.GET("/builds", controllers.GetBuilds(db))
 	router.GET("/builds/:id", controllers.GetBuild(db))
+	router.DELETE("/builds/:id", controllers.DeleteBuild(db))
 }

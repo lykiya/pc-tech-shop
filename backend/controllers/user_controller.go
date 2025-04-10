@@ -81,6 +81,6 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 
 func GetUsers(db *gorm.DB) ([]models.User, error) {
 	var users []models.User
-	err := db.Find(&users).Error
+	err := db.Select("id, name, surname, email, type").Find(&users).Error
 	return users, err
 }

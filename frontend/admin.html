@@ -11,12 +11,12 @@
     <script src="js/admin.js" defer></script>
     <style>
         .admin-container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            min-height: calc(100vh - 60px);
+            display: flex;
+            min-height: 100vh;
         }
 
         .admin-sidebar {
+            width: 250px;
             background: #2c3e50;
             color: white;
             padding: 20px;
@@ -24,13 +24,13 @@
 
         .admin-sidebar h2 {
             margin-bottom: 30px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.5em;
         }
 
         .admin-menu {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
         .admin-menu li {
@@ -43,24 +43,26 @@
             display: flex;
             align-items: center;
             padding: 10px;
-            border-radius: 4px;
-            transition: background 0.3s;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
 
         .admin-menu a:hover {
-            background: rgba(255,255,255,0.1);
+            background-color: #34495e;
         }
 
         .admin-menu a.active {
-            background: var(--primary-color);
+            background-color: #3498db;
         }
 
         .admin-menu i {
             margin-right: 10px;
             width: 20px;
+            text-align: center;
         }
 
         .admin-content {
+            flex: 1;
             padding: 20px;
             background: #f5f6fa;
         }
@@ -69,15 +71,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        .admin-card {
+        .admin-section {
             background: white;
-            border-radius: 8px;
+            border-radius: 5px;
             padding: 20px;
-            margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .add-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .add-btn:hover {
+            background: #2980b9;
         }
 
         .admin-table {
@@ -98,73 +115,52 @@
             font-weight: 600;
         }
 
-        .admin-table tr:hover {
-            background: #f8f9fa;
-        }
-
         .action-btn {
-            padding: 6px 12px;
+            background: none;
             border: none;
-            border-radius: 4px;
             cursor: pointer;
-            margin-right: 5px;
+            padding: 5px;
+            margin: 0 5px;
         }
 
         .edit-btn {
-            background: #3498db;
-            color: white;
+            color: #3498db;
         }
 
         .delete-btn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .add-btn {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            color: #e74c3c;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .stat-card h3 {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
+            margin: 0 0 10px 0;
+            color: #7f8c8d;
         }
 
         .stat-card .value {
-            font-size: 2rem;
+            font-size: 24px;
             font-weight: bold;
-            color: var(--primary-color);
-            margin: 10px 0;
+            margin-bottom: 5px;
         }
 
         .stat-card .trend {
-            font-size: 0.9rem;
-            color: #2ecc71;
+            font-size: 14px;
         }
 
-        .stat-card .trend.negative {
+        .trend.negative {
             color: #e74c3c;
         }
 
@@ -269,432 +265,114 @@
         <div class="admin-sidebar">
             <h2>Панель управления</h2>
             <ul class="admin-menu">
-                <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-chart-line"></i> Дашборд</a></li>
-                <li><a href="#" data-section="builds"><i class="fas fa-desktop"></i> Сборки</a></li>
-                <li><a href="#" data-section="orders"><i class="fas fa-shopping-bag"></i> Заказы</a></li>
+                <li><a href="#" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Дашборд</a></li>
+                <li><a href="#" data-section="products"><i class="fas fa-box"></i> Сборки</a></li>
+                <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Заказы</a></li>
                 <li><a href="#" data-section="users"><i class="fas fa-users"></i> Пользователи</a></li>
-                <li><a href="#" data-section="components"><i class="fas fa-microchip"></i> Комплектующие</a></li>
-                <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Настройки</a></li>
-                <li><a href="#" data-section="requests"><i class="fas fa-comments"></i> Обращения</a></li>
+                <li><a href="#" data-section="tickets"><i class="fas fa-ticket-alt"></i> Обращения</a></li>
             </ul>
         </div>
-
         <div class="admin-content">
-            <!-- Дашборд -->
-            <div class="admin-section" id="dashboard">
-                <div class="admin-header">
-                    <h2>Дашборд</h2>
-                    <div class="date-range">
-                        <select id="dateRange">
-                            <option value="today">Сегодня</option>
-                            <option value="week">За неделю</option>
-                            <option value="month">За месяц</option>
-                            <option value="year">За год</option>
-                        </select>
-                    </div>
-                </div>
-
+            <div class="admin-header">
+                <h2>Панель администратора</h2>
+                <button class="add-btn" id="addNewBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить
+                </button>
+            </div>
+            
+            <!-- Секция дашборда -->
+            <div id="dashboard" class="admin-section">
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card" id="total-orders">
+                        <h3>Всего заказов</h3>
+                        <div class="value">0</div>
+                    </div>
+                    <div class="stat-card" id="total-products">
+                        <h3>Всего товаров</h3>
+                        <div class="value">0</div>
+                    </div>
+                    <div class="stat-card" id="total-users">
+                        <h3>Всего пользователей</h3>
+                        <div class="value">0</div>
+                    </div>
+                    <div class="stat-card" id="revenue">
                         <h3>Общая выручка</h3>
-                        <div class="value">₽1,234,567</div>
-                        <div class="trend">+12.5% <i class="fas fa-arrow-up"></i></div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Количество заказов</h3>
-                        <div class="value">156</div>
-                        <div class="trend">+8.2% <i class="fas fa-arrow-up"></i></div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Средний чек</h3>
-                        <div class="value">₽7,914</div>
-                        <div class="trend negative">-2.1% <i class="fas fa-arrow-down"></i></div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Новых пользователей</h3>
-                        <div class="value">45</div>
-                        <div class="trend">+15.3% <i class="fas fa-arrow-up"></i></div>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <h3>Последние заказы</h3>
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Клиент</th>
-                                <th>Сумма</th>
-                                <th>Статус</th>
-                                <th>Дата</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#1234</td>
-                                <td>Иван Иванов</td>
-                                <td>₽89,999</td>
-                                <td><span style="color: #2ecc71;">Выполнен</span></td>
-                                <td>2024-03-20</td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Сборки -->
-            <div class="admin-section" id="builds" style="display: none;">
-                <div class="admin-header">
-                    <h2>Управление сборками</h2>
-                    <button class="add-btn">
-                        <i class="fas fa-plus"></i>
-                        Добавить сборку
-                    </button>
-                </div>
-
-                <div class="admin-card">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Название</th>
-                                <th>Цена</th>
-                                <th>Назначение</th>
-                                <th>Статус</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#1</td>
-                                <td>Игровой ПК Premium</td>
-                                <td>₽159,999</td>
-                                <td>Игровой</td>
-                                <td><span style="color: #2ecc71;">В наличии</span></td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Заказы -->
-            <div class="admin-section" id="orders" style="display: none;">
-                <div class="admin-header">
-                    <h2>Управление заказами</h2>
-                    <div class="order-filters">
-                        <select id="orderStatus">
-                            <option value="all">Все статусы</option>
-                            <option value="new">Новые</option>
-                            <option value="processing">В обработке</option>
-                            <option value="completed">Выполненные</option>
-                            <option value="cancelled">Отмененные</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="admin-card">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Клиент</th>
-                                <th>Сумма</th>
-                                <th>Статус</th>
-                                <th>Дата</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#1234</td>
-                                <td>Иван Иванов</td>
-                                <td>₽89,999</td>
-                                <td><span style="color: #f1c40f;">В обработке</span></td>
-                                <td>2024-03-20</td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Пользователи -->
-            <div class="admin-section" id="users" style="display: none;">
-                <div class="admin-header">
-                    <h2>Управление пользователями</h2>
-                    <button class="add-btn">
-                        <i class="fas fa-plus"></i>
-                        Добавить пользователя
-                    </button>
-                </div>
-
-                <div class="admin-card">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Имя</th>
-                                <th>Email</th>
-                                <th>Роль</th>
-                                <th>Дата регистрации</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#1</td>
-                                <td>Иван Иванов</td>
-                                <td>ivan@example.com</td>
-                                <td>Пользователь</td>
-                                <td>2024-03-01</td>
-                                <td>
-                                    <button class="action-btn edit-btn"><i class="fas fa-edit"></i></button>
-                                    <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Комплектующие -->
-            <div class="admin-section" id="components" style="display: none;">
-                <div class="admin-header">
-                    <h2>Управление комплектующими</h2>
-                    <div class="component-tabs">
-                        <button class="component-tab active" data-tab="cpu">Процессоры</button>
-                        <button class="component-tab" data-tab="gpu">Видеокарты</button>
-                        <button class="component-tab" data-tab="ram">Оперативная память</button>
-                        <button class="component-tab" data-tab="motherboard">Материнские платы</button>
-                        <button class="component-tab" data-tab="power">Блоки питания</button>
-                        <button class="component-tab" data-tab="body">Корпуса</button>
-                        <button class="component-tab" data-tab="storage">Накопители</button>
-                    </div>
-                    <button class="add-btn">
-                        <i class="fas fa-plus"></i>
-                        Добавить комплектующее
-                    </button>
-                </div>
-
-                <div class="admin-card">
-                    <!-- Процессоры -->
-                    <div class="component-section" id="cpu-section">
-                        <h3>Процессоры</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Сокет</th>
-                                    <th>Ядра/Потоки</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Видеокарты -->
-                    <div class="component-section" id="gpu-section" style="display: none;">
-                        <h3>Видеокарты</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Видеопамять</th>
-                                    <th>Тип памяти</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Оперативная память -->
-                    <div class="component-section" id="ram-section" style="display: none;">
-                        <h3>Оперативная память</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Объем</th>
-                                    <th>Тип</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Материнские платы -->
-                    <div class="component-section" id="motherboard-section" style="display: none;">
-                        <h3>Материнские платы</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Сокет</th>
-                                    <th>Форм-фактор</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Блоки питания -->
-                    <div class="component-section" id="power-section" style="display: none;">
-                        <h3>Блоки питания</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Мощность</th>
-                                    <th>Сертификация</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Корпуса -->
-                    <div class="component-section" id="body-section" style="display: none;">
-                        <h3>Корпуса</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Форм-фактор</th>
-                                    <th>Цвет</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Накопители -->
-                    <div class="component-section" id="storage-section" style="display: none;">
-                        <h3>Накопители</h3>
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Производитель</th>
-                                    <th>Тип</th>
-                                    <th>Объем</th>
-                                    <th>Цена</th>
-                                    <th>В наличии</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Данные будут загружены динамически -->
-                            </tbody>
-                        </table>
+                        <div class="value">$0</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Настройки -->
-            <div class="admin-section" id="settings" style="display: none;">
-                <div class="admin-header">
-                    <h2>Настройки</h2>
-                </div>
-
-                <div class="admin-card">
-                    <h3>Общие настройки</h3>
-                    <form style="max-width: 500px;">
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px;">Название магазина</label>
-                            <input type="text" value="PC Tech Shop" style="width: 100%; padding: 8px;">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px;">Email для уведомлений</label>
-                            <input type="email" value="admin@pctechshop.ru" style="width: 100%; padding: 8px;">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 5px;">Телефон поддержки</label>
-                            <input type="tel" value="+7 (999) 123-45-67" style="width: 100%; padding: 8px;">
-                        </div>
-                        <button type="submit" class="add-btn">Сохранить изменения</button>
-                    </form>
-                </div>
+            <!-- Секция товаров -->
+            <div id="products" class="admin-section">
+                <table class="admin-table" id="products-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Фото</th>
+                            <th>Название</th>
+                            <th>Описание</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- Обращения -->
-            <div class="admin-section" id="requests" style="display: none;">
-                <div class="admin-header">
-                    <h2>Обращения клиентов</h2>
-                </div>
+            <!-- Секция заказов -->
+            <div id="orders" class="admin-section">
+                <table class="admin-table" id="orders-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
 
-                <div class="admin-card">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Имя</th>
-                                <th>Телефон</th>
-                                <th>Сообщение</th>
-                                <th>Дата</th>
-                                <th>Статус</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody id="requestsList">
-                            <!-- Данные будут загружены динамически -->
-                        </tbody>
-                    </table>
-                </div>
+            <!-- Секция пользователей -->
+            <div id="users" class="admin-section">
+                <table class="admin-table" id="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Секция обращений -->
+            <div id="tickets" class="admin-section">
+                <table class="admin-table" id="tickets-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя</th>
+                            <th>Телефон</th>
+                            <th>Сообщение</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -725,11 +403,15 @@
                 return;
             }
             
-            // Сначала загружаем данные
+            // Загружаем все данные
             console.log('Загружаем данные...');
-            loadData();
+            loadDashboardData();
+            loadProducts();
+            loadOrders();
+            loadUsers();
+            loadTickets();
             
-            // Затем обновляем UI
+            // Обновляем UI
             console.log('Обновляем UI...');
             updateCartCount();
             updateAuthUI();
@@ -760,6 +442,417 @@
                     dropdown.style.display = 'none';
                 });
             }
+
+            // Обработчик переключения секций
+            document.querySelectorAll('.admin-menu a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    
+                    // Скрываем все секции
+                    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+                    
+                    // Показываем выбранную секцию
+                    document.getElementById(section).style.display = 'block';
+                    
+                    // Загружаем данные для выбранной секции
+                    switch(section) {
+                        case 'dashboard':
+                            loadDashboardData();
+                            break;
+                        case 'products':
+                            loadProducts();
+                            break;
+                        case 'orders':
+                            loadOrders();
+                            break;
+                        case 'users':
+                            loadUsers();
+                            break;
+                        case 'tickets':
+                            loadTickets();
+                            break;
+                    }
+                });
+            });
+
+            // По умолчанию показываем дашборд
+            document.querySelector('.admin-menu a[data-section="dashboard"]').click();
+
+            // Обработчики для кнопок действий
+            document.addEventListener('click', async function(e) {
+                if (e.target.classList.contains('edit-btn')) {
+                    const id = e.target.getAttribute('data-id');
+                    // Здесь будет логика редактирования
+                    console.log('Edit item:', id);
+                }
+
+                if (e.target.classList.contains('delete-btn')) {
+                    const id = e.target.getAttribute('data-id');
+                    const tableId = e.target.closest('table').id;
+                    
+                    if (tableId === 'products-table') {
+                        if (confirm('Вы уверены, что хотите удалить эту сборку?')) {
+                            try {
+                                const token = localStorage.getItem('token');
+                                if (!token) {
+                                    throw new Error('Требуется авторизация');
+                                }
+
+                                const response = await fetch(`http://localhost:8080/builds/${id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    throw new Error(errorData.error || 'Ошибка при удалении сборки');
+                                }
+
+                                // Обновляем UI
+                                const row = e.target.closest('tr');
+                                row.remove();
+                                showToast('Сборка успешно удалена', 'success');
+                                
+                                // Обновляем статистику
+                                loadDashboardData();
+                            } catch (error) {
+                                console.error('Ошибка при удалении сборки:', error);
+                                showToast('Ошибка при удалении сборки: ' + error.message, 'error');
+                            }
+                        }
+                    } else if (tableId === 'orders-table') {
+                        // Обработка удаления заказа
+                        console.log('Delete order:', id);
+                    } else if (tableId === 'users-table') {
+                        // Обработка удаления пользователя
+                        console.log('Delete user:', id);
+                    } else if (tableId === 'tickets-table') {
+                        // Обработка удаления обращения
+                        console.log('Delete ticket:', id);
+                    }
+                }
+
+                if (e.target.classList.contains('add-btn')) {
+                    // Здесь будет логика добавления нового элемента
+                    console.log('Add new item');
+                }
+            });
+
+            // Загрузка данных для дашборда
+            async function loadDashboardData() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    // Получаем данные из разных эндпоинтов
+                    const [buildsResponse, usersResponse, requestsResponse, cartResponse] = await Promise.all([
+                        fetch('http://localhost:8080/builds', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }),
+                        fetch('http://localhost:8080/users', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }),
+                        fetch('http://localhost:8080/requests', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }),
+                        fetch('http://localhost:8080/cart', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                    ]);
+
+                    if (!buildsResponse.ok || !usersResponse.ok || !requestsResponse.ok || !cartResponse.ok) {
+                        throw new Error('Ошибка при загрузке данных');
+                    }
+
+                    const [builds, users, requests, cart] = await Promise.all([
+                        buildsResponse.json(),
+                        usersResponse.json(),
+                        requestsResponse.json(),
+                        cartResponse.json()
+                    ]);
+
+                    // Обновляем статистику
+                    document.querySelector('#total-orders .value').textContent = cart.length || 0;
+                    document.querySelector('#total-products .value').textContent = builds.length || 0;
+                    document.querySelector('#total-users .value').textContent = users.length || 0;
+                    
+                    // Вычисляем общую выручку из корзины
+                    const revenue = cart.reduce((sum, item) => sum + item.price, 0);
+                    document.querySelector('#revenue .value').textContent = `$${revenue || 0}`;
+                } catch (error) {
+                    console.error('Ошибка при загрузке статистики:', error);
+                    showToast('Ошибка при загрузке статистики: ' + error.message, 'error');
+                }
+            }
+
+            // Загрузка данных для таблицы сборок
+            async function loadProducts() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch('http://localhost:8080/builds', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при загрузке сборок');
+                    }
+
+                    const builds = await response.json();
+                    const tbody = document.querySelector('#products-table tbody');
+                    tbody.innerHTML = '';
+
+                    builds.forEach(build => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${build.id}</td>
+                            <td>
+                                <img src="${build.image_url || 'images/builds/default.jpg'}" 
+                                     alt="${build.name}" 
+                                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                            </td>
+                            <td>${build.name}</td>
+                            <td>${build.description}</td>
+                            <td>$${build.total_price}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${build.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" data-id="${build.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Ошибка при загрузке сборок:', error);
+                    showToast('Ошибка при загрузке сборок: ' + error.message, 'error');
+                }
+            }
+
+            // Загрузка данных для таблицы заказов
+            async function loadOrders() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch('http://localhost:8080/api/orders', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при загрузке заказов');
+                    }
+
+                    const orders = await response.json();
+                    const tbody = document.querySelector('#orders-table tbody');
+                    tbody.innerHTML = '';
+
+                    orders.forEach(order => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${order.id}</td>
+                            <td>${order.customer_name}</td>
+                            <td>$${order.total_price}</td>
+                            <td>
+                                <select class="status-select" data-id="${order.id}">
+                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>В обработке</option>
+                                    <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>В работе</option>
+                                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Завершен</option>
+                                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
+                                </select>
+                            </td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="action-btn edit-btn" data-id="${order.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" data-id="${order.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Ошибка при загрузке заказов:', error);
+                    showToast('Ошибка при загрузке заказов: ' + error.message, 'error');
+                }
+            }
+
+            // Функция загрузки пользователей
+            async function loadUsers() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch('http://localhost:8080/users', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при загрузке пользователей');
+                    }
+
+                    const users = await response.json();
+                    const tableBody = document.querySelector('#users-table tbody');
+                    tableBody.innerHTML = '';
+
+                    users.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.id}</td>
+                            <td>${user.name} ${user.surname}</td>
+                            <td>${user.email}</td>
+                            <td>${user.type}</td>
+                            <td>
+                                <select class="status-select" data-id="${user.id}">
+                                    <option value="active" ${user.status === 'active' ? 'selected' : ''}>Активен</option>
+                                    <option value="blocked" ${user.status === 'blocked' ? 'selected' : ''}>Заблокирован</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="edit-btn" data-id="${user.id}">Редактировать</button>
+                                <button class="delete-btn" data-id="${user.id}">Удалить</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Ошибка при загрузке пользователей:', error);
+                    showToast('Ошибка при загрузке пользователей: ' + error.message, 'error');
+                }
+            }
+
+            // Загрузка данных для таблицы обращений
+            async function loadTickets() {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch('http://localhost:8080/requests', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при загрузке обращений');
+                    }
+
+                    const requests = await response.json();
+                    const tbody = document.querySelector('#tickets-table tbody');
+                    tbody.innerHTML = '';
+
+                    requests.forEach(request => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${request.id}</td>
+                            <td>${request.name}</td>
+                            <td>${request.phone}</td>
+                            <td>${request.message}</td>
+                            <td>
+                                <select class="status-select" data-id="${request.id}">
+                                    <option value="new" ${request.status === 'new' ? 'selected' : ''}>Новое</option>
+                                    <option value="in_progress" ${request.status === 'in_progress' ? 'selected' : ''}>В обработке</option>
+                                    <option value="completed" ${request.status === 'completed' ? 'selected' : ''}>Завершено</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="edit-btn" data-id="${request.id}">Редактировать</button>
+                                <button class="delete-btn" data-id="${request.id}">Удалить</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Ошибка при загрузке обращений:', error);
+                    showToast('Ошибка при загрузке обращений: ' + error.message, 'error');
+                }
+            }
+
+            // Обработчик изменения статуса
+            document.addEventListener('change', async function(e) {
+                if (e.target.classList.contains('status-select')) {
+                    const id = e.target.getAttribute('data-id');
+                    const newStatus = e.target.value;
+                    const tableId = e.target.closest('table').id;
+
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            throw new Error('Требуется авторизация');
+                        }
+
+                        let endpoint = '';
+                        if (tableId === 'tickets-table') {
+                            endpoint = `http://localhost:8080/requests/${id}`;
+                        } else if (tableId === 'orders-table') {
+                            endpoint = `http://localhost:8080/orders/${id}`;
+                        } else if (tableId === 'users-table') {
+                            endpoint = `http://localhost:8080/users/${id}`;
+                        }
+
+                        if (endpoint) {
+                            const response = await fetch(endpoint, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ status: newStatus })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Ошибка при обновлении статуса');
+                            }
+
+                            showToast('Статус успешно обновлен', 'success');
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при обновлении статуса:', error);
+                        showToast('Ошибка при обновлении статуса: ' + error.message, 'error');
+                    }
+                }
+            });
         });
 
         // Добавляем проверку загрузки скрипта

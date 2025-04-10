@@ -160,15 +160,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Добавляем обработчик для выпадающего меню
     const userMenu = document.querySelector('.user-menu');
     if (userMenu) {
-        userMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dropdown = userMenu.querySelector('.user-dropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        });
+        const userName = userMenu.querySelector('.user-name');
+        const dropdown = userMenu.querySelector('.user-dropdown');
+        
+        if (userName) {
+            userName.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            });
+        }
+
+        // Предотвращаем закрытие меню при клике внутри него
+        if (dropdown) {
+            dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
 
         // Закрываем меню при клике вне его
         document.addEventListener('click', () => {
-            const dropdown = userMenu.querySelector('.user-dropdown');
             if (dropdown) {
                 dropdown.style.display = 'none';
             }

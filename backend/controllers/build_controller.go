@@ -72,3 +72,26 @@ func GetBuild(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, build)
 	}
 }
+
+func DeleteBuild(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID сборки"})
+			return
+		}
+
+		var build models.Pcbuild
+		if err := db.First(&build, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Сборка не найдена"})
+			return
+		}
+
+		if err := db.Delete(&build).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при удалении сборки"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Сборка успешно удалена"})
+	}
+}
