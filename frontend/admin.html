@@ -517,8 +517,9 @@
                                 row.remove();
                                 showToast('Сборка успешно удалена', 'success');
                                 
-                                // Обновляем статистику
+                                // Обновляем статистику и перезагружаем страницу
                                 loadDashboardData();
+                                location.reload();
                             } catch (error) {
                                 console.error('Ошибка при удалении сборки:', error);
                                 showToast('Ошибка при удалении сборки: ' + error.message, 'error');

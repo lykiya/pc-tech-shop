@@ -167,6 +167,7 @@
                 console.log('Обработка товара:', item);
                 const cartItem = document.createElement('div');
                 cartItem.className = 'cart-item';
+                cartItem.setAttribute('data-id', item.id);
                 
                 // Получаем данные о сборке
                 const build = item.build;
@@ -217,8 +218,31 @@
                 });
 
                 if (response.ok) {
+                    // Удаляем элемент из DOM
+                    const cartItem = document.querySelector(`.cart-item[data-id="${itemId}"]`);
+                    if (cartItem) {
+                        cartItem.remove();
+                    }
+                    
+                    // Обновляем общую сумму
+                    const items = await fetchCartItems();
+                    updateTotal(items);
+                    
+                    // Обновляем счетчик корзины
+                    updateCartCount();
+                    
                     showSuccess('Товар удален из корзины');
-                    loadCart(); // Перезагружаем корзину
+                    
+                    // Если корзина пуста, показываем сообщение
+                    if (items.length === 0) {
+                        const cartContainer = document.querySelector('.cart-items');
+                        cartContainer.innerHTML = `
+                            <div class="empty-cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <p>Корзина пуста</p>
+                            </div>
+                        `;
+                    }
                 } else {
                     showError('Не удалось удалить товар из корзины');
                 }
@@ -226,6 +250,17 @@
                 console.error('Error:', error);
                 showError('Произошла ошибка при удалении товара');
             }
+        }
+
+        // Вспомогательная функция для получения текущих товаров в корзине
+        async function fetchCartItems() {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:8080/cart', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.ok ? await response.json() : [];
         }
 
         // Функция для оформления заказа
@@ -295,6 +330,45 @@
 
         // Добавляем проверку загрузки скрипта
         console.log('Скрипт cart.html загружен');
+
+        // Добавляем обработчик для удаления товара из корзины
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            throw new Error('Требуется авторизация');
+                        }
+
+                        const response = await fetch(`http://localhost:8080/cart/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Ошибка при удалении товара из корзины');
+                        }
+
+                        // Обновляем UI
+                        const row = e.target.closest('tr');
+                        row.remove();
+                        showToast('Товар успешно удален из корзины', 'success');
+                        
+                        // Обновляем счетчик корзины и перезагружаем страницу
+                        updateCartCount();
+                        location.reload();
+                    } catch (error) {
+                        console.error('Ошибка при удалении товара:', error);
+                        showToast('Ошибка при удалении товара: ' + error.message, 'error');
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
