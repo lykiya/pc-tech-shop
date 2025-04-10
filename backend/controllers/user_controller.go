@@ -84,3 +84,23 @@ func GetUsers(db *gorm.DB) ([]models.User, error) {
 	err := db.Select("id, name, surname, email, type").Find(&users).Error
 	return users, err
 }
+
+func GetUserByID(db *gorm.DB, userID int64) (models.User, error) {
+	var user models.User
+	err := db.Select("id, name, surname, email, phone, type").Where("id = ?", userID).First(&user).Error
+	return user, err
+}
+
+func UpdateUser(db *gorm.DB, userID int64, userData struct {
+	Name    string `json:"name"`
+	Surname string `json:"surname"`
+	Phone   string `json:"phone"`
+	Email   string `json:"email"`
+}) error {
+	return db.Model(&models.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
+		"name":    userData.Name,
+		"surname": userData.Surname,
+		"phone":   userData.Phone,
+		"email":   userData.Email,
+	}).Error
+}

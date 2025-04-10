@@ -24,6 +24,41 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
+		protected.GET("/users/me", func(c *gin.Context) {
+			userID, exists := c.Get("userID")
+			if !exists {
+				c.JSON(500, gin.H{"error": "ID пользователя не найден"})
+				return
+			}
+
+			user, err := controllers.GetUserByID(db, userID.(int64))
+			if err != nil {
+				c.JSON(500, gin.H{"error": "Ошибка при получении данных пользователя"})
+				return
+			}
+			c.JSON(200, user)
+		})
+
+		protected.PUT("/users/me", func(c *gin.Context) {
+			userID := c.GetInt64("user_id")
+			var userData struct {
+				Name    string `json:"name"`
+				Surname string `json:"surname"`
+				Phone   string `json:"phone"`
+				Email   string `json:"email"`
+			}
+			if err := c.ShouldBindJSON(&userData); err != nil {
+				c.JSON(400, gin.H{"error": "Неверный формат данных"})
+				return
+			}
+
+			if err := controllers.UpdateUser(db, userID, userData); err != nil {
+				c.JSON(500, gin.H{"error": "Ошибка при обновлении данных пользователя"})
+				return
+			}
+			c.JSON(200, gin.H{"message": "Данные пользователя успешно обновлены"})
+		})
+
 		protected.GET("/users", func(c *gin.Context) {
 			users, err := controllers.GetUsers(db)
 			if err != nil {

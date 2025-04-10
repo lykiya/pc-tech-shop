@@ -179,9 +179,9 @@
                 <i class="fas fa-user"></i>
             </div>
             <div class="profile-info">
-                <h1 id="userName">Иван Иванов</h1>
-                <p id="userEmail">ivan@example.com</p>
-                <p>Дата регистрации: <span id="registrationDate">01.01.2024</span></p>
+                <h1 id="userName"></h1>
+                <p id="userEmail"></p>
+                <p>Дата регистрации: <span id="registrationDate"></span></p>
             </div>
         </div>
 
@@ -191,6 +191,10 @@
                 <div class="form-group">
                     <label for="name">Имя</label>
                     <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="surname">Фамилия</label>
+                    <input type="text" id="surname" name="surname">
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
@@ -256,18 +260,123 @@
             }
         }
 
-        // Загружаем профиль при загрузке страницы
+        // Функция для обновления профиля
+        async function updateProfile(event) {
+            event.preventDefault();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showError('Требуется авторизация');
+                return;
+            }
+
+            const formData = {
+                name: document.getElementById('name').value,
+                surname: document.getElementById('surname').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:8080/users/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    showSuccess('Профиль успешно обновлен');
+                    
+                    // Обновляем данные в localStorage
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    user.name = formData.name;
+                    user.surname = formData.surname;
+                    user.phone = formData.phone;
+                    user.email = formData.email;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    // Обновляем отображаемое имя в шапке
+                    const userDisplayName = document.getElementById('userDisplayName');
+                    if (userDisplayName) {
+                        userDisplayName.textContent = `${formData.name} ${formData.surname}`.trim() || formData.email;
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Не удалось обновить профиль');
+                }
+            } catch (error) {
+                console.error('Ошибка при обновлении профиля:', error);
+                showError('Произошла ошибка при обновлении профиля');
+            }
+        }
+
+        // Функция для загрузки данных профиля
+        async function loadProfileData() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showError('Требуется авторизация');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    // Заполняем форму данными пользователя
+                    document.getElementById('name').value = userData.name || '';
+                    document.getElementById('surname').value = userData.surname || '';
+                    document.getElementById('phone').value = userData.phone || '';
+                    document.getElementById('email').value = userData.email || '';
+                    
+                    // Обновляем информацию в профиле
+                    const userName = document.getElementById('userName');
+                    const userEmail = document.getElementById('userEmail');
+                    const registrationDate = document.getElementById('registrationDate');
+                    
+                    if (userName) {
+                        userName.textContent = `${userData.name} ${userData.surname}`.trim() || 'Пользователь';
+                    }
+                    if (userEmail) {
+                        userEmail.textContent = userData.email || '';
+                    }
+                    if (registrationDate) {
+                        // Форматируем дату регистрации
+                        const date = new Date(userData.created_at);
+                        registrationDate.textContent = date.toLocaleDateString('ru-RU');
+                    }
+                    
+                    // Обновляем отображаемое имя в шапке
+                    const userDisplayName = document.getElementById('userDisplayName');
+                    if (userDisplayName) {
+                        userDisplayName.textContent = `${userData.name} ${userData.surname}`.trim() || userData.email;
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Не удалось загрузить данные профиля');
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке профиля:', error);
+                showError('Произошла ошибка при загрузке профиля');
+            }
+        }
+
+        // Загружаем данные профиля при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM загружен, начинаем инициализацию...');
+            loadProfileData();
             
-            // Сначала загружаем профиль
-            console.log('Загружаем профиль...');
-            loadProfile();
-            
-            // Затем обновляем UI
-            console.log('Обновляем UI...');
-            updateCartCount();
-            updateUserName();
+            // Добавляем обработчик для формы
+            const profileForm = document.getElementById('profile-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', updateProfile);
+            }
 
             // Добавляем обработчик для кнопки выхода
             const logoutBtn = document.getElementById('logoutBtn');
@@ -276,23 +385,7 @@
                     e.preventDefault();
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-                    window.location.reload();
-                });
-            }
-
-            // Добавляем обработчик для выпадающего меню
-            const userMenu = document.querySelector('.user-menu');
-            if (userMenu) {
-                userMenu.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const dropdown = userMenu.querySelector('.user-dropdown');
-                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-                });
-
-                // Закрываем меню при клике вне его
-                document.addEventListener('click', () => {
-                    const dropdown = userMenu.querySelector('.user-dropdown');
-                    dropdown.style.display = 'none';
+                    window.location.href = 'login.html';
                 });
             }
         });
