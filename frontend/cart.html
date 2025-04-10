@@ -6,6 +6,141 @@
     <title>Корзина - PC Tech Shop</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .cart-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .cart-items {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cart-summary {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #666;
+        }
+
+        .cart-total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .cart-total-row.final {
+            font-size: 1.2em;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Стили для пустой корзины */
+        .empty-cart {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-cart i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .empty-cart p {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        /* Стили для заголовков */
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        /* Стили для кнопок */
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .remove-btn:hover {
+            color: #c82333;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -46,10 +181,12 @@
                 </div>
                 <div class="cart-summary">
                     <div class="cart-total">
-                        <span>Итого:</span>
-                        <span id="cart-total">0 ₽</span>
+                        <div class="cart-total-row">
+                            <span>Итого:</span>
+                            <span id="cartTotal">0 руб.</span>
+                        </div>
+                        <button class="checkout-btn" id="checkoutBtn">Оформить заказ</button>
                     </div>
-                    <button class="checkout-button" onclick="checkout()">Оформить заказ</button>
                 </div>
             </div>
         </div>
@@ -203,7 +340,7 @@
                 if (!build) return sum;
                 return sum + (build.total_price * item.quantity);
             }, 0);
-            document.getElementById('cart-total').textContent = `${total.toLocaleString()} ₽`;
+            document.getElementById('cartTotal').textContent = `${total.toLocaleString()} руб.`;
         }
 
         // Функция для удаления товара из корзины
@@ -287,7 +424,7 @@
             }
         }
 
-        // Загружаем корзину при загрузке страницы
+        // Загружаем данные при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM загружен, начинаем инициализацию...');
             
@@ -300,6 +437,14 @@
             updateCartCount();
             updateUserName();
 
+            // Добавляем обработчик для кнопки оформления заказа
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', () => {
+                    window.location.href = 'checkout.html';
+                });
+            }
+
             // Добавляем обработчик для кнопки выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
@@ -307,7 +452,7 @@
                     e.preventDefault();
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
-                    window.location.reload();
+                    window.location.href = 'login.html';
                 });
             }
 

@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'orders':
                 // Загрузка заказов
                 try {
-                    const response = await fetch('http://localhost:8080/admin/orders', {
+                    const response = await fetch('http://localhost:8080/orders', {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (response.ok) {
                         const orders = await response.json();
                         updateOrdersList(orders);
+                    } else {
+                        console.error('Error loading orders:', response.status);
                     }
                 } catch (error) {
                     console.error('Error loading orders:', error);
@@ -197,6 +199,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <th>Статус</th>
                             <th>Сумма</th>
                             <th>Дата</th>
+                            <th>Адрес доставки</th>
+                            <th>Способ оплаты</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
@@ -204,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${orders.map(order => `
                             <tr>
                                 <td>${order.id}</td>
-                                <td>${order.user_name}</td>
+                                <td>${order.user_id}</td>
                                 <td>
                                     <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
                                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Ожидает</option>
@@ -214,8 +218,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
                                     </select>
                                 </td>
-                                <td>${order.total.toLocaleString()} ₽</td>
-                                <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                                <td>${order.total_price.toLocaleString()} ₽</td>
+                                <td>${new Date(order.order_date).toLocaleDateString()}</td>
+                                <td>${order.shipping_address}</td>
+                                <td>${order.payment_method === 'card' ? 'Карта' : 'Наличные'}</td>
                                 <td>
                                     <button class="action-btn edit-btn" onclick="viewOrder(${order.id})">
                                         <i class="fas fa-eye"></i>
@@ -300,17 +306,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    window.updateOrderStatus = async function(orderId, status) {
+    window.updateOrderStatus = async function(orderId, newStatus) {
+        const token = localStorage.getItem('token');
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/admin/orders/${orderId}/status`, {
+            const response = await fetch(`http://localhost:8080/orders/${orderId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status: newStatus })
             });
+
             if (response.ok) {
                 showToast('Успешно', 'Статус заказа обновлен', 'success');
             } else {

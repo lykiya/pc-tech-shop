@@ -660,11 +660,15 @@
             async function loadOrders() {
                 try {
                     const token = localStorage.getItem('token');
+                    console.log('Loading orders with token:', token);
+                    
                     if (!token) {
+                        console.error('No token found in localStorage');
                         throw new Error('Требуется авторизация');
                     }
 
-                    const response = await fetch('http://localhost:8080/api/orders', {
+                    console.log('Making request to /orders endpoint');
+                    const response = await fetch('http://localhost:8080/orders', {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -672,7 +676,10 @@
                         }
                     });
 
+                    console.log('Response status:', response.status);
                     if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
                         throw new Error('Ошибка при загрузке заказов');
                     }
 

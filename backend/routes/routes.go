@@ -14,6 +14,7 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 
 	// Initialize controllers
 	requestController := controllers.NewRequestController(db)
+	orderController := controllers.NewOrderController(db)
 
 	// Public routes
 	router.POST("/register", controllers.RegisterUser(db))
@@ -82,6 +83,10 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		// Protected request routes (admin only)
 		protected.GET("/requests", requestController.GetRequests)
 		protected.PUT("/requests/:id", requestController.UpdateRequestStatus)
+
+		// Order routes
+		protected.POST("/orders", orderController.CreateOrder)
+		protected.GET("/orders", orderController.GetOrders)
 	}
 
 	// Product routes
