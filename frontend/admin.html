@@ -211,6 +211,99 @@
             outline: none;
             border-color: var(--primary-color);
         }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -268,6 +361,7 @@
                 <li><a href="#" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Дашборд</a></li>
                 <li><a href="#" data-section="products"><i class="fas fa-box"></i> Сборки</a></li>
                 <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Заказы</a></li>
+                <li><a href="#" data-section="components"><i class="fas fa-microchip"></i> Комплектующие</a></li>
                 <li><a href="#" data-section="users"><i class="fas fa-users"></i> Пользователи</a></li>
                 <li><a href="#" data-section="tickets"><i class="fas fa-ticket-alt"></i> Обращения</a></li>
             </ul>
@@ -327,16 +421,133 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Клиент</th>
+                            <th>Пользователь</th>
+                            <th>Дата заказа</th>
                             <th>Сумма</th>
                             <th>Статус</th>
-                            <th>Дата</th>
+                            <th>Адрес доставки</th>
+                            <th>Способ оплаты</th>
+                            <th>Статус оплаты</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Секция комплектующих -->
+            <div id="components" class="admin-section">
+                <div class="admin-section-header">
+                    <h2>Комплектующие</h2>
+                    <button class="btn btn-primary" onclick="showAddComponentModal()">Добавить комплектующее</button>
+                </div>
+                <div class="component-tabs">
+                    <button class="component-tab active" data-category="cpu">Процессоры</button>
+                    <button class="component-tab" data-category="gpu">Видеокарты</button>
+                    <button class="component-tab" data-category="motherboard">Материнские платы</button>
+                    <button class="component-tab" data-category="ram">Оперативная память</button>
+                    <button class="component-tab" data-category="ssd">SSD</button>
+                    <button class="component-tab" data-category="hdd">HDD</button>
+                    <button class="component-tab" data-category="power_unit">Блоки питания</button>
+                </div>
+                <table class="admin-table" id="components-table">
+                    <thead>
+                        <tr id="cpu-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Производитель</th>
+                            <th>Ядра</th>
+                            <th>Потоки</th>
+                            <th>Сокет</th>
+                            <th>Цена</th>
+                            <th>Дата выпуска</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="gpu-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Производитель</th>
+                            <th>Объем VRAM</th>
+                            <th>Тип памяти</th>
+                            <th>Частота GPU</th>
+                            <th>Цена</th>
+                            <th>Дата выпуска</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="motherboard-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Производитель</th>
+                            <th>Сокет</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="ram-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Объем</th>
+                            <th>Тип DDR</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="ssd-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Объем</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="power-unit-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Мощность</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                        <tr id="hdd-columns" style="display: none;">
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Объем</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Модальное окно добавления/редактирования комплектующего -->
+            <div id="componentModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeComponentModal()">&times;</span>
+                    <h2 id="componentModalTitle">Добавить HDD</h2>
+                    <form id="componentForm">
+                        <input type="hidden" id="componentId">
+                        <div class="form-group">
+                            <label for="componentName">Название</label>
+                            <input type="text" id="componentName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="componentPrice">Цена</label>
+                            <input type="number" id="componentPrice" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="componentQuantity">Количество</label>
+                            <input type="number" id="componentQuantity" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hddCapacity">Объем (ГБ)</label>
+                            <input type="number" id="hddCapacity" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="componentDescription">Описание</label>
+                            <textarea id="componentDescription" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </form>
+                </div>
             </div>
 
             <!-- Секция пользователей -->
@@ -465,6 +676,9 @@
                             break;
                         case 'orders':
                             loadOrders();
+                            break;
+                        case 'components':
+                            loadComponents();
                             break;
                         case 'users':
                             loadUsers();
@@ -684,38 +898,49 @@
                     }
 
                     const orders = await response.json();
-                    const tbody = document.querySelector('#orders-table tbody');
+                    console.log('Received orders:', orders);
+                    
+                    const ordersTable = document.getElementById('orders-table');
+                    if (!ordersTable) {
+                        console.error('Orders table not found');
+                        return;
+                    }
+
+                    const tbody = ordersTable.querySelector('tbody');
+                    if (!tbody) {
+                        console.error('Table body not found');
+                        return;
+                    }
+
                     tbody.innerHTML = '';
 
-                    orders.forEach(order => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${order.id}</td>
-                            <td>${order.customer_name}</td>
-                            <td>$${order.total_price}</td>
-                            <td>
-                                <select class="status-select" data-id="${order.id}">
-                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>В обработке</option>
-                                    <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>В работе</option>
-                                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Завершен</option>
-                                    <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
-                                </select>
-                            </td>
-                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <button class="action-btn edit-btn" data-id="${order.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn delete-btn" data-id="${order.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                    if (orders && orders.length > 0) {
+                        orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.id || '-'}</td>
+                                <td>${order.user_name || '-'}</td>
+                                <td>${order.order_date ? new Date(order.order_date).toLocaleString() : '-'}</td>
+                                <td>${order.total_price ? order.total_price + ' ₽' : '-'}</td>
+                                <td>${order.status || '-'}</td>
+                                <td>${order.shipping_address || '-'}</td>
+                                <td>${order.payment_method || '-'}</td>
+                                <td>${order.payment_status || '-'}</td>
+                                <td>
+                                    <button onclick="viewOrder(${order.id})" class="btn btn-sm btn-info">Просмотр</button>
+                                    <button onclick="updateOrderStatus(${order.id})" class="btn btn-sm btn-warning">Изменить статус</button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = '<td colspan="9" class="text-center">Заказов не найдено</td>';
+                        tbody.appendChild(row);
+                    }
                 } catch (error) {
-                    console.error('Ошибка при загрузке заказов:', error);
-                    showToast('Ошибка при загрузке заказов: ' + error.message, 'error');
+                    console.error('Error in loadOrders:', error);
+                    alert(error.message);
                 }
             }
 
@@ -860,6 +1085,376 @@
                         showToast('Ошибка при обновлении статуса: ' + error.message, 'error');
                     }
                 }
+            });
+
+            // Функции для работы с комплектующими
+            function loadComponents(category = 'cpu') {
+                fetch(`http://localhost:8080/components?category=${category}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Ошибка сервера: ' + response.status);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.querySelector('#components-table tbody');
+                    tbody.innerHTML = '';
+                    
+                    // Скрываем все заголовки
+                    document.getElementById('cpu-columns').style.display = 'none';
+                    document.getElementById('gpu-columns').style.display = 'none';
+                    document.getElementById('motherboard-columns').style.display = 'none';
+                    document.getElementById('ram-columns').style.display = 'none';
+                    document.getElementById('ssd-columns').style.display = 'none';
+                    document.getElementById('power-unit-columns').style.display = 'none';
+                    document.getElementById('hdd-columns').style.display = 'none';
+                    
+                    // Показываем нужные заголовки в зависимости от категории
+                    if (category === 'cpu') {
+                        document.getElementById('cpu-columns').style.display = 'table-row';
+                    } else if (category === 'gpu') {
+                        document.getElementById('gpu-columns').style.display = 'table-row';
+                    } else if (category === 'motherboard') {
+                        document.getElementById('motherboard-columns').style.display = 'table-row';
+                    } else if (category === 'ram') {
+                        document.getElementById('ram-columns').style.display = 'table-row';
+                    } else if (category === 'ssd') {
+                        document.getElementById('ssd-columns').style.display = 'table-row';
+                    } else if (category === 'power_unit') {
+                        document.getElementById('power-unit-columns').style.display = 'table-row';
+                    } else if (category === 'hdd') {
+                        document.getElementById('hdd-columns').style.display = 'table-row';
+                    }
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(component => {
+                            const row = document.createElement('tr');
+                            if (category === 'cpu') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.manufacturer || '-'}</td>
+                                    <td>${component.data.cores || '-'}</td>
+                                    <td>${component.data.threads || '-'}</td>
+                                    <td>${component.data.socket || '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>${component.data.release_date ? new Date(component.data.release_date).toLocaleDateString() : '-'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'gpu') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.manufacturer || '-'}</td>
+                                    <td>${component.data.vram ? component.data.vram + ' ГБ' : '-'}</td>
+                                    <td>${component.data.memory_type || '-'}</td>
+                                    <td>${component.data.gpu_clock ? component.data.gpu_clock + ' МГц' : '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>${component.data.release_date ? new Date(component.data.release_date).toLocaleDateString() : '-'}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'motherboard') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.manufacturer || '-'}</td>
+                                    <td>${component.data.socket || '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'ram') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                    <td>${component.data.ddr || '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'ssd') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'power_unit') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.wattage ? component.data.wattage + ' Вт' : '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            } else if (category === 'hdd') {
+                                row.innerHTML = `
+                                    <td>${component.data.id}</td>
+                                    <td>${component.data.name}</td>
+                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                    <td>${component.data.price} ₽</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                `;
+                            }
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center">Нет комплектующих</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке комплектующих:', error);
+                    const tbody = document.querySelector('#components-table tbody');
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">Ошибка при загрузке комплектующих: ' + error.message + '</td></tr>';
+                });
+            }
+
+            function getCategoryName(category) {
+                const categories = {
+                    'all': 'Все',
+                    'cpu': 'Процессор',
+                    'gpu': 'Видеокарта',
+                    'motherboard': 'Материнская плата',
+                    'ram': 'Оперативная память',
+                    'ssd': 'SSD',
+                    'hdd': 'HDD',
+                    'power_unit': 'Блок питания'
+                };
+                return categories[category] || category;
+            }
+
+            // Добавляем обработчик для вкладок категорий
+            document.querySelectorAll('.component-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Удаляем класс active у всех вкладок
+                    document.querySelectorAll('.component-tab').forEach(t => t.classList.remove('active'));
+                    // Добавляем класс active текущей вкладке
+                    this.classList.add('active');
+                    // Загружаем комплектующие выбранной категории
+                    loadComponents(this.dataset.category);
+                });
+            });
+
+            function showAddComponentModal() {
+                document.getElementById('componentModal').style.display = 'block';
+                document.getElementById('componentForm').reset();
+                document.getElementById('componentForm').dataset.mode = 'add';
+            }
+
+            function editComponent(id, category) {
+                fetch(`http://localhost:8080/components/${id}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => response.json())
+                .then(component => {
+                    document.getElementById('componentName').value = component.name;
+                    document.getElementById('componentPrice').value = component.price;
+                    document.getElementById('componentQuantity').value = component.quantity;
+                    
+                    // Заполняем специфичные поля в зависимости от категории
+                    if (category === 'cpu') {
+                        document.getElementById('cpuSocket').value = component.socket || '';
+                        document.getElementById('cpuCores').value = component.cores || '';
+                        document.getElementById('cpuThreads').value = component.threads || '';
+                        document.getElementById('cpuReleaseDate').value = component.release_date || '';
+                    } else if (category === 'motherboard') {
+                        document.getElementById('motherboardSocket').value = component.socket || '';
+                    } else if (category === 'ram') {
+                        document.getElementById('ramCapacity').value = component.capacity || '';
+                        document.getElementById('ramDDR').value = component.ddr || 'DDR3';
+                    } else if (category === 'ssd') {
+                        document.getElementById('ssdCapacity').value = component.capacity || '';
+                    } else if (category === 'power_unit') {
+                        document.getElementById('powerUnitWattage').value = component.wattage || '';
+                    } else if (category === 'hdd') {
+                        document.getElementById('hddCapacity').value = component.capacity || '';
+                    }
+                    
+                    document.getElementById('componentDescription').value = component.description || '';
+                    
+                    document.getElementById('componentForm').dataset.mode = 'edit';
+                    document.getElementById('componentForm').dataset.id = id;
+                    document.getElementById('componentModal').style.display = 'block';
+                    updateComponentFields();
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке комплектующего:', error);
+                    alert('Ошибка при загрузке комплектующего');
+                });
+            }
+
+            function deleteComponent(id, category) {
+                if (confirm('Вы уверены, что хотите удалить это комплектующее?')) {
+                    fetch(`http://localhost:8080/components/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            loadComponents();
+                        } else {
+                            throw new Error('Ошибка при удалении комплектующего');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при удалении комплектующего:', error);
+                        alert('Ошибка при удалении комплектующего');
+                    });
+                }
+            }
+
+            function handleComponentFormSubmit(event) {
+                event.preventDefault();
+                const form = event.target;
+                const mode = form.dataset.mode;
+                const id = form.dataset.id;
+                const category = document.getElementById('componentCategory').value;
+                
+                const componentData = {
+                    name: document.getElementById('componentName').value,
+                    category: category,
+                    price: parseFloat(document.getElementById('componentPrice').value),
+                    quantity: parseInt(document.getElementById('componentQuantity').value),
+                    description: document.getElementById('componentDescription').value
+                };
+
+                // Добавляем специфичные поля в зависимости от категории
+                if (category === 'cpu') {
+                    componentData.socket = document.getElementById('cpuSocket').value;
+                    componentData.cores = parseInt(document.getElementById('cpuCores').value);
+                    componentData.threads = parseInt(document.getElementById('cpuThreads').value);
+                    componentData.release_date = document.getElementById('cpuReleaseDate').value;
+                } else if (category === 'motherboard') {
+                    componentData.socket = document.getElementById('motherboardSocket').value;
+                } else if (category === 'ram') {
+                    componentData.capacity = parseInt(document.getElementById('ramCapacity').value);
+                    componentData.ddr = document.getElementById('ramDDR').value;
+                } else if (category === 'ssd') {
+                    componentData.capacity = parseInt(document.getElementById('ssdCapacity').value);
+                } else if (category === 'power_unit') {
+                    componentData.wattage = parseInt(document.getElementById('powerUnitWattage').value);
+                } else if (category === 'hdd') {
+                    componentData.capacity = parseInt(document.getElementById('hddCapacity').value);
+                }
+
+                const url = mode === 'add' ? 'http://localhost:8080/components' : `http://localhost:8080/components/${id}`;
+                const method = mode === 'add' ? 'POST' : 'PUT';
+
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify(componentData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('componentModal').style.display = 'none';
+                        loadComponents(category);
+                    } else {
+                        throw new Error('Ошибка при сохранении комплектующего');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при сохранении комплектующего:', error);
+                    alert('Ошибка при сохранении комплектующего');
+                });
+            }
+
+            function updateComponentFields() {
+                const category = document.getElementById('componentCategory').value;
+                const gpuFields = document.getElementById('gpuFields');
+                
+                // Скрываем все специфичные поля
+                gpuFields.style.display = 'none';
+                
+                // Показываем поля в зависимости от категории
+                if (category === 'gpu') {
+                    gpuFields.style.display = 'block';
+                }
+            }
+
+            // Обработчики событий
+            document.addEventListener('DOMContentLoaded', function() {
+                // Проверка авторизации
+                if (!localStorage.getItem('token')) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Загрузка начальных данных
+                loadComponents();
+
+                // Обработчики модального окна
+                document.querySelector('.close').addEventListener('click', function() {
+                    document.getElementById('componentModal').style.display = 'none';
+                });
+
+                document.getElementById('componentForm').addEventListener('submit', handleComponentFormSubmit);
             });
         });
 

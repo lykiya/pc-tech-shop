@@ -65,8 +65,36 @@ func (oc *OrderController) GetOrders(c *gin.Context) {
 		return
 	}
 
-	var orders []models.Order
-	if err := oc.db.Where("user_id = ?", userID).Find(&orders).Error; err != nil {
+	// Получаем роль пользователя из контекста
+	role, exists := c.Get("role")
+	if !exists {
+		c.JSON(401, gin.H{"error": "Роль пользователя не определена"})
+		return
+	}
+
+	var orders []struct {
+		models.Order
+		UserName string `json:"user_name"`
+	}
+
+	var err error
+
+	// Если пользователь - админ, возвращаем все заказы
+	if role == "admin" {
+		err = oc.db.Table("orders").
+			Select("orders.*, users.name as user_name").
+			Joins("LEFT JOIN users ON orders.user_id = users.id").
+			Find(&orders).Error
+	} else {
+		// Иначе возвращаем только заказы пользователя
+		err = oc.db.Table("orders").
+			Select("orders.*, users.name as user_name").
+			Joins("LEFT JOIN users ON orders.user_id = users.id").
+			Where("orders.user_id = ?", userID).
+			Find(&orders).Error
+	}
+
+	if err != nil {
 		c.JSON(500, gin.H{"error": "Ошибка при получении заказов"})
 		return
 	}

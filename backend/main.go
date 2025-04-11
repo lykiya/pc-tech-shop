@@ -42,6 +42,12 @@ func main() {
 
 	router := gin.Default()
 
+	// Add database middleware
+	router.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
+
 	router.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "http://127.0.0.1:5500")                // Ваш фронт (порт 5500)
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")     // Разрешаем методы

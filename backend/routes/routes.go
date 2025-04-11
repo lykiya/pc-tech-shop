@@ -87,6 +87,13 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		// Order routes
 		protected.POST("/orders", orderController.CreateOrder)
 		protected.GET("/orders", orderController.GetOrders)
+
+		// Component routes
+		protected.GET("/components", controllers.GetComponents)
+		protected.GET("/components/:id", controllers.GetComponent)
+		protected.POST("/components", controllers.CreateComponent)
+		protected.PUT("/components/:id", controllers.UpdateComponent)
+		protected.DELETE("/components/:id", controllers.DeleteComponent)
 	}
 
 	// Product routes
