@@ -40,11 +40,8 @@
 
         .checkout-container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
         .checkout-form {
@@ -93,7 +90,7 @@
         .checkout-item {
             display: flex;
             align-items: center;
-            padding: 15px 0;
+            padding: 20px 0;
             border-bottom: 1px solid #eee;
         }
 
@@ -102,11 +99,13 @@
         }
 
         .checkout-item img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 15px;
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-right: 20px;
+            background: #f5f5f5;
+            padding: 10px;
         }
 
         .checkout-item-info {
@@ -114,12 +113,16 @@
         }
 
         .checkout-item-title {
-            font-weight: 500;
-            margin-bottom: 5px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
         }
 
         .checkout-item-price {
-            color: #666;
+            font-size: 18px;
+            color: var(--primary-color);
+            font-weight: 500;
         }
 
         .checkout-total {
@@ -131,13 +134,18 @@
         .checkout-total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
         }
 
         .checkout-total-row.final {
-            font-size: 1.2em;
-            font-weight: 500;
+            font-size: 24px;
+            font-weight: 600;
             color: #333;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
 
         .checkout-btn {
@@ -308,6 +316,87 @@
             font-size: 12px;
             min-width: 18px;
             text-align: center;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+        }
+
+        .order-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-right: 20px;
+            background: #f5f5f5;
+            padding: 10px;
+        }
+
+        .order-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .order-item-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .order-item-description {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .order-item-price {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .order-item-quantity {
+            font-size: 16px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 25px 0;
+            }
+
+            .checkout-item img {
+                width: 100%;
+                height: 200px;
+                margin-bottom: 20px;
+            }
+
+            .checkout-item-title {
+                font-size: 22px;
+            }
+
+            .checkout-item-price {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -596,10 +685,15 @@
             cartData.items.forEach(item => {
                 if (!item) return;
                 
+                let imageUrl = item.image_url;
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    imageUrl = 'http://localhost:8080' + imageUrl;
+                }
+                
                 const itemElement = document.createElement('div');
                 itemElement.className = 'checkout-item';
                 itemElement.innerHTML = `
-                    <img src="${item.image_url}" alt="${item.name}">
+                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='http://localhost:8080/images/builds/default.jpg'">
                     <div class="checkout-item-info">
                         <div class="checkout-item-title">${item.name}</div>
                         <div class="checkout-item-price">${item.price.toLocaleString()} руб.</div>
@@ -945,6 +1039,54 @@
                 showError('Произошла ошибка при загрузке страницы');
             }
         });
+
+        // Функция для отображения товаров в заказе
+        function displayOrderItems(items) {
+            const orderItemsContainer = document.getElementById('orderItems');
+            const orderTotal = document.getElementById('orderTotal');
+            const subtotal = document.getElementById('subtotal');
+
+            if (!items || items.length === 0) {
+                orderItemsContainer.innerHTML = '<p>Нет товаров в заказе</p>';
+                orderTotal.textContent = '0 руб.';
+                subtotal.textContent = '0 руб.';
+                return;
+            }
+
+            let total = 0;
+            orderItemsContainer.innerHTML = '';
+
+            items.forEach(item => {
+                if (!item.build) {
+                    console.error('Отсутствуют данные о сборке:', item);
+                    return;
+                }
+
+                let imageUrl = item.build.image_url;
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    imageUrl = 'http://localhost:8080' + imageUrl;
+                }
+
+                const itemTotal = item.build.total_price * item.quantity;
+                total += itemTotal;
+
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                orderItem.innerHTML = `
+                    <img src="${imageUrl}" alt="${item.build.name}" onerror="this.src='http://localhost:8080/images/builds/default.jpg'">
+                    <div class="order-item-info">
+                        <h3 class="order-item-title">${item.build.name}</h3>
+                        <p class="order-item-description">${item.build.description || 'Описание отсутствует'}</p>
+                        <div class="order-item-price">${itemTotal.toLocaleString()} ₽</div>
+                        <div class="order-item-quantity">Количество: ${item.quantity}</div>
+                    </div>
+                `;
+                orderItemsContainer.appendChild(orderItem);
+            });
+
+            orderTotal.textContent = `${total.toLocaleString()} ₽`;
+            subtotal.textContent = `${total.toLocaleString()} ₽`;
+        }
     </script>
 </body>
 </html> 

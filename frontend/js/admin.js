@@ -532,4 +532,64 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.close').addEventListener('click', function() {
         document.getElementById('componentModal').style.display = 'none';
     });
+
+    async function loadProducts() {
+        try {
+            const response = await fetch('http://localhost:8080/builds', {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке сборок');
+            }
+
+            const builds = await response.json();
+            const tbody = document.querySelector('#products-table tbody');
+            tbody.innerHTML = '';
+
+            builds.forEach(build => {
+                const tr = document.createElement('tr');
+                let imageUrl = build.image_url;
+                
+                // Если URL локальный, добавляем базовый URL сервера
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    imageUrl = 'http://localhost:8080' + imageUrl;
+                }
+                
+                tr.innerHTML = `
+                    <td>${build.id}</td>
+                    <td>
+                        <img src="${imageUrl || 'images/builds/default.jpg'}" 
+                             alt="${build.name}" 
+                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                    </td>
+                    <td>${build.name}</td>
+                    <td>${build.description}</td>
+                    <td>$${build.total_price}</td>
+                    <td>
+                        <button class="action-btn edit-btn" data-id="${build.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${build.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке сборок:', error);
+            showToast('Ошибка при загрузке сборок: ' + error.message, 'error');
+        }
+    }
+
+    // Добавляем обработчик для кнопки загрузки сборок
+    const productsTab = document.querySelector('a[data-section="products"]');
+    if (productsTab) {
+        productsTab.addEventListener('click', function() {
+            loadProducts();
+        });
+    }
 }); 

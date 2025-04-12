@@ -471,12 +471,18 @@
                 buildsContainer.innerHTML = '';
 
                 builds.forEach(build => {
+                    let imageUrl = build.image_url;
+                    // Если URL локальный, добавляем базовый URL сервера
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                        imageUrl = 'http://localhost:8080' + imageUrl;
+                    }
+
                     const buildCard = document.createElement('div');
                     buildCard.className = 'build-card';
                     buildCard.style.display = 'flex';
                     buildCard.innerHTML = `
                         <div class="build-image">
-                            <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" alt="${build.name || 'Сборка ПК'}">
+                            <img src="${imageUrl || 'images/builds/default.jpg'}" alt="${build.name || 'Сборка ПК'}">
                         </div>
                         <div class="build-info">
                             <div>
@@ -717,21 +723,25 @@
             }
 
             builds.forEach(build => {
+                let imageUrl = build.image_url;
+                // Если URL локальный, добавляем базовый URL сервера
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    imageUrl = 'http://localhost:8080' + imageUrl;
+                }
+
                 const buildCard = document.createElement('div');
-                buildCard.className = 'product-card';
+                buildCard.className = 'build-card';
                 buildCard.innerHTML = `
-                    <div class="product-image" style="width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" 
-                             alt="${build.name}"
-                             style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="build-image">
+                        <img src="${imageUrl || 'images/builds/default.jpg'}" alt="${build.name}">
                     </div>
-                    <div class="product-info" style="flex: 1; padding: 20px;">
-                        <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name}</a></h3>
+                    <div class="build-info">
+                        <h3>${build.name}</h3>
                         <p>${build.description}</p>
-                        <div class="product-price">
+                        <div class="build-price">
                             <span class="price">${build.total_price.toLocaleString()} ₽</span>
                             <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
-                                <i class="fas fa-shopping-cart"></i>
+                                <i class="fas fa-shopping-cart"></i> Добавить в корзину
                             </button>
                         </div>
                     </div>

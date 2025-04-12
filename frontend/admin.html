@@ -2023,7 +2023,23 @@
                     // Загружаем изображение, если оно выбрано
                     const imageFile = document.getElementById('buildImage').files[0];
                     if (imageFile) {
-                        formData.image_url = await uploadImage(imageFile);
+                        const imageFormData = new FormData();
+                        imageFormData.append('image', imageFile);
+
+                        const imageResponse = await fetch('http://localhost:8080/builds/upload', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: imageFormData
+                        });
+
+                        if (!imageResponse.ok) {
+                            throw new Error('Ошибка при загрузке изображения');
+                        }
+
+                        const imageData = await imageResponse.json();
+                        formData.image_url = imageData.image_url;
                     }
 
                     // Отправляем данные сборки

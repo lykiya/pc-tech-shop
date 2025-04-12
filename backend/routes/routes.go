@@ -21,6 +21,10 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	router.POST("/login", controllers.LoginUser(db))
 	router.POST("/requests", requestController.CreateRequest)
 
+	// Public routes for builds
+	router.GET("/builds", controllers.GetBuilds(db))
+	router.GET("/builds/:id", controllers.GetBuild(db))
+
 	// Protected routes
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
@@ -94,18 +98,21 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		protected.POST("/components", controllers.CreateComponent)
 		protected.PUT("/components/:id", controllers.UpdateComponent)
 		protected.DELETE("/components/:id", controllers.DeleteComponent)
+
+		// Protected build routes (only write operations)
+		builds := protected.Group("/builds")
+		{
+			builds.POST("", controllers.CreateBuild(db))
+			builds.DELETE("/:id", controllers.DeleteBuild(db))
+			builds.POST("/upload", controllers.UploadBuildImage)
+		}
 	}
 
 	// Product routes
 	router.GET("/products", controllers.GetProducts(db))
 	router.GET("/products/:id", controllers.GetProduct(db))
 
-	// Public routes for builds
-	router.GET("/builds", controllers.GetBuilds(db))
-	router.GET("/builds/:id", controllers.GetBuild(db))
-	router.DELETE("/builds/:id", controllers.DeleteBuild(db))
-	router.POST("/builds/upload", controllers.UploadBuildImage)
-
 	// Настраиваем статические файлы
 	router.Static("/static", "./static")
+	router.Static("/images", "./static/images")
 }

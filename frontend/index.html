@@ -8,103 +8,153 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="js/common.js"></script>
     <script src="js/toast.js"></script>
-    <script>
-        // Функция для загрузки популярных товаров
-        async function loadPopularProducts() {
-            try {
-                const response = await fetch('http://localhost:8080/builds');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const allBuilds = await response.json();
-                console.log('Все сборки:', allBuilds);
+    <style>
+        /* Стили для карточек товаров */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
 
-                if (!allBuilds || allBuilds.length === 0) {
-                    throw new Error('Сборки не найдены');
-                }
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
-                const randomBuilds = allBuilds.sort(() => 0.5 - Math.random()).slice(0, 4);
-                console.log('Выбранные сборки:', randomBuilds);
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
 
-                const productsContainer = document.getElementById('featured-products');
-                if (!productsContainer) {
-                    console.error('Элемент featured-products не найден');
-                    return;
-                }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-                productsContainer.innerHTML = '';
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
 
-                randomBuilds.forEach(build => {
-                    const productCard = document.createElement('div');
-                    productCard.className = 'product-card';
-                    productCard.innerHTML = `
-                        <div class="product-image">
-                            <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" alt="${build.name || 'Сборка ПК'}">
-                        </div>
-                        <div class="product-info">
-                            <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name || 'Сборка ПК'}</a></h3>
-                            <p>${build.description || 'Готовая сборка компьютера'}</p>
-                            <div class="product-price">
-                                <span class="price">${build.total_price ? build.total_price.toLocaleString() : '0'} ₽</span>
-                                <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
-                                    <i class="fas fa-shopping-cart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    productsContainer.appendChild(productCard);
-                });
-            } catch (error) {
-                console.error('Ошибка при загрузке сборок:', error);
-                const productsContainer = document.getElementById('featured-products');
-                if (productsContainer) {
-                    productsContainer.innerHTML = `
-                        <div class="error-message">
-                            <p>Ошибка при загрузке сборок. Пожалуйста, попробуйте позже.</p>
-                            <p>Детали ошибки: ${error.message}</p>
-                        </div>
-                    `;
-                }
+        .product-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-info h3 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .product-link {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .product-link:hover {
+            color: #007bff;
+        }
+
+        .product-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 16px;
+            flex-grow: 1;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #0056b3;
+        }
+
+        @media (max-width: 1400px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 1200px;
             }
         }
 
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM загружен, начинаем инициализацию...');
-            loadPopularProducts();
+        @media (max-width: 1000px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 800px;
+            }
+        }
 
-            document.getElementById('requestForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const requestData = {
-                    name: document.getElementById('requestName').value,
-                    phone: document.getElementById('requestPhone').value,
-                    message: document.getElementById('requestMessage').value
-                };
+        @media (max-width: 700px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            
+            .product-image {
+                height: 250px;
+            }
+            
+            .product-info h3 {
+                font-size: 20px;
+            }
+            
+            .product-description {
+                font-size: 18px;
+            }
+            
+            .product-price {
+                font-size: 22px;
+            }
+            
+            .add-to-cart-btn {
+                font-size: 18px;
+                padding: 14px;
+            }
+        }
 
-                try {
-                    const response = await fetch('http://localhost:8080/requests', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestData)
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Ошибка при отправке запроса');
-                    }
-
-                    alert('Ваш запрос успешно отправлен! Мы свяжемся с вами в ближайшее время.');
-                    document.getElementById('requestForm').reset();
-                } catch (error) {
-                    console.error('Ошибка:', error);
-                    alert('Произошла ошибка при отправке запроса. Пожалуйста, попробуйте позже.');
-                }
-            });
-        });
-    </script>
-    <style>
         .request-section {
             background: var(--primary-color);
             color: white;
@@ -298,5 +348,182 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        // Функция для обновления имени пользователя
+        function updateUserName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userDisplayName = document.getElementById('userDisplayName');
+            const loginLink = document.querySelector('.login-link');
+            const userMenu = document.querySelector('.user-menu');
+
+            if (user && user.name) {
+                if (userDisplayName) {
+                    userDisplayName.textContent = user.name;
+                }
+                if (loginLink) {
+                    loginLink.style.display = 'none';
+                }
+                if (userMenu) {
+                    userMenu.style.display = 'block';
+                }
+            } else {
+                if (userDisplayName) {
+                    userDisplayName.textContent = 'Гость';
+                }
+                if (loginLink) {
+                    loginLink.style.display = 'block';
+                }
+                if (userMenu) {
+                    userMenu.style.display = 'none';
+                }
+            }
+        }
+
+        // Функция для загрузки и отображения сборок
+        async function loadBuilds() {
+            try {
+                const response = await fetch('http://localhost:8080/builds');
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке сборок');
+                }
+                const allBuilds = await response.json();
+                console.log('Все сборки:', allBuilds);
+
+                // Выбираем 4 случайные сборки
+                const randomBuilds = allBuilds.sort(() => 0.5 - Math.random()).slice(0, 4);
+                console.log('Выбранные сборки:', randomBuilds);
+                
+                displayBuilds(randomBuilds);
+            } catch (error) {
+                console.error('Ошибка при загрузке сборок:', error);
+                showToast('Не удалось загрузить сборки', 'error');
+            }
+        }
+
+        // Функция для отображения сборок
+        function displayBuilds(builds) {
+            const buildsContainer = document.getElementById('featured-products');
+            if (!buildsContainer) {
+                console.error('Контейнер сборок не найден');
+                return;
+            }
+
+            buildsContainer.innerHTML = builds.map(build => `
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${build.image_url}" alt="${build.name}" onerror="this.src='https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'">
+                    </div>
+                    <div class="product-info">
+                        <h3><a href="product-details.html?id=${build.id}&type=build" class="product-link">${build.name}</a></h3>
+                        <p class="product-description">${build.description || 'Описание отсутствует'}</p>
+                        <div class="product-price">${build.total_price.toLocaleString()} ₽</div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${build.id}, 'build')">
+                            <i class="fas fa-shopping-cart"></i>
+                            Добавить в корзину
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Функция для добавления сборки в корзину
+        async function addToCart(buildId, type) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showToast('Требуется авторизация', 'error');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ build_id: buildId, type: type })
+                });
+
+                if (response.ok) {
+                    showToast('Сборка добавлена в корзину', 'success');
+                    updateCartCount();
+                } else {
+                    showToast('Не удалось добавить сборку в корзину', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка при добавлении в корзину:', error);
+                showToast('Произошла ошибка', 'error');
+            }
+        }
+
+        // Функция для обновления счетчика корзины
+        async function updateCartCount() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.querySelector('.cart-count').textContent = '0';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    const count = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+                    document.querySelector('.cart-count').textContent = count;
+                } else {
+                    document.querySelector('.cart-count').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Ошибка при обновлении счетчика корзины:', error);
+                document.querySelector('.cart-count').textContent = '0';
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM загружен, начинаем инициализацию...');
+            
+            // Обновляем UI
+            updateUserName();
+            updateCartCount();
+            
+            // Загружаем сборки
+            loadBuilds();
+
+            // Добавляем обработчик для кнопки выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                });
+            }
+
+            // Добавляем обработчик для выпадающего меню
+            const userMenu = document.querySelector('.user-menu');
+            if (userMenu) {
+                userMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', () => {
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = 'none';
+                });
+            }
+        });
+    </script>
 </body>
 </html>
