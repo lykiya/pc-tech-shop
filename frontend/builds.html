@@ -120,6 +120,149 @@
             background-color: #e0e0e0;
             transform: translateY(-2px);
         }
+
+        .filters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .price-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .price-range input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .price-range span {
+            color: #666;
+            font-weight: bold;
+        }
+
+        .build-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .build-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .build-image {
+            width: 300px;
+            height: 300px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .build-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .build-info {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .build-info h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .build-info p {
+            margin: 0 0 15px 0;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .build-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .add-to-cart-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--primary-color-dark);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .products-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        #builds-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -170,10 +313,11 @@
                     <div style="display: flex; flex-direction: column; gap: 20px;">
                         <!-- Ценовой диапазон -->
                         <div class="filter-group">
-                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Ценовой диапазон</label>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="number" id="min-price" placeholder="От" style="width: 100%; padding: 8px;">
-                                <input type="number" id="max-price" placeholder="До" style="width: 100%; padding: 8px;">
+                            <label for="priceRange">Ценовой диапазон:</label>
+                            <div class="price-range">
+                                <input type="number" id="minPrice" placeholder="От" min="0">
+                                <span>-</span>
+                                <input type="number" id="maxPrice" placeholder="До" min="0">
                             </div>
                         </div>
 
@@ -329,13 +473,16 @@
                 builds.forEach(build => {
                     const buildCard = document.createElement('div');
                     buildCard.className = 'build-card';
+                    buildCard.style.display = 'flex';
                     buildCard.innerHTML = `
                         <div class="build-image">
                             <img src="${build.image_url || 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'}" alt="${build.name || 'Сборка ПК'}">
                         </div>
                         <div class="build-info">
-                            <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name || 'Сборка ПК'}</a></h3>
-                            <p>${build.description || 'Готовая сборка компьютера'}</p>
+                            <div>
+                                <h3><a href="product-details.html?id=${build.id}&type=build" style="color: var(--text-color); text-decoration: none;">${build.name || 'Сборка ПК'}</a></h3>
+                                <p>${build.description || 'Готовая сборка компьютера'}</p>
+                            </div>
                             <div class="build-price">
                                 <span class="price">${build.total_price ? build.total_price.toLocaleString() : '0'} ₽</span>
                                 <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
@@ -346,6 +493,8 @@
                     `;
                     buildsContainer.appendChild(buildCard);
                 });
+
+                console.log('Карточки сборок созданы');
             } catch (error) {
                 console.error('Ошибка при загрузке сборок:', error);
                 const buildsContainer = document.getElementById('builds-container');
@@ -599,53 +748,92 @@
 
         // Функция для применения фильтров
         function applyFilters() {
-            const minPrice = document.getElementById('min-price').value;
-            const maxPrice = document.getElementById('max-price').value;
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
             const purpose = document.getElementById('purpose').value;
             const processor = document.getElementById('processor').value;
             const vram = document.getElementById('vram').value;
 
-            let filteredBuilds = allBuilds.filter(build => {
+            // Получаем все карточки сборок
+            const buildCards = document.querySelectorAll('.build-card');
+            console.log('Найдено карточек:', buildCards.length);
+            
+            buildCards.forEach(card => {
+                const priceElement = card.querySelector('.build-price .price');
+                if (!priceElement) {
+                    console.error('Не найден элемент с ценой в карточке:', card);
+                    return;
+                }
+
+                const price = parseFloat(priceElement.textContent.replace(/[^0-9.]/g, ''));
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                
+                let shouldShow = true;
+                
                 // Фильтр по цене
-                if (minPrice && build.total_price < parseFloat(minPrice)) return false;
-                if (maxPrice && build.total_price > parseFloat(maxPrice)) return false;
-
-                // Фильтр по назначению (на основе названия)
+                if (minPrice && price < parseFloat(minPrice)) {
+                    shouldShow = false;
+                }
+                if (maxPrice && price > parseFloat(maxPrice)) {
+                    shouldShow = false;
+                }
+                
+                // Фильтр по назначению
                 if (purpose) {
-                    const name = build.name.toLowerCase();
-                    if (purpose === 'gaming' && !name.includes('игровой')) return false;
-                    if (purpose === 'work' && !name.includes('рабочий')) return false;
-                    if (purpose === 'universal' && !name.includes('универсальный')) return false;
+                    if (purpose === 'gaming' && !name.includes('игровой')) {
+                        shouldShow = false;
+                    }
+                    if (purpose === 'work' && !name.includes('рабочий')) {
+                        shouldShow = false;
+                    }
+                    if (purpose === 'universal' && !name.includes('универсальный')) {
+                        shouldShow = false;
+                    }
                 }
-
-                // Фильтр по производителю процессора
+                
+                // Фильтр по процессору
                 if (processor) {
-                    const cpuName = build.cpu.name.toLowerCase();
-                    if (processor === 'intel' && !cpuName.includes('intel')) return false;
-                    if (processor === 'amd' && !cpuName.includes('amd')) return false;
+                    if (processor === 'intel' && !name.includes('intel')) {
+                        shouldShow = false;
+                    }
+                    if (processor === 'amd' && !name.includes('amd')) {
+                        shouldShow = false;
+                    }
                 }
-
-                // Фильтр по объему видеопамяти
-                if (vram && build.gpu.vram !== parseInt(vram)) return false;
-
-                return true;
+                
+                card.style.display = shouldShow ? 'block' : 'none';
             });
-
-            displayBuilds(filteredBuilds);
         }
 
         // Функция для сброса фильтров
         function resetFilters() {
-            document.getElementById('min-price').value = '';
-            document.getElementById('max-price').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
             document.getElementById('purpose').value = '';
             document.getElementById('processor').value = '';
             document.getElementById('vram').value = '';
-            displayBuilds(allBuilds);
+            
+            // Показываем все карточки
+            const buildCards = document.querySelectorAll('.build-card');
+            buildCards.forEach(card => {
+                card.style.display = 'block';
+            });
         }
 
-        // Добавляем проверку загрузки скрипта
-        console.log('Скрипт builds.html загружен');
+        // Добавляем обработчики для полей ввода цены
+        document.getElementById('minPrice').addEventListener('input', function() {
+            const maxPrice = document.getElementById('maxPrice');
+            if (this.value && maxPrice.value && parseFloat(this.value) > parseFloat(maxPrice.value)) {
+                maxPrice.value = this.value;
+            }
+        });
+
+        document.getElementById('maxPrice').addEventListener('input', function() {
+            const minPrice = document.getElementById('minPrice');
+            if (this.value && minPrice.value && parseFloat(this.value) < parseFloat(minPrice.value)) {
+                minPrice.value = this.value;
+            }
+        });
     </script>
 </body>
 </html> 

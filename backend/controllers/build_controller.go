@@ -3,10 +3,13 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"pc-tech-shop/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -94,4 +97,42 @@ func DeleteBuild(db *gorm.DB) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{"message": "Сборка успешно удалена"})
 	}
+}
+
+// UploadBuildImage обрабатывает загрузку изображения для сборки
+func UploadBuildImage(c *gin.Context) {
+	// Получаем файл из запроса
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Не удалось получить файл"})
+		return
+	}
+
+	// Проверяем размер файла (максимум 5MB)
+	if file.Size > 5*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Файл слишком большой. Максимальный размер: 5MB"})
+		return
+	}
+
+	// Создаем уникальное имя файла
+	ext := filepath.Ext(file.Filename)
+	newFileName := uuid.New().String() + ext
+
+	// Создаем директорию для изображений, если она не существует
+	uploadDir := "./static/images/builds"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать директорию для изображений"})
+		return
+	}
+
+	// Сохраняем файл
+	filePath := filepath.Join(uploadDir, newFileName)
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось сохранить файл"})
+		return
+	}
+
+	// Возвращаем URL изображения
+	imageURL := "/static/images/builds/" + newFileName
+	c.JSON(http.StatusOK, gin.H{"image_url": imageURL})
 }

@@ -78,6 +78,17 @@ func GetComponents(c *gin.Context) {
 			}
 		}
 
+		// Get Bodies
+		var bodies []models.Body
+		if err := db.Find(&bodies).Error; err == nil {
+			for _, body := range bodies {
+				allComponents = append(allComponents, map[string]interface{}{
+					"type": "body",
+					"data": body,
+				})
+			}
+		}
+
 		// Get HDDs
 		var hdds []models.HDD
 		if err := db.Find(&hdds).Error; err == nil {
@@ -167,6 +178,18 @@ func GetComponents(c *gin.Context) {
 				"data": pu,
 			})
 		}
+	case "body":
+		var bodies []models.Body
+		if err := db.Find(&bodies).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		for _, body := range bodies {
+			components = append(components, map[string]interface{}{
+				"type": "body",
+				"data": body,
+			})
+		}
 	case "hdd":
 		var hdds []models.HDD
 		if err := db.Find(&hdds).Error; err != nil {
@@ -247,6 +270,13 @@ func GetComponent(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, pu)
+	case "body":
+		var body models.Body
+		if err := db.First(&body, componentID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Body not found"})
+			return
+		}
+		c.JSON(http.StatusOK, body)
 	case "hdd":
 		var hdd models.HDD
 		if err := db.First(&hdd, componentID).Error; err != nil {
@@ -261,94 +291,6 @@ func GetComponent(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, ssd)
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
-	}
-}
-
-// CreateComponent создает новый компонент
-func CreateComponent(c *gin.Context) {
-	db := c.MustGet("db").(*gorm.DB)
-	category := c.Query("category")
-
-	switch category {
-	case "cpu":
-		var cpu models.CPU
-		if err := c.ShouldBindJSON(&cpu); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&cpu).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, cpu)
-	case "gpu":
-		var gpu models.GPU
-		if err := c.ShouldBindJSON(&gpu); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&gpu).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, gpu)
-	case "motherboard":
-		var mb models.Motherboard
-		if err := c.ShouldBindJSON(&mb); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&mb).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, mb)
-	case "ram":
-		var ram models.RAM
-		if err := c.ShouldBindJSON(&ram); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&ram).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, ram)
-	case "power_unit":
-		var pu models.PowerUnit
-		if err := c.ShouldBindJSON(&pu); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&pu).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, pu)
-	case "hdd":
-		var hdd models.HDD
-		if err := c.ShouldBindJSON(&hdd); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&hdd).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, hdd)
-	case "ssd":
-		var ssd models.SSD
-		if err := c.ShouldBindJSON(&ssd); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&ssd).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, ssd)
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
 	}
@@ -442,6 +384,21 @@ func UpdateComponent(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusOK, pu)
+	case "body":
+		var body models.Body
+		if err := db.First(&body, componentID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Body not found"})
+			return
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Save(&body).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, body)
 	case "hdd":
 		var hdd models.HDD
 		if err := db.First(&hdd, componentID).Error; err != nil {
@@ -515,6 +472,11 @@ func DeleteComponent(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+	case "body":
+		if err := db.Delete(&models.Body{}, componentID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	case "hdd":
 		if err := db.Delete(&models.HDD{}, componentID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -531,4 +493,92 @@ func DeleteComponent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Component deleted successfully"})
+}
+
+// CreateComponent создает новый компонент
+func CreateComponent(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+	category := c.Query("category")
+
+	switch category {
+	case "cpu":
+		var cpu models.CPU
+		if err := c.ShouldBindJSON(&cpu); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&cpu).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, cpu)
+	case "gpu":
+		var gpu models.GPU
+		if err := c.ShouldBindJSON(&gpu); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&gpu).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gpu)
+	case "motherboard":
+		var mb models.Motherboard
+		if err := c.ShouldBindJSON(&mb); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&mb).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, mb)
+	case "ram":
+		var ram models.RAM
+		if err := c.ShouldBindJSON(&ram); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&ram).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, ram)
+	case "power_unit":
+		var pu models.PowerUnit
+		if err := c.ShouldBindJSON(&pu); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&pu).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, pu)
+	case "hdd":
+		var hdd models.HDD
+		if err := c.ShouldBindJSON(&hdd); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&hdd).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, hdd)
+	case "ssd":
+		var ssd models.SSD
+		if err := c.ShouldBindJSON(&ssd); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Create(&ssd).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, ssd)
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
+	}
 }

@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const sectionId = this.getAttribute('data-section');
             if (sectionId) {
                 switchSection(sectionId);
+                if (sectionId === 'components') {
+                    loadComponents('cpu'); // Загружаем процессоры по умолчанию
+                }
             }
         });
     });
@@ -350,4 +353,183 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('Ошибка', 'Произошла ошибка при обновлении роли пользователя', 'error');
         }
     };
+
+    // Функция для загрузки компонентов
+    async function loadComponents(category = 'cpu') {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:8080/components?category=${category}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке компонентов');
+            }
+
+            const components = await response.json();
+            displayComponents(components, category);
+        } catch (error) {
+            console.error('Ошибка при загрузке компонентов:', error);
+            showToast('Ошибка при загрузке компонентов', 'error');
+        }
+    }
+
+    // Функция для отображения компонентов
+    function displayComponents(components, category) {
+        const tbody = document.querySelector('#components-table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        if (components.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Нет компонентов</td></tr>';
+            return;
+        }
+
+        components.forEach(component => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${component.data.id}</td>
+                <td>${component.data.name}</td>
+                <td>${component.data.price} ₽</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${category}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${category}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Функция для отображения модального окна добавления компонента
+    function showAddComponentModal() {
+        const modal = document.getElementById('componentModal');
+        if (modal) {
+            modal.style.display = 'block';
+            document.getElementById('componentForm').reset();
+            document.getElementById('componentModalTitle').textContent = 'Добавить компонент';
+            document.getElementById('componentForm').dataset.mode = 'add';
+        }
+    }
+
+    // Функция для редактирования компонента
+    async function editComponent(id, category) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:8080/components/${id}?category=${category}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке компонента');
+            }
+
+            const component = await response.json();
+            showEditComponentModal(component, category);
+        } catch (error) {
+            console.error('Ошибка при загрузке компонента:', error);
+            showToast('Ошибка при загрузке компонента', 'error');
+        }
+    }
+
+    // Функция для отображения модального окна редактирования компонента
+    function showEditComponentModal(component, category) {
+        const modal = document.getElementById('componentModal');
+        if (modal) {
+            modal.style.display = 'block';
+            document.getElementById('componentModalTitle').textContent = 'Редактировать компонент';
+            
+            // Заполняем форму данными компонента
+            document.getElementById('componentName').value = component.data.name;
+            document.getElementById('componentPrice').value = component.data.price;
+            document.getElementById('category').value = category;
+            
+            // Сохраняем ID компонента и режим редактирования
+            document.getElementById('componentForm').dataset.mode = 'edit';
+            document.getElementById('componentForm').dataset.id = component.data.id;
+            document.getElementById('componentForm').dataset.category = category;
+        }
+    }
+
+    // Функция для удаления компонента
+    async function deleteComponent(id, category) {
+        if (confirm('Вы уверены, что хотите удалить этот компонент?')) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:8080/components/${id}?category=${category}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при удалении компонента');
+                }
+
+                showToast('Компонент успешно удален', 'success');
+                loadComponents(category);
+            } catch (error) {
+                console.error('Ошибка при удалении компонента:', error);
+                showToast('Ошибка при удалении компонента', 'error');
+            }
+        }
+    }
+
+    // Обработчик отправки формы компонента
+    document.getElementById('componentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const mode = this.dataset.mode;
+        const category = formData.get('category');
+        
+        try {
+            const token = localStorage.getItem('token');
+            let url = 'http://localhost:8080/components';
+            let method = 'POST';
+            
+            if (mode === 'edit') {
+                url += `/${this.dataset.id}?category=${category}`;
+                method = 'PUT';
+            }
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: formData.get('componentName'),
+                    price: parseFloat(formData.get('componentPrice')),
+                    category: category
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при сохранении компонента');
+            }
+
+            showToast('Компонент успешно сохранен', 'success');
+            document.getElementById('componentModal').style.display = 'none';
+            loadComponents(category);
+        } catch (error) {
+            console.error('Ошибка при сохранении компонента:', error);
+            showToast('Ошибка при сохранении компонента', 'error');
+        }
+    });
+
+    // Закрытие модального окна
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('componentModal').style.display = 'none';
+    });
 }); 

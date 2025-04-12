@@ -104,4 +104,8 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	router.GET("/builds", controllers.GetBuilds(db))
 	router.GET("/builds/:id", controllers.GetBuild(db))
 	router.DELETE("/builds/:id", controllers.DeleteBuild(db))
+	router.POST("/builds/upload", controllers.UploadBuildImage)
+
+	// Настраиваем статические файлы
+	router.Static("/static", "./static")
 }
