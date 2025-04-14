@@ -223,3 +223,56 @@ func checkComponentsExist(db *gorm.DB, build models.Pcbuild) error {
 
 	return nil
 }
+
+// UpdateBuild обновляет существующую сборку
+func UpdateBuild(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID сборки"})
+			return
+		}
+
+		var build models.Pcbuild
+		if err := db.First(&build, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Сборка не найдена"})
+			return
+		}
+
+		var updateData models.Pcbuild
+		if err := c.ShouldBindJSON(&updateData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+			return
+		}
+
+		// Проверяем существование всех компонентов
+		if err := checkComponentsExist(db, updateData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Обновляем только разрешенные поля
+		build.Name = updateData.Name
+		build.Description = updateData.Description
+		build.TotalPrice = updateData.TotalPrice
+		build.CPUID = updateData.CPUID
+		build.GPUID = updateData.GPUID
+		build.MotherboardID = updateData.MotherboardID
+		build.BodyID = updateData.BodyID
+		build.RAMID = updateData.RAMID
+		build.PowerUnitID = updateData.PowerUnitID
+		build.HDDID = updateData.HDDID
+		build.SSDID = updateData.SSDID
+		if updateData.ImageURL != "" {
+			build.ImageURL = updateData.ImageURL
+		}
+
+		// Сохраняем изменения
+		if err := db.Save(&build).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при обновлении сборки"})
+			return
+		}
+
+		c.JSON(http.StatusOK, build)
+	}
+}

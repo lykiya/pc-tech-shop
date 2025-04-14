@@ -6,6 +6,7 @@
     <title>PC Tech Shop - Магазин компьютерной техники</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/config.js"></script>
     <script src="js/common.js"></script>
     <script src="js/toast.js"></script>
     <style>
@@ -401,22 +402,38 @@
                 return;
             }
 
-            buildsContainer.innerHTML = builds.map(build => `
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="${build.image_url}" alt="${build.name}" onerror="this.src='https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'">
+            buildsContainer.innerHTML = builds.map(build => {
+                let imageUrl = build.image_url;
+                console.log('Исходный URL изображения:', imageUrl);
+                
+                if (imageUrl) {
+                    if (!imageUrl.startsWith('http')) {
+                        imageUrl = 'http://localhost:8080' + imageUrl;
+                        console.log('Преобразованный URL изображения:', imageUrl);
+                    }
+                } else {
+                    imageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
+                }
+
+                return `
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="${imageUrl}" 
+                                 alt="${build.name}" 
+                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+'">
+                        </div>
+                        <div class="product-info">
+                            <h3><a href="product-details.html?id=${build.id}&type=build" class="product-link">${build.name}</a></h3>
+                            <p class="product-description">${build.description || 'Описание отсутствует'}</p>
+                            <div class="product-price">${build.total_price.toLocaleString()} ₽</div>
+                            <button class="add-to-cart-btn" onclick="addToCart(${build.id}, 'build')">
+                                <i class="fas fa-shopping-cart"></i>
+                                Добавить в корзину
+                            </button>
+                        </div>
                     </div>
-                    <div class="product-info">
-                        <h3><a href="product-details.html?id=${build.id}&type=build" class="product-link">${build.name}</a></h3>
-                        <p class="product-description">${build.description || 'Описание отсутствует'}</p>
-                        <div class="product-price">${build.total_price.toLocaleString()} ₽</div>
-                        <button class="add-to-cart-btn" onclick="addToCart(${build.id}, 'build')">
-                            <i class="fas fa-shopping-cart"></i>
-                            Добавить в корзину
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Функция для добавления сборки в корзину

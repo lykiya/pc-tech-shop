@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'dashboard':
                 // Загрузка статистики
                 try {
-                    const response = await fetch('http://localhost:8080/admin/stats', {
+                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.STATS), {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateDashboardStats(stats);
                     }
                 } catch (error) {
-                    console.error('Error loading dashboard stats:', error);
+                    console.error('Error loading stats:', error);
                 }
                 break;
             case 'products':
@@ -553,17 +553,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tr = document.createElement('tr');
                 let imageUrl = build.image_url;
                 
-                // Если URL локальный, добавляем базовый URL сервера
-                if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = 'http://localhost:8080' + imageUrl;
+                // Обрабатываем URL изображения
+                if (imageUrl) {
+                    // Если URL начинается с /static, добавляем базовый URL сервера
+                    if (imageUrl.startsWith('/static')) {
+                        imageUrl = 'http://localhost:8080' + imageUrl;
+                    }
+                    // Если URL внешний (начинается с http/https), оставляем как есть
                 }
                 
                 tr.innerHTML = `
                     <td>${build.id}</td>
                     <td>
-                        <img src="${imageUrl || 'images/builds/default.jpg'}" 
+                        <img src="${imageUrl}" 
                              alt="${build.name}" 
-                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+'">
                     </td>
                     <td>${build.name}</td>
                     <td>${build.description}</td>
@@ -592,4 +597,506 @@ document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
         });
     }
+
+    async function showEditBuildModal(buildId) {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+
+            // Показываем модальное окно сразу
+            const modal = document.getElementById('editBuildModal');
+            if (!modal) {
+                throw new Error('Модальное окно редактирования не найдено');
+            }
+            modal.style.display = 'block';
+
+            // Загружаем данные асинхронно
+            const [buildResponse, componentsResponse] = await Promise.all([
+                fetch(`http://localhost:8080/builds/${buildId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                loadComponentsForEdit()
+            ]);
+
+            if (!buildResponse.ok) {
+                throw new Error('Ошибка при загрузке данных сборки');
+            }
+
+            const build = await buildResponse.json();
+            console.log('Загруженные данные сборки:', build);
+
+            // Заполняем форму данными сборки
+            const form = document.getElementById('editBuildForm');
+            if (!form) {
+                throw new Error('Форма редактирования не найдена');
+            }
+
+            form.querySelector('#editBuildName').value = build.name;
+            form.querySelector('#editBuildDescription').value = build.description;
+            form.querySelector('#editBuildPrice').value = build.total_price;
+            
+            // Устанавливаем выбранные компоненты
+            form.querySelector('#editBuildCPU').value = build.cpu_id;
+            form.querySelector('#editBuildGPU').value = build.gpu_id;
+            form.querySelector('#editBuildMotherboard').value = build.motherboard_id;
+            form.querySelector('#editBuildBody').value = build.body_id;
+            form.querySelector('#editBuildRAM').value = build.ram_id;
+            form.querySelector('#editBuildPowerUnit').value = build.power_unit_id;
+            form.querySelector('#editBuildHDD').value = build.hdd_id || '';
+            form.querySelector('#editBuildSSD').value = build.ssd_id || '';
+            
+            // Сохраняем ID сборки в форме
+            form.dataset.buildId = buildId;
+            
+            // Обновляем предпросмотр
+            updateEditPreview();
+
+            // Фокусируемся на первом поле ввода
+            const firstInput = form.querySelector('input, select, textarea');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        } catch (error) {
+            console.error('Ошибка при открытии модального окна редактирования:', error);
+            showToast('Ошибка при загрузке данных сборки: ' + error.message, 'error');
+            closeModal('editBuildModal');
+        }
+    }
+
+    // Обработчик отправки формы редактирования
+    document.getElementById('editBuildForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        try {
+            const buildId = this.dataset.buildId;
+            const token = localStorage.getItem('token');
+            
+            // Получаем данные формы
+            const formData = {
+                name: document.getElementById('editBuildName').value,
+                description: document.getElementById('editBuildDescription').value,
+                total_price: parseFloat(document.getElementById('editBuildPrice').value),
+                cpu_id: parseInt(document.getElementById('editBuildCPU').value),
+                gpu_id: parseInt(document.getElementById('editBuildGPU').value),
+                motherboard_id: parseInt(document.getElementById('editBuildMotherboard').value),
+                body_id: parseInt(document.getElementById('editBuildBody').value),
+                ram_id: parseInt(document.getElementById('editBuildRAM').value),
+                power_unit_id: parseInt(document.getElementById('editBuildPowerUnit').value),
+                hdd_id: document.getElementById('editBuildHDD').value ? parseInt(document.getElementById('editBuildHDD').value) : null,
+                ssd_id: document.getElementById('editBuildSSD').value ? parseInt(document.getElementById('editBuildSSD').value) : null
+            };
+
+            // Загружаем изображение, если оно выбрано
+            const imageFile = document.getElementById('editBuildImage').files[0];
+            if (imageFile) {
+                const imageFormData = new FormData();
+                imageFormData.append('image', imageFile);
+
+                const imageResponse = await fetch('http://localhost:8080/builds/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: imageFormData
+                });
+
+                if (!imageResponse.ok) {
+                    throw new Error('Ошибка при загрузке изображения');
+                }
+
+                const imageData = await imageResponse.json();
+                formData.image_url = imageData.image_url;
+            }
+
+            // Отправляем данные сборки
+            const response = await fetch(`http://localhost:8080/builds/${buildId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Ошибка при обновлении сборки');
+            }
+
+            // Закрываем модальное окно и обновляем список сборок
+            closeModal('editBuildModal');
+            await loadProducts();
+            showToast('Сборка успешно обновлена', 'success');
+        } catch (error) {
+            console.error('Ошибка при обновлении сборки:', error);
+            showToast('Ошибка при обновлении сборки: ' + error.message, 'error');
+        }
+    });
+
+    // Обработчики для кнопок действий
+    document.addEventListener('click', async function(e) {
+        if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+            const button = e.target.classList.contains('edit-btn') ? e.target : e.target.closest('.edit-btn');
+            const id = button.getAttribute('data-id');
+            if (id) {
+                await showEditBuildModal(id);
+            }
+        }
+
+        if (e.target.classList.contains('delete-btn')) {
+            const id = e.target.getAttribute('data-id');
+            const table = e.target.closest('table');
+            if (!table) return;
+            
+            const tableId = table.id;
+            
+            if (tableId === 'products-table') {
+                const buildName = e.target.closest('tr').querySelector('td:nth-child(3)').textContent;
+                const modal = document.getElementById('deleteConfirmationModal');
+                const message = document.getElementById('confirmationMessage');
+                const confirmBtn = document.getElementById('confirmDelete');
+                const cancelBtn = document.getElementById('cancelDelete');
+
+                // Показываем модальное окно с подтверждением
+                message.textContent = `Вы действительно хотите удалить сборку "${buildName}"?`;
+                modal.style.display = 'block';
+
+                // Обработчики для кнопок подтверждения
+                confirmBtn.onclick = async function() {
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                            throw new Error('Требуется авторизация');
+                        }
+
+                        const response = await fetch(`http://localhost:8080/builds/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Ошибка при удалении сборки');
+                        }
+
+                        showToast('Сборка успешно удалена', 'success');
+                        await loadProducts();
+                        closeModal('deleteConfirmationModal');
+                    } catch (error) {
+                        console.error('Ошибка при удалении сборки:', error);
+                        showToast('Ошибка при удалении сборки: ' + error.message, 'error');
+                    }
+                };
+
+                // Обработчик отмены удаления
+                cancelBtn.onclick = function() {
+                    closeModal('deleteConfirmationModal');
+                };
+            }
+        }
+    });
+
+    async function loadComponentsForEdit() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+
+            // Загружаем все компоненты параллельно
+            const [cpus, gpus, motherboards, bodies, rams, powerUnits, hdds, ssds] = await Promise.all([
+                fetch('http://localhost:8080/api/components?category=cpu', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=gpu', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=motherboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=body', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=ram', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=power_unit', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=hdd', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || []),
+                fetch('http://localhost:8080/api/components?category=ssd', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => res.json()).then(data => data.data || [])
+            ]);
+
+            // Заполняем селекты компонентами
+            populateSelect('editBuildCPU', cpus);
+            populateSelect('editBuildGPU', gpus);
+            populateSelect('editBuildMotherboard', motherboards);
+            populateSelect('editBuildBody', bodies);
+            populateSelect('editBuildRAM', rams);
+            populateSelect('editBuildPowerUnit', powerUnits);
+            populateSelect('editBuildHDD', hdds);
+            populateSelect('editBuildSSD', ssds);
+
+            // Добавляем обработчики изменения для предпросмотра
+            addEditPreviewHandlers();
+
+            return true;
+        } catch (error) {
+            console.error('Ошибка при загрузке компонентов:', error);
+            showToast('Ошибка при загрузке компонентов: ' + error.message, 'error');
+            return false;
+        }
+    }
+
+    function populateSelect(selectId, components) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        // Очищаем селект, оставляя первый option
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        // Проверяем, что components является массивом
+        if (!Array.isArray(components)) {
+            console.error(`Компоненты для ${selectId} не являются массивом:`, components);
+            return;
+        }
+
+        // Добавляем компоненты
+        components.forEach(component => {
+            const option = document.createElement('option');
+            option.value = component.id;
+            option.textContent = `${component.name} (${component.price} ₽)`;
+            select.appendChild(option);
+        });
+    }
+
+    function addEditPreviewHandlers() {
+        const components = {
+            'editBuildCPU': 'editPreviewCPU',
+            'editBuildGPU': 'editPreviewGPU',
+            'editBuildMotherboard': 'editPreviewMotherboard',
+            'editBuildBody': 'editPreviewBody',
+            'editBuildRAM': 'editPreviewRAM',
+            'editBuildPowerUnit': 'editPreviewPowerUnit',
+            'editBuildHDD': 'editPreviewHDD',
+            'editBuildSSD': 'editPreviewSSD'
+        };
+
+        Object.entries(components).forEach(([selectId, previewId]) => {
+            const select = document.getElementById(selectId);
+            if (select) {
+                select.addEventListener('change', () => updateEditPreview());
+            }
+        });
+    }
+
+    function updateEditPreview() {
+        const components = {
+            'editBuildCPU': 'editPreviewCPU',
+            'editBuildGPU': 'editPreviewGPU',
+            'editBuildMotherboard': 'editPreviewMotherboard',
+            'editBuildBody': 'editPreviewBody',
+            'editBuildRAM': 'editPreviewRAM',
+            'editBuildPowerUnit': 'editPreviewPowerUnit',
+            'editBuildHDD': 'editPreviewHDD',
+            'editBuildSSD': 'editPreviewSSD'
+        };
+
+        Object.entries(components).forEach(([selectId, previewId]) => {
+            const select = document.getElementById(selectId);
+            const preview = document.getElementById(previewId);
+            if (select && preview) {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption) {
+                    preview.textContent = selectedOption.textContent || 'Не выбран';
+                } else {
+                    preview.textContent = 'Не выбран';
+                }
+            }
+        });
+    }
+
+    // Функция для загрузки пользователей
+    async function loadUsers() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+
+            const response = await fetch('http://localhost:8080/users', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке пользователей');
+            }
+
+            const users = await response.json();
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <select class="role-select" data-id="${user.id}">
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                        </select>
+                    </td>
+                    <td>${new Date(user.created_at).toLocaleString()}</td>
+                    <td>
+                        <button class="action-btn edit" data-id="${user.id}" title="Изменить роль">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" data-id="${user.id}" data-name="${user.name}" title="Удалить пользователя">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                // Добавляем обработчики событий для кнопок в этой строке
+                const deleteBtn = row.querySelector('.action-btn.delete');
+                deleteBtn.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-id');
+                    const userName = this.getAttribute('data-name');
+                    if (userId && userName) {
+                        showDeleteConfirmation(userId, userName);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке пользователей:', error);
+            showToast('Ошибка при загрузке пользователей: ' + error.message, 'error');
+        }
+    }
+
+    // Функция для показа подтверждения удаления
+    function showDeleteConfirmation(userId, userName) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Подтверждение удаления</h2>
+                <p>Вы действительно хотите удалить пользователя "${userName}"?</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-danger" data-action="delete">Да, удалить</button>
+                    <button class="btn btn-secondary" data-action="cancel">Нет, отмена</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Добавляем обработчики для кнопок модального окна
+        modal.querySelector('.close').addEventListener('click', () => modal.remove());
+        modal.querySelector('[data-action="cancel"]').addEventListener('click', () => modal.remove());
+        modal.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Требуется авторизация');
+                }
+
+                const response = await fetch(`http://localhost:8080/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при удалении пользователя');
+                }
+
+                modal.remove();
+                await loadUsers(); // Перезагружаем список пользователей
+                showToast('Пользователь успешно удален', 'success');
+            } catch (error) {
+                console.error('Ошибка при удалении пользователя:', error);
+                showToast('Ошибка при удалении пользователя: ' + error.message, 'error');
+            }
+        });
+    }
+
+    // Добавляем делегирование событий для действий с пользователями
+    document.addEventListener('click', function(e) {
+        // Находим ближайшую кнопку действия
+        const actionButton = e.target.closest('.action-btn');
+        if (!actionButton) return;
+
+        // Получаем данные пользователя
+        const userId = actionButton.getAttribute('data-id');
+        const userName = actionButton.getAttribute('data-name');
+
+        // Определяем тип действия
+        if (actionButton.classList.contains('delete')) {
+            // Показываем модальное окно подтверждения удаления
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Подтверждение удаления</h2>
+                    <p>Вы действительно хотите удалить пользователя "${userName}"?</p>
+                    <div class="modal-buttons">
+                        <button class="btn btn-danger" data-action="delete">Да, удалить</button>
+                        <button class="btn btn-secondary" data-action="cancel">Нет, отмена</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Обработчики для кнопок модального окна
+            modal.querySelector('.close').addEventListener('click', () => modal.remove());
+            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => modal.remove());
+            modal.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        throw new Error('Требуется авторизация');
+                    }
+
+                    const response = await fetch(`http://localhost:8080/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при удалении пользователя');
+                    }
+
+                    modal.remove();
+                    await loadUsers();
+                    showToast('Пользователь успешно удален', 'success');
+                } catch (error) {
+                    console.error('Ошибка при удалении пользователя:', error);
+                    showToast('Ошибка при удалении пользователя: ' + error.message, 'error');
+                }
+            });
+        } else if (actionButton.classList.contains('edit')) {
+            // Обработка редактирования пользователя
+            updateUserRole(userId);
+        }
+    });
 }); 

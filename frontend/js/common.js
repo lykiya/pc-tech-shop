@@ -139,6 +139,20 @@ async function addToCart(productId) {
     }
 }
 
+// Обновляем функцию для работы с корзиной
+async function getCart() {
+    try {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        // ... existing code ...
+    } catch (error) {
+        console.error('Error fetching cart:', error);
+    }
+}
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing...');

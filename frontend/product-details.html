@@ -162,6 +162,7 @@
         </div>
     </footer>
 
+    <script src="js/config.js"></script>
     <script src="js/common.js"></script>
     <script src="script.js"></script>
     <script>
@@ -240,17 +241,17 @@
                     
                     if (imageUrl) {
                         if (!imageUrl.startsWith('http')) {
-                            imageUrl = 'http://localhost:8080/static/images/builds/' + imageUrl;
+                            imageUrl = 'http://localhost:8080' + imageUrl;
                             console.log('Преобразованный URL изображения:', imageUrl);
                         }
                         mainImage.src = imageUrl;
                         mainImage.alt = product.name;
                         mainImage.onerror = function() {
                             console.error('Ошибка загрузки изображения:', imageUrl);
-                            this.src = 'http://localhost:8080/static/images/builds/default.jpg';
+                            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                         };
                     } else {
-                        mainImage.src = 'http://localhost:8080/static/images/builds/default.jpg';
+                        mainImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                         mainImage.alt = 'Изображение отсутствует';
                     }
                 }
@@ -267,7 +268,7 @@
                             console.log('Исходный URL миниатюры:', imageUrl);
                             
                             if (!imageUrl.startsWith('http')) {
-                                imageUrl = 'http://localhost:8080/static/images/builds/' + imageUrl;
+                                imageUrl = 'http://localhost:8080' + imageUrl;
                                 console.log('Преобразованный URL миниатюры:', imageUrl);
                             }
                             
@@ -281,7 +282,7 @@
                             
                             thumbnail.onerror = function() {
                                 console.error('Ошибка загрузки миниатюры:', imageUrl);
-                                this.src = 'http://localhost:8080/static/images/builds/default.jpg';
+                                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                             };
                             
                             thumbnails.appendChild(thumbnail);
@@ -476,17 +477,17 @@
                     
                     if (imageUrl) {
                         if (!imageUrl.startsWith('http')) {
-                            imageUrl = 'http://localhost:8080/static/images/builds/' + imageUrl;
+                            imageUrl = 'http://localhost:8080' + imageUrl;
                             console.log('Преобразованный URL изображения сборки:', imageUrl);
                         }
                         mainImage.src = imageUrl;
                         mainImage.alt = build.name;
                         mainImage.onerror = function() {
                             console.error('Ошибка загрузки изображения:', imageUrl);
-                            this.src = 'http://localhost:8080/static/images/builds/default.jpg';
+                            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                         };
                     } else {
-                        mainImage.src = 'http://localhost:8080/static/images/builds/default.jpg';
+                        mainImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                         mainImage.alt = 'Изображение отсутствует';
                     }
                 }

@@ -103,6 +103,7 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		builds := protected.Group("/builds")
 		{
 			builds.POST("", controllers.CreateBuild(db))
+			builds.PUT("/:id", controllers.UpdateBuild(db))
 			builds.DELETE("/:id", controllers.DeleteBuild(db))
 			builds.POST("/upload", controllers.UploadBuildImage)
 		}
