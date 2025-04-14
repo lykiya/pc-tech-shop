@@ -48,11 +48,25 @@ func main() {
 		c.Next()
 	})
 
+	// Настройка CORS
 	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "https://pc-tech-shop-1.onrender.com")  // Разрешаем доступ с вашего домена
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")     // Разрешаем методы
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization") // Разрешаем заголовки
-		c.Header("Access-Control-Allow-Credentials", "true")                            // Разрешаем передачу учетных данных
+		// Разрешаем запросы с указанных доменов
+		allowedOrigins := []string{
+			"https://pc-tech-shop-1.onrender.com",         // Фронтенд
+			"https://pc-tech-shop-1-backend.onrender.com", // Бэкенд
+		}
+
+		origin := c.Request.Header.Get("Origin")
+		for _, allowedOrigin := range allowedOrigins {
+			if origin == allowedOrigin {
+				c.Header("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
+
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)

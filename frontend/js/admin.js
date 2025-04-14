@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Вы уверены, что хотите удалить этот товар?')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8080/admin/products/${productId}`, {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS) + `/${productId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateUserRole = async function(userId, role) {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/admin/users/${userId}/role`, {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS) + `/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

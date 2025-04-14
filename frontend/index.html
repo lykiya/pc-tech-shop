@@ -446,7 +446,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(buildApiUrl('/cart'), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -476,7 +476,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(buildApiUrl('/cart'), {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -533,6 +533,45 @@
                 });
             }
         });
+
+        async function loadCart() {
+            try {
+                const response = await fetch(buildApiUrl('/cart'), {
+                    credentials: 'include'
+                });
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке корзины');
+                }
+                const cartItems = await response.json();
+                updateCartUI(cartItems);
+            } catch (error) {
+                console.error('Ошибка при загрузке корзины:', error);
+                showToast('Ошибка при загрузке корзины', 'error');
+            }
+        }
+
+        async function addToCart(productId) {
+            try {
+                const response = await fetch(buildApiUrl('/cart'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ productId })
+                });
+
+                if (response.ok) {
+                    showToast('Товар добавлен в корзину', 'success');
+                    updateCartCount();
+                } else {
+                    showToast('Не удалось добавить товар в корзину', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка при добавлении в корзину:', error);
+                showToast('Произошла ошибка', 'error');
+            }
+        }
     </script>
 </body>
 </html>

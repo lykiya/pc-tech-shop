@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+	"net/http"
 	"pc-tech-shop/controllers"
 	"pc-tech-shop/middleware"
 
@@ -9,9 +11,6 @@ import (
 )
 
 func UserRoutes(router *gin.Engine, db *gorm.DB) {
-	// Add CORS middleware to all routes
-	router.Use(middleware.CORSMiddleware())
-
 	// Initialize controllers
 	requestController := controllers.NewRequestController(db)
 	orderController := controllers.NewOrderController(db)
@@ -112,6 +111,56 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 	// Product routes
 	router.GET("/products", controllers.GetProducts(db))
 	router.GET("/products/:id", controllers.GetProduct(db))
+
+	// Добавляем новый эндпоинт для проверки таблиц
+	router.GET("/api/check-tables", func(c *gin.Context) {
+		var tables []string
+		result := db.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'").Scan(&tables)
+
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"tables": tables})
+	})
+
+	// Добавляем эндпоинт для проверки структуры таблицы
+	router.GET("/api/table-structure/:table", func(c *gin.Context) {
+		tableName := c.Param("table")
+		var columns []struct {
+			ColumnName string `gorm:"column:column_name"`
+			DataType   string `gorm:"column:data_type"`
+		}
+
+		result := db.Raw(`
+			SELECT column_name, data_type 
+			FROM information_schema.columns 
+			WHERE table_schema = 'public' AND table_name = ?
+		`, tableName).Scan(&columns)
+
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"columns": columns})
+	})
+
+	// Добавляем эндпоинт для проверки данных в таблице
+	router.GET("/api/table-data/:table", func(c *gin.Context) {
+		tableName := c.Param("table")
+		var data []map[string]interface{}
+
+		result := db.Raw(fmt.Sprintf("SELECT * FROM %s LIMIT 10", tableName)).Scan(&data)
+
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"data": data})
+	})
 
 	// Настраиваем статические файлы
 	router.Static("/static", "./static")
