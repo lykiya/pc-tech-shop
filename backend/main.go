@@ -24,6 +24,7 @@ func main() {
 
 	// Автоматическая миграция таблиц
 	err = db.AutoMigrate(
+		&models.User{},
 		&models.CPU{},
 		&models.GPU{},
 		&models.Motherboard{},
