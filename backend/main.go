@@ -49,9 +49,10 @@ func main() {
 	})
 
 	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "http://127.0.0.1:5500")                // Ваш фронт (порт 5500)
+		c.Header("Access-Control-Allow-Origin", "https://pc-tech-shop-1.onrender.com")  // Разрешаем доступ с вашего домена
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")     // Разрешаем методы
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization") // Разрешаем заголовки
+		c.Header("Access-Control-Allow-Credentials", "true")                            // Разрешаем передачу учетных данных
 
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
