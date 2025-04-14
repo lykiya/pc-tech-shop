@@ -9,7 +9,7 @@ import (
 
 // Функция для подключения к базе данных
 func Connection(config *DBConfig) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		config.Host, config.User, config.Password, config.DBName, config.Port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
