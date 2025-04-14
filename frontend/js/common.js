@@ -74,8 +74,10 @@ async function updateCartCount() {
 
         const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
             headers: {
-                'Authorization': `Bearer ${token}`
-            }
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            },
+            credentials: 'include'
         });
 
         if (response.ok) {
@@ -111,8 +113,10 @@ async function addToCart(productId, type) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({
                 product_id: productId,
                 quantity: 1,
@@ -150,8 +154,10 @@ async function getCart() {
     try {
         const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Accept': 'application/json'
+            },
+            credentials: 'include'
         });
         // ... existing code ...
     } catch (error) {
