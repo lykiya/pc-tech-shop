@@ -76,11 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'products':
                 // Загрузка товаров
                 try {
-                    const response = await fetch('http://localhost:8080/admin/products', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS));
                     if (response.ok) {
                         const products = await response.json();
                         updateProductsList(products);
@@ -92,11 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'orders':
                 // Загрузка заказов
                 try {
-                    const response = await fetch('http://localhost:8080/orders', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ORDERS.LIST));
                     if (response.ok) {
                         const orders = await response.json();
                         updateOrdersList(orders);
@@ -110,11 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'users':
                 // Загрузка пользователей
                 try {
-                    const response = await fetch('http://localhost:8080/admin/users', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
                     if (response.ok) {
                         const users = await response.json();
                         updateUsersList(users);
@@ -358,11 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadComponents(category = 'cpu') {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/components?category=${category}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + `?category=${category}`);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке компонентов');
@@ -422,11 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function editComponent(id, category) {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:8080/components/${id}?category=${category}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.GET) + `?category=${category}&id=${id}`);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке компонента');
@@ -464,12 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Вы уверены, что хотите удалить этот компонент?')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:8080/components/${id}?category=${category}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.DELETE) + `?category=${category}&id=${id}`);
 
                 if (!response.ok) {
                     throw new Error('Ошибка при удалении компонента');
@@ -494,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const token = localStorage.getItem('token');
-            let url = 'http://localhost:8080/components';
+            let url = buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST);
             let method = 'POST';
             
             if (mode === 'edit') {
@@ -535,58 +510,106 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadProducts() {
         try {
-            const response = await fetch('http://localhost:8080/builds', {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS));
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке продуктов');
+            }
+            const products = await response.json();
+            displayProducts(products);
+        } catch (error) {
+            console.error('Ошибка при загрузке продуктов:', error);
+            showToast('Не удалось загрузить продукты', 'error');
+        }
+    }
 
+    async function loadOrders() {
+        try {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ORDERS.LIST));
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке заказов');
+            }
+            const orders = await response.json();
+            displayOrders(orders);
+        } catch (error) {
+            console.error('Ошибка при загрузке заказов:', error);
+            showToast('Не удалось загрузить заказы', 'error');
+        }
+    }
+
+    async function loadUsers() {
+        try {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке пользователей');
+            }
+            const users = await response.json();
+            displayUsers(users);
+        } catch (error) {
+            console.error('Ошибка при загрузке пользователей:', error);
+            showToast('Не удалось загрузить пользователей', 'error');
+        }
+    }
+
+    async function loadBuilds() {
+        try {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.LIST));
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке сборок');
             }
-
             const builds = await response.json();
-            const tbody = document.querySelector('#products-table tbody');
-            tbody.innerHTML = '';
-
-            builds.forEach(build => {
-                const tr = document.createElement('tr');
-                let imageUrl = build.image_url;
-                
-                // Обрабатываем URL изображения
-                if (imageUrl) {
-                    // Если URL начинается с /static, добавляем базовый URL сервера
-                    if (imageUrl.startsWith('/static')) {
-                        imageUrl = 'http://localhost:8080' + imageUrl;
-                    }
-                    // Если URL внешний (начинается с http/https), оставляем как есть
-                }
-                
-                tr.innerHTML = `
-                    <td>${build.id}</td>
-                    <td>
-                        <img src="${imageUrl}" 
-                             alt="${build.name}" 
-                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+'">
-                    </td>
-                    <td>${build.name}</td>
-                    <td>${build.description}</td>
-                    <td>$${build.total_price}</td>
-                    <td>
-                        <button class="action-btn edit-btn" data-id="${build.id}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn delete-btn" data-id="${build.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            displayBuilds(builds);
         } catch (error) {
             console.error('Ошибка при загрузке сборок:', error);
-            showToast('Ошибка при загрузке сборок: ' + error.message, 'error');
+            showToast('Не удалось загрузить сборки', 'error');
+        }
+    }
+
+    async function uploadBuildImage(formData) {
+        try {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.UPLOAD), {
+                method: 'POST',
+                body: formData
+            });
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке изображения');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при загрузке изображения:', error);
+            throw error;
+        }
+    }
+
+    async function loadComponents() {
+        try {
+            const categories = ['cpu', 'gpu', 'motherboard', 'body', 'ram', 'power_unit', 'hdd', 'ssd'];
+            const components = {};
+            
+            for (const category of categories) {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + `?category=${category}`);
+                if (!response.ok) {
+                    throw new Error(`Ошибка при загрузке компонентов категории ${category}`);
+                }
+                components[category] = await response.json();
+            }
+            
+            return components;
+        } catch (error) {
+            console.error('Ошибка при загрузке компонентов:', error);
+            throw error;
+        }
+    }
+
+    async function loadUsersList() {
+        try {
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке пользователей');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при загрузке пользователей:', error);
+            throw error;
         }
     }
 
@@ -694,19 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const imageFormData = new FormData();
                 imageFormData.append('image', imageFile);
 
-                const imageResponse = await fetch('http://localhost:8080/builds/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: imageFormData
-                });
-
-                if (!imageResponse.ok) {
-                    throw new Error('Ошибка при загрузке изображения');
-                }
-
-                const imageData = await imageResponse.json();
+                const imageData = await uploadBuildImage(imageFormData);
                 formData.image_url = imageData.image_url;
             }
 
@@ -808,28 +819,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Загружаем все компоненты параллельно
             const [cpus, gpus, motherboards, bodies, rams, powerUnits, hdds, ssds] = await Promise.all([
-                fetch('http://localhost:8080/api/components?category=cpu', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=cpu', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=gpu', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=gpu', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=motherboard', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=motherboard', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=body', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=body', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=ram', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=ram', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=power_unit', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=power_unit', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=hdd', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=hdd', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch('http://localhost:8080/api/components?category=ssd', {
+                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=ssd', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || [])
             ]);
@@ -933,11 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Требуется авторизация');
             }
 
-            const response = await fetch('http://localhost:8080/users', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке пользователей');

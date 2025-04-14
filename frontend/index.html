@@ -376,7 +376,7 @@
         // Функция для загрузки и отображения сборок
         async function loadBuilds() {
             try {
-                const response = await fetch('http://localhost:8080/builds');
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.LIST));
                 if (!response.ok) {
                     throw new Error('Ошибка при загрузке сборок');
                 }

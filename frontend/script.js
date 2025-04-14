@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             try {
-                const response = await fetch('http://localhost:8080/register', {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.REGISTER), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('http://localhost:8080/login', {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.LOGIN), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -262,9 +262,9 @@ if (window.location.pathname.includes('builds.html')) {
     // Функция для загрузки сборок
     async function loadBuilds() {
         try {
-            const response = await fetch('http://localhost:8080/builds');
+            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.LIST));
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error('Ошибка при загрузке сборок');
             }
             const builds = await response.json();
             console.log('Полученные сборки:', builds);
@@ -379,5 +379,76 @@ if (window.location.pathname.includes('builds.html')) {
         loadBuildById(buildId);
     } else {
         loadBuilds();
+    }
+}
+
+async function registerUser() {
+    try {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.REGISTER), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = 'index.html';
+        } else {
+            const error = await response.json();
+            showToast('Ошибка регистрации', error.message || 'Неизвестная ошибка', 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showToast('Ошибка', 'Произошла ошибка при регистрации', 'error');
+    }
+}
+
+async function loginUser() {
+    try {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.LOGIN), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = 'index.html';
+        } else {
+            const error = await response.json();
+            showToast('Ошибка входа', error.message || 'Неизвестная ошибка', 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showToast('Ошибка', 'Произошла ошибка при входе', 'error');
+    }
+}
+
+async function loadBuilds() {
+    try {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.LIST));
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке сборок');
+        }
+        const builds = await response.json();
+        displayBuilds(builds);
+    } catch (error) {
+        console.error('Ошибка при загрузке сборок:', error);
+        showToast('Не удалось загрузить сборки', 'error');
     }
 }

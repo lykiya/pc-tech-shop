@@ -72,7 +72,7 @@ async function updateCartCount() {
             return;
         }
 
-        const response = await fetch('http://localhost:8080/cart', {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -92,23 +92,29 @@ async function updateCartCount() {
 }
 
 // Функция для добавления товара в корзину
-async function addToCart(productId) {
+async function addToCart(productId, type) {
     try {
-        const token = checkAuth();
-        if (!token) return;
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showToast(
+                'Требуется авторизация',
+                'Для добавления товара в корзину необходимо авторизоваться',
+                'info'
+            );
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
 
-        // Определяем тип товара на основе текущей страницы
-        const isBuildPage = window.location.pathname.includes('builds.html');
-        const type = isBuildPage ? 'build' : 'product';
-
-        const response = await fetch('http://localhost:8080/cart', {
+        const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.ADD), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                pcbuild_id: parseInt(productId),
+                product_id: productId,
                 quantity: 1,
                 type: type
             })
