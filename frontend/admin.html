@@ -1657,10 +1657,10 @@
                         tr.innerHTML = `
                             <td>${build.id}</td>
                             <td>
-                                <img src="${build.image_url ? (build.image_url.startsWith('http') ? build.image_url : API_CONFIG.BASE_URL + build.image_url) : `${API_CONFIG.BASE_URL}/images/builds/default.jpg`}" 
+                                <img src="${build.image_url ? (build.image_url.startsWith('http') ? build.image_url : API_CONFIG.BASE_URL + build.image_url) : 'images/builds/default.jpg'}" 
                                      alt="${build.name}" 
                                      style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
-                                     onerror="if (this.src !== '${API_CONFIG.BASE_URL}/images/builds/default.jpg') this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
+                                     onerror="if (this.src !== 'images/builds/default.jpg') this.src='images/builds/default.jpg'">
                             </td>
                             <td>${build.name}</td>
                             <td>${build.description}</td>
@@ -2474,52 +2474,67 @@
                         throw new Error('Требуется авторизация');
                     }
 
-                    // Показываем модальное окно сразу
-                    showModal('editBuildModal');
+                    // Показываем модальное окно
+                    const modal = document.getElementById('editBuildModal');
+                    modal.style.display = 'block';
 
-                    // Загружаем данные асинхронно
-                    const [buildResponse, componentsResponse] = await Promise.all([
-                        fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        }),
-                        loadComponentsForEdit()
-                    ]);
+                    // Загружаем данные сборки
+                    const buildResponse = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                        headers: { 
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
                     if (!buildResponse.ok) {
                         throw new Error('Ошибка при загрузке данных сборки');
                     }
 
                     const build = await buildResponse.json();
-                    
+                    console.log('Загруженные данные сборки:', build); // Для отладки
+
                     // Заполняем форму данными сборки
-                    document.getElementById('editBuildName').value = build.name;
-                    document.getElementById('editBuildDescription').value = build.description;
-                    document.getElementById('editBuildPrice').value = build.total_price;
-                    
+                    document.getElementById('editBuildName').value = build.name || '';
+                    document.getElementById('editBuildDescription').value = build.description || '';
+                    document.getElementById('editBuildPrice').value = build.total_price || '';
+
+                    // Загружаем компоненты для выбора
+                    await loadComponentsForEdit();
+
                     // Устанавливаем выбранные компоненты
-                    document.getElementById('editBuildCPU').value = build.cpu_id;
-                    document.getElementById('editBuildGPU').value = build.gpu_id;
-                    document.getElementById('editBuildMotherboard').value = build.motherboard_id;
-                    document.getElementById('editBuildBody').value = build.body_id;
-                    document.getElementById('editBuildRAM').value = build.ram_id;
-                    document.getElementById('editBuildPowerUnit').value = build.power_unit_id;
-                    document.getElementById('editBuildHDD').value = build.hdd_id || '';
-                    document.getElementById('editBuildSSD').value = build.ssd_id || '';
-                    
+                    if (build.cpu_id) document.getElementById('editBuildCPU').value = build.cpu_id;
+                    if (build.gpu_id) document.getElementById('editBuildGPU').value = build.gpu_id;
+                    if (build.motherboard_id) document.getElementById('editBuildMotherboard').value = build.motherboard_id;
+                    if (build.body_id) document.getElementById('editBuildBody').value = build.body_id;
+                    if (build.ram_id) document.getElementById('editBuildRAM').value = build.ram_id;
+                    if (build.power_unit_id) document.getElementById('editBuildPowerUnit').value = build.power_unit_id;
+                    if (build.hdd_id) document.getElementById('editBuildHDD').value = build.hdd_id;
+                    if (build.ssd_id) document.getElementById('editBuildSSD').value = build.ssd_id;
+
                     // Обновляем предпросмотр
                     updateEditPreview();
-                    
+
                     // Сохраняем ID сборки в форме
                     document.getElementById('editBuildForm').dataset.buildId = buildId;
+
                 } catch (error) {
                     console.error('Ошибка при открытии модального окна редактирования:', error);
                     showToast('Ошибка при загрузке данных сборки: ' + error.message, 'error');
-                    closeModal('editBuildModal');
+                    closeEditBuildModal();
                 }
             }
 
+            // Обновляем функцию закрытия модального окна
             function closeEditBuildModal() {
-                closeModal('editBuildModal');
+                const modal = document.getElementById('editBuildModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    // Очищаем форму только при явном закрытии
+                    const form = document.getElementById('editBuildForm');
+                    if (form) {
+                        form.reset();
+                    }
+                }
             }
 
             async function loadComponentsForEdit() {
@@ -2723,47 +2738,53 @@
                     throw new Error('Требуется авторизация');
                 }
 
-                // Показываем модальное окно сразу
-                showModal('editBuildModal');
+                // Показываем модальное окно
+                const modal = document.getElementById('editBuildModal');
+                modal.style.display = 'block';
 
-                // Загружаем данные асинхронно
-                const [buildResponse, componentsResponse] = await Promise.all([
-                    fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }),
-                    loadComponentsForEdit()
-                ]);
+                // Загружаем данные сборки
+                const buildResponse = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
                 if (!buildResponse.ok) {
                     throw new Error('Ошибка при загрузке данных сборки');
                 }
 
                 const build = await buildResponse.json();
-                
+                console.log('Загруженные данные сборки:', build); // Для отладки
+
                 // Заполняем форму данными сборки
-                document.getElementById('editBuildName').value = build.name;
-                document.getElementById('editBuildDescription').value = build.description;
-                document.getElementById('editBuildPrice').value = build.total_price;
-                
+                document.getElementById('editBuildName').value = build.name || '';
+                document.getElementById('editBuildDescription').value = build.description || '';
+                document.getElementById('editBuildPrice').value = build.total_price || '';
+
+                // Загружаем компоненты для выбора
+                await loadComponentsForEdit();
+
                 // Устанавливаем выбранные компоненты
-                document.getElementById('editBuildCPU').value = build.cpu_id;
-                document.getElementById('editBuildGPU').value = build.gpu_id;
-                document.getElementById('editBuildMotherboard').value = build.motherboard_id;
-                document.getElementById('editBuildBody').value = build.body_id;
-                document.getElementById('editBuildRAM').value = build.ram_id;
-                document.getElementById('editBuildPowerUnit').value = build.power_unit_id;
-                document.getElementById('editBuildHDD').value = build.hdd_id || '';
-                document.getElementById('editBuildSSD').value = build.ssd_id || '';
-                
+                if (build.cpu_id) document.getElementById('editBuildCPU').value = build.cpu_id;
+                if (build.gpu_id) document.getElementById('editBuildGPU').value = build.gpu_id;
+                if (build.motherboard_id) document.getElementById('editBuildMotherboard').value = build.motherboard_id;
+                if (build.body_id) document.getElementById('editBuildBody').value = build.body_id;
+                if (build.ram_id) document.getElementById('editBuildRAM').value = build.ram_id;
+                if (build.power_unit_id) document.getElementById('editBuildPowerUnit').value = build.power_unit_id;
+                if (build.hdd_id) document.getElementById('editBuildHDD').value = build.hdd_id;
+                if (build.ssd_id) document.getElementById('editBuildSSD').value = build.ssd_id;
+
                 // Обновляем предпросмотр
                 updateEditPreview();
-                
+
                 // Сохраняем ID сборки в форме
                 document.getElementById('editBuildForm').dataset.buildId = buildId;
+
             } catch (error) {
                 console.error('Ошибка при открытии модального окна редактирования:', error);
                 showToast('Ошибка при загрузке данных сборки: ' + error.message, 'error');
-                closeModal('editBuildModal');
+                closeEditBuildModal();
             }
         }
     </script>
