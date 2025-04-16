@@ -218,23 +218,45 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateOrdersList(orders) {
         const ordersTableBody = document.getElementById('ordersTableBody');
         if (ordersTableBody) {
-            ordersTableBody.innerHTML = orders.map(order => `
-                <tr>
-                    <td>${order.id}</td>
-                    <td>${order.user_id}</td>
-                    <td>${new Date(order.created_at).toLocaleString()}</td>
-                    <td>${order.total_amount} ₽</td>
-                    <td>${getOrderStatusText(order.status)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" onclick="viewOrderDetails(${order.id})" title="Просмотр деталей">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-primary" onclick="updateOrderStatus(${order.id})" title="Изменить статус">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            ordersTableBody.innerHTML = orders.map(order => {
+                // Форматируем дату
+                const orderDate = new Date(order.created_at);
+                const formattedDate = orderDate.toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Форматируем сумму
+                const formattedAmount = new Intl.NumberFormat('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB'
+                }).format(order.total_amount);
+
+                return `
+                    <tr>
+                        <td>${order.id}</td>
+                        <td>${order.user_id}</td>
+                        <td>${formattedDate}</td>
+                        <td>${formattedAmount}</td>
+                        <td>
+                            <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
+                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
+                                <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>В обработке</option>
+                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Завершен</option>
+                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="action-btn view" onclick="viewOrderDetails(${order.id})" title="Просмотр деталей">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
     }
 
@@ -299,28 +321,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    window.updateOrderStatus = async function(orderId, newStatus) {
-        const token = localStorage.getItem('token');
+    async function updateOrderStatus(orderId, newStatus) {
         try {
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.DETAIL.replace(':id', orderId), {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS.UPDATE_STATUS}/${orderId}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ status: newStatus })
             });
 
-            if (response.ok) {
-                showToast('Успешно', 'Статус заказа обновлен', 'success');
-            } else {
-                showToast('Ошибка', 'Не удалось обновить статус заказа', 'error');
+            if (!response.ok) {
+                throw new Error('Ошибка при обновлении статуса заказа');
+            }
+
+            showToast('Статус заказа успешно обновлен', 'success');
+            
+            // Перезагружаем список заказов
+            const ordersResponse = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (ordersResponse.ok) {
+                const orders = await ordersResponse.json();
+                updateOrdersList(orders);
             }
         } catch (error) {
-            console.error('Error updating order status:', error);
-            showToast('Ошибка', 'Произошла ошибка при обновлении статуса заказа', 'error');
+            console.error('Ошибка при обновлении статуса заказа:', error);
+            showToast('Не удалось обновить статус заказа', 'error');
         }
-    };
+    }
 
     window.updateUserRole = async function(userId, role) {
         try {
@@ -521,20 +555,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Ошибка при загрузке продуктов:', error);
             showToast('Не удалось загрузить продукты', 'error');
-        }
-    }
-
-    async function loadOrders() {
-        try {
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST);
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке заказов');
-            }
-            const orders = await response.json();
-            displayOrders(orders);
-        } catch (error) {
-            console.error('Ошибка при загрузке заказов:', error);
-            showToast('Не удалось загрузить заказы', 'error');
         }
     }
 
