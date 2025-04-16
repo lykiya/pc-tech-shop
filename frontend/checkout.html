@@ -565,7 +565,7 @@
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
-                            <img src="${item.image_url || 'images/placeholder.png'}" alt="${item.name}">
+                            <img src="${item.image_url || `${API_CONFIG.BASE_URL}/images/placeholder.png`}" alt="${item.name}">
                         </div>
                         <div class="item-details">
                             <h3>${item.name}</h3>
@@ -689,7 +689,7 @@
         // Функция для обновления количества товаров в корзине
         async function updateCartCount() {
             try {
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
