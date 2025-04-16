@@ -34,6 +34,26 @@ func main() {
 	// Perform migrations
 	log.Println("Starting database migrations...")
 	
+	// Применяем SQL миграции
+	migrations := []string{
+		"000002_add_order_fields.up.sql",
+	}
+
+	for _, migration := range migrations {
+		log.Printf("Applying migration %s...", migration)
+		migrationSQL, err := os.ReadFile(filepath.Join("migrations", migration))
+		if err != nil {
+			log.Printf("Error reading migration file %s: %v", migration, err)
+			continue
+		}
+
+		if err := db.Exec(string(migrationSQL)).Error; err != nil {
+			log.Printf("Error applying migration %s: %v", migration, err)
+		} else {
+			log.Printf("Successfully applied migration %s", migration)
+		}
+	}
+
 	// Создаем таблицы, если они не существуют
 	models := []interface{}{
 		&models.User{},
@@ -59,26 +79,6 @@ func main() {
 			// Continue with other migrations even if one fails
 		} else {
 			log.Printf("Successfully migrated %T", model)
-		}
-	}
-
-	// Применяем дополнительные миграции
-	migrations := []string{
-		"000002_add_order_fields.up.sql",
-	}
-
-	for _, migration := range migrations {
-		log.Printf("Applying migration %s...", migration)
-		migrationSQL, err := os.ReadFile(filepath.Join("migrations", migration))
-		if err != nil {
-			log.Printf("Error reading migration file %s: %v", migration, err)
-			continue
-		}
-
-		if err := db.Exec(string(migrationSQL)).Error; err != nil {
-			log.Printf("Error applying migration %s: %v", migration, err)
-		} else {
-			log.Printf("Successfully applied migration %s", migration)
 		}
 	}
 

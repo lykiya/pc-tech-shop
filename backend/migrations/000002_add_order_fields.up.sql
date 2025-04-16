@@ -1,8 +1,14 @@
--- Добавляем новые поля как nullable
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address TEXT;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(50);
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS comment TEXT;
+-- Удаляем существующие колонки, если они есть
+ALTER TABLE orders DROP COLUMN IF EXISTS shipping_address;
+ALTER TABLE orders DROP COLUMN IF EXISTS payment_method;
+ALTER TABLE orders DROP COLUMN IF EXISTS delivery_method;
+ALTER TABLE orders DROP COLUMN IF EXISTS comment;
+
+-- Добавляем новые поля
+ALTER TABLE orders ADD COLUMN shipping_address TEXT;
+ALTER TABLE orders ADD COLUMN payment_method VARCHAR(50);
+ALTER TABLE orders ADD COLUMN delivery_method VARCHAR(50);
+ALTER TABLE orders ADD COLUMN comment TEXT;
 
 -- Обновляем существующие записи значениями по умолчанию
 UPDATE orders SET 

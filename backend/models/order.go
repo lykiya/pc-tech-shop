@@ -17,9 +17,9 @@ type Order struct {
 	UserID          uint        `json:"user_id" gorm:"not null"`
 	TotalAmount     float64     `json:"total_amount" gorm:"not null"`
 	Status          OrderStatus `json:"status" gorm:"type:varchar(20);default:'pending'"`
-	ShippingAddress string      `json:"shipping_address" gorm:"not null"`
-	PaymentMethod   string      `json:"payment_method" gorm:"not null"`
-	DeliveryMethod  string      `json:"delivery_method" gorm:"not null"`
+	ShippingAddress string      `json:"shipping_address"`
+	PaymentMethod   string      `json:"payment_method"`
+	DeliveryMethod  string      `json:"delivery_method"`
 	Comment         string      `json:"comment"`
 	Items           []OrderItem `json:"items" gorm:"foreignKey:OrderID"`
 }
