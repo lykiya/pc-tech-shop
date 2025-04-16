@@ -615,7 +615,7 @@
             }
 
             try {
-                const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -632,7 +632,14 @@
                     return;
                 }
 
-                const order = await response.json();
+                const orders = await response.json();
+                const order = orders.find(o => o.ID === orderId || o.id === orderId);
+                
+                if (!order) {
+                    showError('Заказ не найден');
+                    return;
+                }
+
                 displayOrderDetails(order);
             } catch (error) {
                 console.error('Ошибка при загрузке деталей заказа:', error);
