@@ -117,21 +117,22 @@
         }
 
         .action-btn {
-            padding: 5px 10px;
+            padding: 4px 8px;
+            margin: 0 2px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            margin: 0 2px;
+            transition: background-color 0.2s;
         }
 
         .action-btn.view {
-            background-color: #4CAF50;
+            background-color: #17a2b8;
             color: white;
         }
 
         .action-btn.edit {
-            background-color: #2196F3;
-            color: white;
+            background-color: #ffc107;
+            color: #000;
         }
 
         .action-btn:hover {
@@ -498,11 +499,9 @@
 
         .status-badge {
             padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.85em;
+            border-radius: 4px;
+            font-size: 0.9em;
             font-weight: 500;
-            text-align: center;
-            display: inline-block;
         }
 
         .status-pending {
@@ -526,19 +525,25 @@
         }
 
         .payment-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
             font-weight: 500;
         }
 
         .payment-pending {
-            color: #ffc107;
+            background-color: #fff3cd;
+            color: #856404;
         }
 
         .payment-completed {
-            color: #28a745;
+            background-color: #d4edda;
+            color: #155724;
         }
 
         .payment-failed {
-            color: #dc3545;
+            background-color: #f8d7da;
+            color: #721c24;
         }
 
         .table-container {
@@ -546,6 +551,164 @@
             margin-top: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 10px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .admin-menu {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .admin-menu a {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+
+            .admin-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+
+            .admin-section {
+                padding: 10px;
+            }
+
+            .admin-section-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                min-width: 800px; /* Минимальная ширина для прокрутки */
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .action-btn {
+                padding: 6px;
+                margin: 2px;
+            }
+
+            .action-btn i {
+                font-size: 14px;
+            }
+
+            /* Адаптация для модальных окон */
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                width: 100%;
+                padding: 8px;
+            }
+
+            /* Адаптация для статистики */
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            /* Адаптация для статусов */
+            .status-badge,
+            .payment-status {
+                display: inline-block;
+                width: 100%;
+                text-align: center;
+                margin: 2px 0;
+            }
+
+            /* Адаптация для кнопок в таблице */
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .action-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Дополнительные стили для очень маленьких экранов */
+        @media (max-width: 480px) {
+            .admin-header h1 {
+                font-size: 1.5em;
+            }
+
+            .admin-menu a {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                padding: 10px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 14px;
+            }
+        }
+
+        /* Улучшения для планшетов */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .admin-menu {
+                width: 200px;
+            }
+
+            .admin-content {
+                margin-left: 200px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>

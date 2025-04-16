@@ -222,20 +222,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tr>
                     <td>${order.id}</td>
                     <td>${order.user_id}</td>
-                    <td>${order.total_amount}</td>
-                    <td>${order.status}</td>
                     <td>${new Date(order.created_at).toLocaleString()}</td>
+                    <td>${order.total_price} ₽</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="editOrder(${order.id})">
-                            <i class="fas fa-edit"></i>
+                        <span class="status-badge status-${order.status}">
+                            ${getOrderStatusText(order.status)}
+                        </span>
+                    </td>
+                    <td>${order.shipping_address || '-'}</td>
+                    <td>${order.payment_method || '-'}</td>
+                    <td>
+                        <span class="payment-status payment-${order.payment_status}">
+                            ${getPaymentStatusText(order.payment_status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="viewOrderDetails(${order.id})" class="action-btn view" title="Просмотреть детали">
+                            <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})">
-                            <i class="fas fa-trash"></i>
+                        <button onclick="updateOrderStatus(${order.id})" class="action-btn edit" title="Изменить статус">
+                            <i class="fas fa-edit"></i>
                         </button>
                     </td>
                 </tr>
             `).join('');
         }
+    }
+
+    // Функция для получения текстового представления статуса заказа
+    function getOrderStatusText(status) {
+        const statusMap = {
+            'pending': 'Ожидает обработки',
+            'processing': 'В обработке',
+            'completed': 'Завершен',
+            'cancelled': 'Отменен'
+        };
+        return statusMap[status] || status;
+    }
+
+    // Функция для получения текстового представления статуса оплаты
+    function getPaymentStatusText(status) {
+        const statusMap = {
+            'pending': 'Ожидает оплаты',
+            'completed': 'Оплачено',
+            'failed': 'Ошибка оплаты'
+        };
+        return statusMap[status] || status;
     }
 
     function updateUsersList(users) {
