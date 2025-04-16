@@ -380,12 +380,16 @@
         // Функция для обновления имени пользователя
         function updateUserName() {
             const user = JSON.parse(localStorage.getItem('user'));
+            console.log('Текущий пользователь:', user);
+            
             const userDisplayName = document.getElementById('userDisplayName');
             const loginLink = document.querySelector('.login-link');
             const userMenu = document.querySelector('.user-menu');
             const adminPanelLink = document.querySelector('.admin-panel-link');
 
             if (user && user.name) {
+                console.log('Роль пользователя:', user.role);
+                
                 if (userDisplayName) {
                     userDisplayName.textContent = user.name;
                 }
@@ -396,12 +400,17 @@
                     userMenu.style.display = 'block';
                 }
                 // Проверяем роль пользователя
-                if (adminPanelLink && user.role === 'admin') {
-                    adminPanelLink.style.display = 'block';
-                } else if (adminPanelLink) {
-                    adminPanelLink.style.display = 'none';
+                if (adminPanelLink) {
+                    if (user.role === 'admin') {
+                        console.log('Пользователь является администратором, показываем панель');
+                        adminPanelLink.style.display = 'block';
+                    } else {
+                        console.log('Пользователь не является администратором, скрываем панель');
+                        adminPanelLink.style.display = 'none';
+                    }
                 }
             } else {
+                console.log('Пользователь не авторизован');
                 if (userDisplayName) {
                     userDisplayName.textContent = 'Гость';
                 }

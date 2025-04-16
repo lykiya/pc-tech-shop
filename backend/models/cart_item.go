@@ -15,11 +15,27 @@ type CartItem struct {
 // GetCartItems получает все товары в корзине пользователя
 func GetCartItems(db *gorm.DB, userID int64) ([]CartItem, error) {
 	var items []CartItem
-	err := db.Preload("Build.CPU").Preload("Build.GPU").Preload("Build.Motherboard").
-		Preload("Build.RAM").Preload("Build.PowerUnit").Preload("Build.Body").
-		Preload("Build.HDD").Preload("Build.SSD").
-		Where("user_id = ?", userID).Find(&items).Error
-	return items, err
+	err := db.Preload("Build").
+		Where("user_id = ?", userID).
+		Find(&items).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Загружаем компоненты для каждой сборки отдельно
+	for i := range items {
+		if items[i].Build.ID != 0 {
+			var build Pcbuild
+			err := db.First(&build, items[i].BuildID).Error
+			if err != nil {
+				return nil, err
+			}
+			items[i].Build = build
+		}
+	}
+
+	return items, nil
 }
 
 // AddToCart добавляет товар в корзину

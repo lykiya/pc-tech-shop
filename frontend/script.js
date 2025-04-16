@@ -89,28 +89,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = await response.json();
                     console.log('Login response:', data);
                     
+                    // Сохраняем только токен и объект пользователя
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    localStorage.setItem('role', data.user.role);
                     
                     console.log('Stored user:', JSON.parse(localStorage.getItem('user')));
-                    console.log('Stored role:', localStorage.getItem('role'));
                     
-                    // Проверяем роль из токена
-                    const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
-                    console.log('Token payload:', tokenPayload);
+                    // Проверяем роль из объекта пользователя
+                    const user = data.user;
+                    console.log('User role:', user.role);
                     
-                    if (tokenPayload.role === 'admin') {
-                        console.log('User is admin, redirecting to admin page');
-                        window.location.href = 'admin.html';
-                    } else {
-                        console.log('User is not admin, redirecting to index page');
+                    showMessage('Вход выполнен успешно! Перенаправление...', 'success');
+                    setTimeout(() => {
                         window.location.href = 'index.html';
-                    }
+                    }, 1000);
                 } else {
-                    const error = await response.json();
-                    messageDiv.textContent = error.error || 'Ошибка при входе';
-                    messageDiv.style.color = 'red';
+                    const errorData = await response.json();
+                    showMessage(errorData.message || 'Ошибка при входе', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);
