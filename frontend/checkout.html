@@ -521,6 +521,15 @@
             showToast('Ошибка конфигурации. Пожалуйста, обновите страницу.', 'error');
         }
 
+        // Функции для отображения уведомлений
+        function showError(message) {
+            showToast(message, 'error');
+        }
+
+        function showSuccess(message) {
+            showToast(message, 'success');
+        }
+
         // Функция для загрузки данных корзины
         async function loadCartData() {
             const token = localStorage.getItem('token');
@@ -544,15 +553,16 @@
                 const cartData = await response.json();
                 console.log('Данные корзины:', cartData);
 
-                const cartItemsContainer = document.getElementById('cart-items');
-                const totalPriceElement = document.getElementById('total-price');
+                const checkoutItems = document.getElementById('checkoutItems');
+                const subtotal = document.getElementById('subtotal');
+                const total = document.getElementById('total');
                 let totalPrice = 0;
 
-                cartItemsContainer.innerHTML = '';
+                checkoutItems.innerHTML = '';
                 
                 cartData.forEach(item => {
                     const itemElement = document.createElement('div');
-                    itemElement.className = 'cart-item';
+                    itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
                             <img src="${item.image_url || 'images/placeholder.png'}" alt="${item.name}">
@@ -563,11 +573,12 @@
                             <p class="item-quantity">Количество: ${item.quantity}</p>
                         </div>
                     `;
-                    cartItemsContainer.appendChild(itemElement);
+                    checkoutItems.appendChild(itemElement);
                     totalPrice += item.price * item.quantity;
                 });
 
-                totalPriceElement.textContent = `${totalPrice} ₽`;
+                subtotal.textContent = `${totalPrice} ₽`;
+                total.textContent = `${totalPrice} ₽`;
             } catch (error) {
                 console.error('Ошибка при загрузке корзины:', error);
                 showError('Произошла ошибка при загрузке корзины');
@@ -673,71 +684,6 @@
                     userMenu.style.display = 'none';
                 }
             }
-        }
-
-        // Функция для отображения товаров в корзине
-        function displayCartItems(cartData) {
-            const checkoutItems = document.getElementById('checkoutItems');
-            if (!checkoutItems) {
-                console.error('Элемент checkoutItems не найден');
-                return;
-            }
-
-            checkoutItems.innerHTML = '';
-
-            if (!cartData.items || cartData.items.length === 0) {
-                console.log('Корзина пуста');
-                checkoutItems.innerHTML = `
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>Ваша корзина пуста</p>
-                    </div>
-                `;
-                return;
-            }
-
-            console.log('Отображаем товары:', cartData.items);
-
-            cartData.items.forEach(item => {
-                if (!item) return;
-                
-                let imageUrl = item.image_url;
-                if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = 'http://localhost:8080' + imageUrl;
-                }
-                
-                const itemElement = document.createElement('div');
-                itemElement.className = 'checkout-item';
-                itemElement.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.name}" onerror="this.src='http://localhost:8080/images/builds/default.jpg'">
-                    <div class="checkout-item-info">
-                        <div class="checkout-item-title">${item.name}</div>
-                        <div class="checkout-item-price">${item.price.toLocaleString()} руб.</div>
-                    </div>
-                `;
-                checkoutItems.appendChild(itemElement);
-            });
-        }
-
-        // Функция для обновления итоговых сумм
-        function updateTotals(cartData) {
-            if (!cartData || !cartData.items || !Array.isArray(cartData.items)) {
-                document.getElementById('subtotal').textContent = '0 руб.';
-                document.getElementById('deliveryCost').textContent = '0 руб.';
-                document.getElementById('total').textContent = '0 руб.';
-                return;
-            }
-
-            const subtotal = cartData.items.reduce((sum, item) => {
-                return sum + (item.price || 0);
-            }, 0);
-
-            const deliveryCost = document.querySelector('input[name="delivery"]:checked')?.value === 'courier' ? 500 : 0;
-            const total = subtotal + deliveryCost;
-
-            document.getElementById('subtotal').textContent = `${subtotal.toLocaleString()} руб.`;
-            document.getElementById('deliveryCost').textContent = `${deliveryCost.toLocaleString()} руб.`;
-            document.getElementById('total').textContent = `${total.toLocaleString()} руб.`;
         }
 
         // Функция для обновления количества товаров в корзине
@@ -1051,6 +997,45 @@
             const isAuthenticated = await checkAuthAndLoadUserData();
             if (isAuthenticated) {
                 await loadCartData();
+            }
+
+            // Добавляем обработчики для формы
+            const checkoutForm = document.getElementById('checkoutForm');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            
+            if (placeOrderBtn) {
+                placeOrderBtn.addEventListener('click', (e) => {
+                    console.log('Кнопка нажата');
+                    placeOrder(e);
+                });
+            }
+
+            // Добавляем обработчик для изменения способа доставки
+            const deliveryOptions = document.querySelectorAll('input[name="delivery"]');
+            deliveryOptions.forEach(option => {
+                option.addEventListener('change', () => {
+                    loadCartData(); // Пересчитываем суммы
+                });
+            });
+
+            // Добавляем обработчик для изменения способа оплаты
+            const paymentMethods = document.querySelectorAll('input[name="payment"]');
+            paymentMethods.forEach(method => {
+                method.addEventListener('change', () => {
+                    loadCartData(); // Пересчитываем суммы
+                });
+            });
+
+            // Добавляем обработчик для кнопки выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('role');
+                    window.location.href = 'login.html';
+                });
             }
         });
     </script>
