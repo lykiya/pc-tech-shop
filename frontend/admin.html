@@ -1702,19 +1702,19 @@
                     orders.forEach(order => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${order.id}</td>
-                            <td>${order.user_id}</td>
-                            <td>${new Date(order.order_date).toLocaleString()}</td>
-                            <td>${order.total_price} ₽</td>
+                            <td>${order.id || '-'}</td>
+                            <td>${order.user_id || '-'}</td>
+                            <td>${order.order_date ? new Date(order.order_date).toLocaleString('ru-RU') : '-'}</td>
+                            <td>${order.total_price ? order.total_price.toFixed(2) + ' ₽' : '-'}</td>
                             <td>
-                                <span class="status-badge status-${order.status}">
+                                <span class="status-badge status-${order.status || 'pending'}">
                                     ${getOrderStatusText(order.status)}
                                 </span>
                             </td>
                             <td>${order.shipping_address || '-'}</td>
                             <td>${order.payment_method || '-'}</td>
                             <td>
-                                <span class="payment-status payment-${order.payment_status}">
+                                <span class="payment-status payment-${order.payment_status || 'pending'}">
                                     ${getPaymentStatusText(order.payment_status)}
                                 </span>
                             </td>
@@ -1730,7 +1730,8 @@
                         tbody.appendChild(row);
                     });
                 } catch (error) {
-                    showToast('Ошибка', error.message, 'error');
+                    console.error('Ошибка при загрузке заказов:', error);
+                    showToast('Ошибка при загрузке заказов: ' + error.message, 'error');
                 }
             }
 
@@ -1742,7 +1743,7 @@
                     'completed': 'Завершен',
                     'cancelled': 'Отменен'
                 };
-                return statusMap[status] || status;
+                return statusMap[status] || 'Неизвестный статус';
             }
 
             // Функция для получения текстового представления статуса оплаты
@@ -1752,7 +1753,7 @@
                     'completed': 'Оплачено',
                     'failed': 'Ошибка оплаты'
                 };
-                return statusMap[status] || status;
+                return statusMap[status] || 'Неизвестный статус';
             }
 
             // Функция для просмотра деталей заказа
@@ -1932,6 +1933,94 @@
 
             // Функции для работы с комплектующими
             function loadComponents(category = 'cpu') {
+                // Обновляем заголовки таблицы в зависимости от категории
+                const table = document.getElementById('components-table');
+                const thead = table.querySelector('thead tr');
+                thead.innerHTML = '';
+
+                // Базовые колонки для всех типов
+                const baseColumns = `
+                    <th>ID</th>
+                    <th>Название</th>
+                `;
+
+                // Специфичные колонки для разных типов компонентов
+                let specificColumns = '';
+                switch(category) {
+                    case 'cpu':
+                        specificColumns = `
+                            <th>Производитель</th>
+                            <th>Ядра</th>
+                            <th>Потоки</th>
+                            <th>Сокет</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'gpu':
+                        specificColumns = `
+                            <th>Производитель</th>
+                            <th>Видеопамять</th>
+                            <th>Тип памяти</th>
+                            <th>Частота</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'motherboard':
+                        specificColumns = `
+                            <th>Производитель</th>
+                            <th>Сокет</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'ram':
+                        specificColumns = `
+                            <th>Объем</th>
+                            <th>Тип</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'ssd':
+                        specificColumns = `
+                            <th>Объем</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'hdd':
+                        specificColumns = `
+                            <th>Объем</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'power_unit':
+                        specificColumns = `
+                            <th>Мощность</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    case 'body':
+                        specificColumns = `
+                            <th>Производитель</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                        break;
+                    default:
+                        specificColumns = `
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        `;
+                }
+
+                thead.innerHTML = baseColumns + specificColumns;
+
+                // Загружаем данные
                 fetch(`${API_CONFIG.BASE_URL}/components?category=${category}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1956,147 +2045,98 @@
                     if (data && data.length > 0) {
                         data.forEach(component => {
                             const row = document.createElement('tr');
-                            if (category === 'body') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.manufacturer || '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'cpu') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.manufacturer || '-'}</td>
-                                    <td>${component.data.cores || '-'}</td>
-                                    <td>${component.data.threads || '-'}</td>
-                                    <td>${component.data.socket || '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>${component.data.release_date ? new Date(component.data.release_date).toLocaleDateString() : '-'}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'gpu') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.manufacturer || '-'}</td>
-                                    <td>${component.data.vram ? component.data.vram + ' ГБ' : '-'}</td>
-                                    <td>${component.data.memory_type || '-'}</td>
-                                    <td>${component.data.gpu_clock ? component.data.gpu_clock + ' МГц' : '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>${component.data.release_date ? new Date(component.data.release_date).toLocaleDateString() : '-'}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'motherboard') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.manufacturer || '-'}</td>
-                                    <td>${component.data.socket || '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'ram') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
-                                    <td>${component.data.ddr || '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'ssd') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'power_unit') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.wattage ? component.data.wattage + ' Вт' : '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
-                            } else if (category === 'hdd') {
-                                row.innerHTML = `
-                                    <td>${component.data.id}</td>
-                                    <td>${component.data.name}</td>
-                                    <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
-                                    <td>${component.data.price} ₽</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                `;
+                            let rowContent = `
+                                <td>${component.data.id}</td>
+                                <td>${component.data.name}</td>
+                            `;
+
+                            // Добавляем специфичные данные в зависимости от категории
+                            switch(category) {
+                                case 'cpu':
+                                    rowContent += `
+                                        <td>${component.data.manufacturer || '-'}</td>
+                                        <td>${component.data.cores || '-'}</td>
+                                        <td>${component.data.threads || '-'}</td>
+                                        <td>${component.data.socket || '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'gpu':
+                                    rowContent += `
+                                        <td>${component.data.manufacturer || '-'}</td>
+                                        <td>${component.data.vram ? component.data.vram + ' ГБ' : '-'}</td>
+                                        <td>${component.data.memory_type || '-'}</td>
+                                        <td>${component.data.gpu_clock ? component.data.gpu_clock + ' МГц' : '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'motherboard':
+                                    rowContent += `
+                                        <td>${component.data.manufacturer || '-'}</td>
+                                        <td>${component.data.socket || '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'ram':
+                                    rowContent += `
+                                        <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                        <td>${component.data.ddr || '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'ssd':
+                                    rowContent += `
+                                        <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'hdd':
+                                    rowContent += `
+                                        <td>${component.data.capacity ? component.data.capacity + ' ГБ' : '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'power_unit':
+                                    rowContent += `
+                                        <td>${component.data.wattage ? component.data.wattage + ' Вт' : '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                case 'body':
+                                    rowContent += `
+                                        <td>${component.data.manufacturer || '-'}</td>
+                                        <td>${component.data.price} ₽</td>
+                                    `;
+                                    break;
+                                default:
+                                    rowContent += `
+                                        <td>${component.data.price} ₽</td>
+                                    `;
                             }
+
+                            // Добавляем кнопки действий
+                            rowContent += `
+                                <td>
+                                    <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${component.type}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${component.type}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
+
+                            row.innerHTML = rowContent;
                             tbody.appendChild(row);
                         });
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="9" class="text-center">Нет комплектующих</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Нет комплектующих</td></tr>';
                     }
                 })
                 .catch(error => {
                     console.error('Ошибка при загрузке комплектующих:', error);
                     const tbody = document.querySelector('#components-table tbody');
-                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">Ошибка при загрузке комплектующих: ' + error.message + '</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center">Ошибка при загрузке комплектующих: ' + error.message + '</td></tr>';
                 });
             }
 
