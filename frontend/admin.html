@@ -1685,6 +1685,7 @@
             // Функция для загрузки заказов
             async function loadOrders() {
                 try {
+                    console.log('Загрузка заказов...');
                     const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1696,33 +1697,56 @@
                     }
                     
                     const orders = await response.json();
+                    console.log('Полученные заказы:', orders);
+                    
                     const tbody = document.getElementById('ordersTableBody');
                     tbody.innerHTML = '';
                     
+                    if (!orders || orders.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" class="text-center">Нет заказов</td></tr>';
+                        return;
+                    }
+                    
                     orders.forEach(order => {
+                        console.log('Обработка заказа:', order);
                         const row = document.createElement('tr');
+                        
+                        // Проверяем структуру данных заказа
+                        const orderData = {
+                            id: order.id || order.order_id || '-',
+                            userId: order.user_id || order.userId || '-',
+                            orderDate: order.order_date || order.created_at || order.date || '-',
+                            totalPrice: order.total_price || order.price || order.amount || '-',
+                            status: order.status || order.order_status || 'pending',
+                            shippingAddress: order.shipping_address || order.address || order.delivery_address || '-',
+                            paymentMethod: order.payment_method || order.payment || '-',
+                            paymentStatus: order.payment_status || order.pay_status || 'pending'
+                        };
+                        
+                        console.log('Подготовленные данные заказа:', orderData);
+                        
                         row.innerHTML = `
-                            <td>${order.id || '-'}</td>
-                            <td>${order.user_id || '-'}</td>
-                            <td>${order.order_date ? new Date(order.order_date).toLocaleString('ru-RU') : '-'}</td>
-                            <td>${order.total_price ? order.total_price.toFixed(2) + ' ₽' : '-'}</td>
+                            <td>${orderData.id}</td>
+                            <td>${orderData.userId}</td>
+                            <td>${orderData.orderDate !== '-' ? new Date(orderData.orderDate).toLocaleString('ru-RU') : '-'}</td>
+                            <td>${orderData.totalPrice !== '-' ? parseFloat(orderData.totalPrice).toFixed(2) + ' ₽' : '-'}</td>
                             <td>
-                                <span class="status-badge status-${order.status || 'pending'}">
-                                    ${getOrderStatusText(order.status)}
+                                <span class="status-badge status-${orderData.status}">
+                                    ${getOrderStatusText(orderData.status)}
                                 </span>
                             </td>
-                            <td>${order.shipping_address || '-'}</td>
-                            <td>${order.payment_method || '-'}</td>
+                            <td>${orderData.shippingAddress}</td>
+                            <td>${orderData.paymentMethod}</td>
                             <td>
-                                <span class="payment-status payment-${order.payment_status || 'pending'}">
-                                    ${getPaymentStatusText(order.payment_status)}
+                                <span class="payment-status payment-${orderData.paymentStatus}">
+                                    ${getPaymentStatusText(orderData.paymentStatus)}
                                 </span>
                             </td>
                             <td>
-                                <button onclick="viewOrderDetails(${order.id})" class="action-btn view" title="Просмотреть детали">
+                                <button onclick="viewOrderDetails(${orderData.id})" class="action-btn view" title="Просмотреть детали">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button onclick="updateOrderStatus(${order.id})" class="action-btn edit" title="Изменить статус">
+                                <button onclick="updateOrderStatus(${orderData.id})" class="action-btn edit" title="Изменить статус">
                                     <i class="fas fa-edit"></i>
                                 </button>
                             </td>
@@ -1731,6 +1755,8 @@
                     });
                 } catch (error) {
                     console.error('Ошибка при загрузке заказов:', error);
+                    const tbody = document.getElementById('ordersTableBody');
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center">Ошибка при загрузке заказов: ' + error.message + '</td></tr>';
                     showToast('Ошибка при загрузке заказов: ' + error.message, 'error');
                 }
             }
@@ -1741,7 +1767,10 @@
                     'pending': 'Ожидает обработки',
                     'processing': 'В обработке',
                     'completed': 'Завершен',
-                    'cancelled': 'Отменен'
+                    'cancelled': 'Отменен',
+                    'new': 'Новый',
+                    'in_progress': 'В обработке',
+                    'done': 'Завершен'
                 };
                 return statusMap[status] || 'Неизвестный статус';
             }
@@ -1751,7 +1780,9 @@
                 const statusMap = {
                     'pending': 'Ожидает оплаты',
                     'completed': 'Оплачено',
-                    'failed': 'Ошибка оплаты'
+                    'failed': 'Ошибка оплаты',
+                    'paid': 'Оплачено',
+                    'unpaid': 'Не оплачено'
                 };
                 return statusMap[status] || 'Неизвестный статус';
             }
