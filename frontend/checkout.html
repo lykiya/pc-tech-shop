@@ -792,83 +792,41 @@
             }
         }
 
-        // Загружаем данные при загрузке страницы
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Страница загружена');
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded, initializing...');
             
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showError('Требуется авторизация');
-                window.location.href = 'login.html';
+            if (!API_CONFIG) {
+                console.error('API_CONFIG не определен');
                 return;
             }
 
             try {
-                // Проверяем авторизацию
-                const response = await fetch('http://localhost:8080/users/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        localStorage.removeItem('role');
-                        showError('Сессия истекла. Пожалуйста, войдите снова.');
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                    throw new Error('Ошибка при проверке авторизации');
+                const isAuthenticated = await checkAuthAndLoadUserData();
+                if (isAuthenticated) {
+                    await loadCartData();
                 }
 
-                const userData = await response.json();
-                // Заполняем форму данными пользователя
-                document.getElementById('name').value = userData.name || '';
-                document.getElementById('surname').value = userData.surname || '';
-                document.getElementById('email').value = userData.email || '';
-                document.getElementById('phone').value = userData.phone || '';
-                
-                // Обновляем UI
-                updateAuthUI(userData);
-                
-                // Загружаем данные корзины
-                await loadCartData();
-                await updateCartCount();
-                
-                // Добавляем обработчики для формы
-                const checkoutForm = document.getElementById('checkoutForm');
+                // Добавляем обработчики только если элементы существуют
                 const placeOrderBtn = document.getElementById('placeOrderBtn');
-                
-                console.log('Кнопка оформления заказа:', placeOrderBtn);
-                
                 if (placeOrderBtn) {
-                    placeOrderBtn.addEventListener('click', (e) => {
-                        console.log('Кнопка нажата');
-                        placeOrder(e);
-                    });
-                } else {
-                    console.error('Кнопка оформления заказа не найдена');
+                    placeOrderBtn.addEventListener('click', placeOrder);
                 }
 
-                // Добавляем обработчик для изменения способа доставки
                 const deliveryOptions = document.querySelectorAll('input[name="delivery"]');
-                deliveryOptions.forEach(option => {
-                    option.addEventListener('change', () => {
-                        loadCartData(); // Пересчитываем суммы
+                if (deliveryOptions.length > 0) {
+                    deliveryOptions.forEach(option => {
+                        option.addEventListener('change', loadCartData);
                     });
-                });
+                }
 
-                // Добавляем обработчик для изменения способа оплаты
                 const paymentMethods = document.querySelectorAll('input[name="payment"]');
-                paymentMethods.forEach(method => {
-                    method.addEventListener('change', () => {
-                        loadCartData(); // Пересчитываем суммы
+                if (paymentMethods.length > 0) {
+                    paymentMethods.forEach(method => {
+                        method.addEventListener('change', loadCartData);
                     });
-                });
+                }
 
-                // Добавляем обработчик для кнопки выхода
                 const logoutBtn = document.getElementById('logoutBtn');
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', (e) => {
@@ -880,8 +838,7 @@
                     });
                 }
             } catch (error) {
-                console.error('Ошибка при загрузке страницы:', error);
-                showError('Произошла ошибка при загрузке страницы');
+                console.error('Ошибка при инициализации:', error);
             }
         });
 
@@ -984,58 +941,6 @@
             } catch (error) {
                 console.error('Ошибка при создании заказа:', error);
                 showError(error.message || 'Произошла ошибка при создании заказа');
-            }
-        });
-
-        // Инициализация страницы
-        document.addEventListener('DOMContentLoaded', async function() {
-            if (!API_CONFIG) {
-                showError('Ошибка конфигурации API');
-                return;
-            }
-
-            const isAuthenticated = await checkAuthAndLoadUserData();
-            if (isAuthenticated) {
-                await loadCartData();
-            }
-
-            // Добавляем обработчики для формы
-            const checkoutForm = document.getElementById('checkoutForm');
-            const placeOrderBtn = document.getElementById('placeOrderBtn');
-            
-            if (placeOrderBtn) {
-                placeOrderBtn.addEventListener('click', (e) => {
-                    console.log('Кнопка нажата');
-                    placeOrder(e);
-                });
-            }
-
-            // Добавляем обработчик для изменения способа доставки
-            const deliveryOptions = document.querySelectorAll('input[name="delivery"]');
-            deliveryOptions.forEach(option => {
-                option.addEventListener('change', () => {
-                    loadCartData(); // Пересчитываем суммы
-                });
-            });
-
-            // Добавляем обработчик для изменения способа оплаты
-            const paymentMethods = document.querySelectorAll('input[name="payment"]');
-            paymentMethods.forEach(method => {
-                method.addEventListener('change', () => {
-                    loadCartData(); // Пересчитываем суммы
-                });
-            });
-
-            // Добавляем обработчик для кнопки выхода
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('role');
-                    window.location.href = 'login.html';
-                });
             }
         });
     </script>
