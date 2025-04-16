@@ -409,7 +409,7 @@
                 
                 if (imageUrl) {
                     if (!imageUrl.startsWith('http')) {
-                        imageUrl = 'http://localhost:8080' + imageUrl;
+                        imageUrl = API_CONFIG.BASE_URL + imageUrl;
                         console.log('Преобразованный URL изображения:', imageUrl);
                     }
                 } else {

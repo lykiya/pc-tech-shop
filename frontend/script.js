@@ -222,7 +222,7 @@ if (window.location.pathname.includes('builds.html')) {
     // Функция для загрузки конкретной сборки
     async function loadBuildById(id) {
         try {
-            const response = await fetch(`http://localhost:8080/builds/${id}`);
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', id));
             if (!response.ok) {
                 throw new Error('Сборка не найдена');
             }

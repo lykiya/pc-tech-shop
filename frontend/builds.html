@@ -726,7 +726,7 @@
                 let imageUrl = build.image_url;
                 // Если URL локальный, добавляем базовый URL сервера
                 if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = 'http://localhost:8080' + imageUrl;
+                    imageUrl = API_CONFIG.BASE_URL + imageUrl;
                 }
 
                 const buildCard = document.createElement('div');

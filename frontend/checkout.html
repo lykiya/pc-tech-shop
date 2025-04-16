@@ -874,7 +874,7 @@
 
                 let imageUrl = item.build.image_url;
                 if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = 'http://localhost:8080' + imageUrl;
+                    imageUrl = API_CONFIG.BASE_URL + imageUrl;
                 }
 
                 const itemTotal = item.build.total_price * item.quantity;
@@ -883,7 +883,7 @@
                 const orderItem = document.createElement('div');
                 orderItem.className = 'order-item';
                 orderItem.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.build.name}" onerror="this.src='http://localhost:8080/images/builds/default.jpg'">
+                    <img src="${imageUrl}" alt="${item.build.name}" onerror="this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
                     <div class="order-item-info">
                         <h3 class="order-item-title">${item.build.name}</h3>
                         <p class="order-item-description">${item.build.description || 'Описание отсутствует'}</p>

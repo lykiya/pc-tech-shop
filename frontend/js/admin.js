@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'dashboard':
                 // Загрузка статистики
                 try {
-                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.STATS), {
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.STATS, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'products':
                 // Загрузка товаров
                 try {
-                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS));
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS);
                     if (response.ok) {
                         const products = await response.json();
                         updateProductsList(products);
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'orders':
                 // Загрузка заказов
                 try {
-                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ORDERS.LIST));
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST);
                     if (response.ok) {
                         const orders = await response.json();
                         updateOrdersList(orders);
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'users':
                 // Загрузка пользователей
                 try {
-                    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
                     if (response.ok) {
                         const users = await response.json();
                         updateUsersList(users);
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Вы уверены, что хотите удалить этот товар?')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS) + `/${productId}`, {
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS + `/${productId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateOrderStatus = async function(orderId, newStatus) {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch(`http://localhost:8080/orders/${orderId}`, {
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.DETAIL.replace(':id', orderId), {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.updateUserRole = async function(userId, role) {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS) + `/${userId}/role`, {
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS + `/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadComponents(category = 'cpu') {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + `?category=${category}`);
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке компонентов');
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function editComponent(id, category) {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.GET) + `?category=${category}&id=${id}`);
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.GET + `?category=${category}&id=${id}`);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке компонента');
@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Вы уверены, что хотите удалить этот компонент?')) {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.DELETE) + `?category=${category}&id=${id}`);
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.DELETE + `?category=${category}&id=${id}`);
 
                 if (!response.ok) {
                     throw new Error('Ошибка при удалении компонента');
@@ -469,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const token = localStorage.getItem('token');
-            let url = buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST);
+            let url = API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST;
             let method = 'POST';
             
             if (mode === 'edit') {
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadProducts() {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS);
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке продуктов');
             }
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadOrders() {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ORDERS.LIST));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST);
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке заказов');
             }
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadUsers() {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке пользователей');
             }
@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadBuilds() {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.LIST));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.LIST);
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке сборок');
             }
@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function uploadBuildImage(formData) {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.UPLOAD), {
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.UPLOAD, {
                 method: 'POST',
                 body: formData
             });
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const components = {};
             
             for (const category of categories) {
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + `?category=${category}`);
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`);
                 if (!response.ok) {
                     throw new Error(`Ошибка при загрузке компонентов категории ${category}`);
                 }
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadUsersList() {
         try {
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке пользователей');
             }
@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Загружаем данные асинхронно
             const [buildResponse, componentsResponse] = await Promise.all([
-                fetch(`http://localhost:8080/builds/${buildId}`, {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', buildId), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
                 loadComponentsForEdit()
@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Отправляем данные сборки
-            const response = await fetch(`http://localhost:8080/builds/${buildId}`, {
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', buildId), {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -782,7 +782,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             throw new Error('Требуется авторизация');
                         }
 
-                        const response = await fetch(`http://localhost:8080/builds/${id}`, {
+                        const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', id), {
                             method: 'DELETE',
                             headers: {
                                 'Authorization': `Bearer ${token}`
@@ -819,28 +819,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Загружаем все компоненты параллельно
             const [cpus, gpus, motherboards, bodies, rams, powerUnits, hdds, ssds] = await Promise.all([
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=cpu', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=cpu', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=gpu', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=gpu', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=motherboard', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=motherboard', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=body', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=body', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=ram', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=ram', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=power_unit', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=power_unit', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=hdd', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=hdd', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || []),
-                fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPONENTS.LIST) + '?category=ssd', {
+                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=ssd', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }).then(res => res.json()).then(data => data.data || [])
             ]);
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Требуется авторизация');
             }
 
-            const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN.USERS));
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке пользователей');
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error('Требуется авторизация');
                 }
 
-                const response = await fetch(`http://localhost:8080/users/${userId}`, {
+                const response = await fetch(API_CONFIG.BASE_URL + '/users/' + userId, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         throw new Error('Требуется авторизация');
                     }
 
-                    const response = await fetch(`http://localhost:8080/users/${userId}`, {
+                    const response = await fetch(API_CONFIG.BASE_URL + '/users/' + userId, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
