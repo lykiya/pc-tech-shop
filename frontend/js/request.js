@@ -8,9 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(requestForm);
             const data = {
                 name: formData.get('name'),
-                email: formData.get('email'),
+                phone: formData.get('phone'),
                 message: formData.get('message')
             };
+
+            console.log('Отправляемые данные:', data); // Добавляем логирование
 
             try {
                 const response = await fetch(buildApiUrl('/requests'), {
