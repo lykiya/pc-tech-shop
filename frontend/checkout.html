@@ -811,6 +811,8 @@
                 const placeOrderBtn = document.getElementById('placeOrderBtn');
                 if (placeOrderBtn) {
                     placeOrderBtn.addEventListener('click', placeOrder);
+                } else {
+                    console.warn('Кнопка оформления заказа не найдена');
                 }
 
                 const deliveryOptions = document.querySelectorAll('input[name="delivery"]');
@@ -818,6 +820,8 @@
                     deliveryOptions.forEach(option => {
                         option.addEventListener('change', loadCartData);
                     });
+                } else {
+                    console.warn('Опции доставки не найдены');
                 }
 
                 const paymentMethods = document.querySelectorAll('input[name="payment"]');
@@ -825,6 +829,8 @@
                     paymentMethods.forEach(method => {
                         method.addEventListener('change', loadCartData);
                     });
+                } else {
+                    console.warn('Способы оплаты не найдены');
                 }
 
                 const logoutBtn = document.getElementById('logoutBtn');
@@ -836,6 +842,8 @@
                         localStorage.removeItem('role');
                         window.location.href = 'login.html';
                     });
+                } else {
+                    console.warn('Кнопка выхода не найдена');
                 }
             } catch (error) {
                 console.error('Ошибка при инициализации:', error);
