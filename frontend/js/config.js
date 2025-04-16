@@ -1,5 +1,5 @@
 // API Configuration
-const API_CONFIG = {
+window.API_CONFIG = {
     BASE_URL: 'https://pc-tech-shop-1-backend.onrender.com', // URL локального бэкенда
     ENDPOINTS: {
         AUTH: {
@@ -36,7 +36,7 @@ const API_CONFIG = {
 };
 
 // Helper function to build API URL
-function buildApiUrl(endpoint, params = {}) {
+window.buildApiUrl = function(endpoint, params = {}) {
     let url = API_CONFIG.BASE_URL + endpoint;
     Object.keys(params).forEach(key => {
         url = url.replace(`:${key}`, params[key]);
