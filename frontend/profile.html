@@ -323,7 +323,7 @@
             }
 
             try {
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.AUTH.ME), {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/users/me`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -362,6 +362,11 @@
                 } else {
                     const errorData = await response.json();
                     showError(errorData.error || 'Не удалось загрузить данные профиля');
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'login.html';
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке профиля:', error);
@@ -371,10 +376,21 @@
 
         // Загружаем данные профиля при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
+            // Проверяем авторизацию
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Обновляем информацию о пользователе в шапке
+            updateUserName();
+            
+            // Загружаем данные профиля
             loadProfileData();
             
             // Добавляем обработчик для формы
-            const profileForm = document.getElementById('profile-form');
+            const profileForm = document.getElementById('profileForm');
             if (profileForm) {
                 profileForm.addEventListener('submit', updateProfile);
             }
