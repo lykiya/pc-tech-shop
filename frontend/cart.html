@@ -552,14 +552,12 @@
                         <div class="components-list">
                             ${item.build.components && item.build.components.length > 0 ? 
                                 item.build.components.map(component => {
-                                    // Убираем производителя из начала названия модели
-                                    let displayName = component.model || component.name;
-                                    if (component.manufacturer && displayName.toLowerCase().startsWith(component.manufacturer.toLowerCase())) {
-                                        displayName = displayName.substring(component.manufacturer.length).trim();
-                                    }
+                                    // Используем название компонента из данных
+                                    const componentType = component.name.split(' ')[0]; // Берем первое слово как тип компонента
+                                    const componentName = component.name.substring(componentType.length).trim();
                                     return `
                                         <div class="component-item">
-                                            <span class="component-name">${component.name}: ${displayName}</span>
+                                            <span class="component-name">${componentType}: ${componentName}</span>
                                         </div>
                                     `;
                                 }).join('') : 
