@@ -1,6 +1,6 @@
 // API Configuration
 const API_CONFIG = {
-    BASE_URL: 'https://pc-tech-shop-1-backend.onrender.com', // URL вашего бэкенда на Render
+    BASE_URL: 'http://localhost:8080', // URL локального бэкенда
     ENDPOINTS: {
         AUTH: {
             LOGIN: '/login',
