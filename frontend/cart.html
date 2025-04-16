@@ -552,9 +552,9 @@
                         <div class="components-list">
                             ${item.build.components && item.build.components.length > 0 ? 
                                 item.build.components.map(component => {
+                                    // Убираем производителя из начала названия модели
                                     let displayName = component.model || component.name;
-                                    // Если производитель указан в начале модели, убираем его
-                                    if (component.manufacturer && displayName.startsWith(component.manufacturer)) {
+                                    if (component.manufacturer && displayName.toLowerCase().startsWith(component.manufacturer.toLowerCase())) {
                                         displayName = displayName.substring(component.manufacturer.length).trim();
                                     }
                                     return `
@@ -704,7 +704,10 @@
 
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
+            // Обновляем информацию о пользователе
             updateUserName();
+            
+            // Загружаем корзину
             loadCart();
 
             // Добавляем обработчик для кнопки оформления заказа
