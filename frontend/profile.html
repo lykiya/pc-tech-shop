@@ -374,6 +374,109 @@
             }
         }
 
+        // Функция для загрузки истории заказов
+        async function loadOrderHistory() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showError('Требуется авторизация');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const orders = await response.json();
+                    const orderHistoryTable = document.getElementById('orderHistory');
+                    
+                    if (!orders || orders.length === 0) {
+                        orderHistoryTable.innerHTML = '<tr><td colspan="5" class="text-center">У вас пока нет заказов</td></tr>';
+                        return;
+                    }
+
+                    orderHistoryTable.innerHTML = orders.map(order => {
+                        const orderDate = new Date(order.CreatedAt || order.created_at);
+                        const formattedDate = orderDate.toLocaleDateString('ru-RU');
+                        const formattedAmount = parseFloat(order.TotalAmount || order.total_amount).toFixed(2) + ' ₽';
+                        
+                        let statusClass = '';
+                        let statusText = '';
+                        
+                        switch(order.Status || order.status) {
+                            case 'completed':
+                                statusClass = 'status-completed';
+                                statusText = 'Завершен';
+                                break;
+                            case 'pending':
+                                statusClass = 'status-pending';
+                                statusText = 'Ожидает обработки';
+                                break;
+                            case 'cancelled':
+                                statusClass = 'status-cancelled';
+                                statusText = 'Отменен';
+                                break;
+                            default:
+                                statusClass = 'status-pending';
+                                statusText = 'Ожидает обработки';
+                        }
+
+                        return `
+                            <tr>
+                                <td>${order.ID || order.id}</td>
+                                <td>${formattedDate}</td>
+                                <td>${formattedAmount}</td>
+                                <td><span class="order-status ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" onclick="viewOrderDetails(${order.ID || order.id})">
+                                        <i class="fas fa-eye"></i> Подробнее
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Не удалось загрузить историю заказов');
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке истории заказов:', error);
+                showError('Произошла ошибка при загрузке истории заказов');
+            }
+        }
+
+        // Функция для просмотра деталей заказа
+        async function viewOrderDetails(orderId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showError('Требуется авторизация');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS.DETAIL.replace(':id', orderId)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const order = await response.json();
+                    // TODO: Реализовать модальное окно с деталями заказа
+                    showToast('Информация', 'Просмотр деталей заказа будет реализован позже', 'info');
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Не удалось загрузить детали заказа');
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке деталей заказа:', error);
+                showError('Произошла ошибка при загрузке деталей заказа');
+            }
+        }
+
         // Загружаем данные профиля при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             // Проверяем авторизацию
@@ -388,6 +491,9 @@
             
             // Загружаем данные профиля
             loadProfileData();
+            
+            // Загружаем историю заказов
+            loadOrderHistory();
             
             // Добавляем обработчик для формы
             const profileForm = document.getElementById('profileForm');
