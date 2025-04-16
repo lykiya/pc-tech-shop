@@ -691,29 +691,26 @@
                         if (imageUrl.startsWith('http')) {
                             // Если URL уже полный (внешняя ссылка), оставляем как есть
                             imageUrl = imageUrl;
-                        } else if (imageUrl.startsWith('/')) {
-                            // Если путь начинается с /, добавляем только BASE_URL
+                        } else if (imageUrl.startsWith('/static/')) {
+                            // Если путь начинается с /static/, добавляем только BASE_URL
                             imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
                         } else {
-                            // Для относительных путей добавляем полный путь
-                            imageUrl = `${API_CONFIG.BASE_URL}/images/builds${imageUrl}`;
+                            // Для остальных случаев добавляем полный путь
+                            imageUrl = `${API_CONFIG.BASE_URL}/static/images/builds/${imageUrl}`;
                         }
                     } else {
-                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
+                        imageUrl = `${API_CONFIG.BASE_URL}/static/images/builds/default.jpg`;
                     }
                     
                     console.log('Итоговый URL изображения:', imageUrl);
 
-
-                    console.log('Итоговый URL изображения:', imageUrl);
-                    
                     const itemElement = document.createElement('div');
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
                             <img src="${imageUrl}" 
                                  alt="${item.build.name}"
-                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'; console.log('Ошибка загрузки изображения:', this.src);">
+                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/static/images/builds/default.jpg'; console.log('Ошибка загрузки изображения:', this.src);">
                         </div>
                         <div class="item-details">
                             <h3>${item.build.name}</h3>
@@ -1156,22 +1153,22 @@
                     if (imageUrl.startsWith('http')) {
                         // Если URL уже полный (внешняя ссылка), оставляем как есть
                         imageUrl = imageUrl;
-                    } else if (imageUrl.startsWith('/')) {
-                        // Если путь начинается с /, добавляем только BASE_URL
+                    } else if (imageUrl.startsWith('/static/')) {
+                        // Если путь начинается с /static/, добавляем только BASE_URL
                         imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
                     } else {
-                        // Для относительных путей добавляем полный путь
-                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds${imageUrl}`;
+                        // Для остальных случаев добавляем полный путь
+                        imageUrl = `${API_CONFIG.BASE_URL}/static/images/builds/${imageUrl}`;
                     }
                 } else {
-                    imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
+                    imageUrl = `${API_CONFIG.BASE_URL}/static/images/builds/default.jpg`;
                 }
                 
                 console.log('Итоговый URL изображения в модальном окне:', imageUrl);
                 modalImage.src = imageUrl;
                 modalImage.onerror = function() {
                     console.log('Ошибка загрузки изображения в модальном окне:', this.src);
-                    this.src = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
+                    this.src = `${API_CONFIG.BASE_URL}/static/images/builds/default.jpg`;
                 };
 
                 modalName.textContent = build.name;
