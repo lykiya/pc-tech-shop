@@ -219,8 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const ordersTableBody = document.getElementById('ordersTableBody');
         if (ordersTableBody) {
             ordersTableBody.innerHTML = orders.map(order => {
-                // Форматируем дату
-                const orderDate = new Date(order.created_at);
+                // Форматируем дату (используем CreatedAt из бэкенда)
+                const orderDate = new Date(order.CreatedAt);
                 const formattedDate = orderDate.toLocaleString('ru-RU', {
                     year: 'numeric',
                     month: 'long',
@@ -229,28 +229,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     minute: '2-digit'
                 });
 
-                // Форматируем сумму
+                // Форматируем сумму (используем total_amount из бэкенда)
                 const formattedAmount = new Intl.NumberFormat('ru-RU', {
                     style: 'currency',
                     currency: 'RUB'
-                }).format(order.total_amount);
+                }).format(order.total_amount || 0);
 
                 return `
                     <tr>
-                        <td>${order.id}</td>
-                        <td>${order.user_id}</td>
+                        <td>${order.ID || ''}</td>
+                        <td>${order.UserID || ''}</td>
                         <td>${formattedDate}</td>
                         <td>${formattedAmount}</td>
                         <td>
-                            <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
-                                <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>В обработке</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Завершен</option>
-                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
+                            <select class="status-select" onchange="updateOrderStatus(${order.ID}, this.value)">
+                                <option value="pending" ${order.Status === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
+                                <option value="processing" ${order.Status === 'processing' ? 'selected' : ''}>В обработке</option>
+                                <option value="completed" ${order.Status === 'completed' ? 'selected' : ''}>Завершен</option>
+                                <option value="cancelled" ${order.Status === 'cancelled' ? 'selected' : ''}>Отменен</option>
                             </select>
                         </td>
                         <td>
-                            <button class="action-btn view" onclick="viewOrderDetails(${order.id})" title="Просмотр деталей">
+                            <button class="action-btn view" onclick="viewOrderDetails(${order.ID})" title="Просмотр деталей">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
