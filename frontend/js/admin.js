@@ -218,34 +218,45 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateOrdersList(orders) {
         const ordersTableBody = document.getElementById('ordersTableBody');
         if (ordersTableBody) {
-            ordersTableBody.innerHTML = orders.map(order => `
-                <tr>
-                    <td>${order.id}</td>
-                    <td>${order.user_id}</td>
-                    <td>${new Date(order.created_at).toLocaleString()}</td>
-                    <td>${order.total_price} ₽</td>
-                    <td>
-                        <span class="status-badge status-${order.status}">
-                            ${getOrderStatusText(order.status)}
-                        </span>
-                    </td>
-                    <td>${order.shipping_address || '-'}</td>
-                    <td>${order.payment_method || '-'}</td>
-                    <td>
-                        <span class="payment-status payment-${order.payment_status}">
-                            ${getPaymentStatusText(order.payment_status)}
-                        </span>
-                    </td>
-                    <td>
-                        <button onclick="viewOrderDetails(${order.id})" class="action-btn view" title="Просмотреть детали">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button onclick="updateOrderStatus(${order.id})" class="action-btn edit" title="Изменить статус">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            ordersTableBody.innerHTML = orders.map(order => {
+                // Форматируем дату
+                const orderDate = order.created_at ? new Date(order.created_at).toLocaleString() : '-';
+                
+                // Форматируем сумму
+                const totalAmount = order.total_amount ? `${order.total_amount} ₽` : '-';
+                
+                // Получаем статус заказа
+                const orderStatus = order.status || 'pending';
+                const orderStatusText = getOrderStatusText(orderStatus);
+                
+                // Форматируем список товаров
+                const itemsList = order.items ? order.items.map(item => 
+                    `${item.build.name} (${item.quantity} шт. x ${item.price} ₽)`
+                ).join('<br>') : '-';
+                
+                return `
+                    <tr>
+                        <td>${order.id || '-'}</td>
+                        <td>${order.user_id || '-'}</td>
+                        <td>${orderDate}</td>
+                        <td>${totalAmount}</td>
+                        <td>
+                            <span class="status-badge status-${orderStatus}">
+                                ${orderStatusText}
+                            </span>
+                        </td>
+                        <td>${itemsList}</td>
+                        <td>
+                            <button onclick="viewOrderDetails(${order.id})" class="action-btn view" title="Просмотреть детали">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button onclick="updateOrderStatus(${order.id})" class="action-btn edit" title="Изменить статус">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
     }
 
@@ -257,17 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'completed': 'Завершен',
             'cancelled': 'Отменен'
         };
-        return statusMap[status] || status;
-    }
-
-    // Функция для получения текстового представления статуса оплаты
-    function getPaymentStatusText(status) {
-        const statusMap = {
-            'pending': 'Ожидает оплаты',
-            'completed': 'Оплачено',
-            'failed': 'Ошибка оплаты'
-        };
-        return statusMap[status] || status;
+        return statusMap[status] || 'Неизвестный статус';
     }
 
     function updateUsersList(users) {
