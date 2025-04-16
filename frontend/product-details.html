@@ -164,65 +164,44 @@
 
     <script src="js/config.js"></script>
     <script src="js/common.js"></script>
-    <script src="script.js"></script>
+    <script src="js/toast.js"></script>
     <script>
-        // Функция для проверки авторизации
-        function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return false;
-            }
-            return token;
-        }
-
-        // Функция для отображения ошибок
-        function showError(message) {
-            alert(message); // В будущем можно заменить на более красивое отображение ошибок
-        }
-
-        // Получаем параметры из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id');
-        const productType = urlParams.get('type');
-
         // Функция для загрузки деталей товара
         async function loadProductDetails() {
             try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const productId = urlParams.get('id');
+                const productType = urlParams.get('type');
+
                 if (!productId) {
-                    showError('ID товара не указан');
+                    showToast('ID товара не указан', 'error');
                     return;
                 }
 
                 if (!productType) {
-                    showError('Тип товара не указан');
+                    showToast('Тип товара не указан', 'error');
                     return;
                 }
 
                 console.log(`Загрузка товара: ID=${productId}, тип=${productType}`);
 
-                let response;
-                const token = localStorage.getItem('token');
+                let endpoint;
                 if (productType === 'build') {
-                    response = await fetch(`http://localhost:8080/builds/${productId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    endpoint = API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', productId);
                 } else if (productType === 'product') {
-                    response = await fetch(`http://localhost:8080/products/${productId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    endpoint = API_CONFIG.ENDPOINTS.COMPONENTS.DETAIL.replace(':id', productId);
                 } else {
                     throw new Error('Неверный тип товара');
                 }
 
+                const response = await fetch(buildApiUrl(endpoint), {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
                 if (!response.ok) {
-                    console.error('Ошибка ответа:', response.status, response.statusText);
-                    const errorText = await response.text();
-                    console.error('Текст ошибки:', errorText);
                     throw new Error(`Ошибка при загрузке данных: ${response.status}`);
                 }
 
@@ -237,76 +216,22 @@
                 const mainImage = document.getElementById('mainImage');
                 if (mainImage) {
                     let imageUrl = product.image_url;
-                    console.log('Исходный URL изображения:', imageUrl);
-                    
                     if (imageUrl) {
                         if (!imageUrl.startsWith('http')) {
-                            imageUrl = 'http://localhost:8080' + imageUrl;
-                            console.log('Преобразованный URL изображения:', imageUrl);
+                            imageUrl = API_CONFIG.BASE_URL + imageUrl;
                         }
                         mainImage.src = imageUrl;
                         mainImage.alt = product.name;
                         mainImage.onerror = function() {
-                            console.error('Ошибка загрузки изображения:', imageUrl);
                             this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
                         };
-                    } else {
-                        mainImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
-                        mainImage.alt = 'Изображение отсутствует';
                     }
                 }
 
-                // Очищаем миниатюры перед добавлением новых
-                const thumbnails = document.getElementById('thumbnails');
-                if (thumbnails) {
-                    thumbnails.innerHTML = '';
-
-                    // Добавляем миниатюры, если они есть
-                    if (product.images && product.images.length > 0) {
-                        product.images.forEach((image, index) => {
-                            let imageUrl = image;
-                            console.log('Исходный URL миниатюры:', imageUrl);
-                            
-                            if (!imageUrl.startsWith('http')) {
-                                imageUrl = 'http://localhost:8080' + imageUrl;
-                                console.log('Преобразованный URL миниатюры:', imageUrl);
-                            }
-                            
-                            const thumbnail = document.createElement('img');
-                            thumbnail.src = imageUrl;
-                            thumbnail.alt = `${product.name} - фото ${index + 1}`;
-                            thumbnail.onclick = () => {
-                                mainImage.src = imageUrl;
-                                mainImage.alt = `${product.name} - фото ${index + 1}`;
-                            };
-                            
-                            thumbnail.onerror = function() {
-                                console.error('Ошибка загрузки миниатюры:', imageUrl);
-                                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
-                            };
-                            
-                            thumbnails.appendChild(thumbnail);
-                        });
-                    }
-                }
-
-                // Обновляем название
-                const productTitle = document.getElementById('productTitle');
-                if (productTitle) {
-                    productTitle.textContent = product.name || 'Название отсутствует';
-                }
-
-                // Обновляем описание
-                const productDescription = document.getElementById('productDescription');
-                if (productDescription) {
-                    productDescription.textContent = product.description || 'Описание отсутствует';
-                }
-
-                // Обновляем цену
-                const productPrice = document.getElementById('productPrice');
-                if (productPrice) {
-                    productPrice.textContent = `${(product.total_price || product.price || 0).toLocaleString()} ₽`;
-                }
+                // Обновляем информацию о товаре
+                document.getElementById('productTitle').textContent = product.name;
+                document.getElementById('productPrice').textContent = `${product.total_price.toLocaleString()} ₽`;
+                document.getElementById('productDescription').textContent = product.description || 'Описание отсутствует';
 
                 // Обновляем характеристики
                 const specsGrid = document.getElementById('specsGrid');
@@ -439,197 +364,32 @@
                 }
 
             } catch (error) {
-                console.error('Ошибка:', error);
-                showError(error.message || 'Не удалось загрузить информацию о товаре');
+                console.error('Ошибка при загрузке деталей товара:', error);
+                showToast(error.message, 'error');
             }
         }
 
-        // Загружаем данные при загрузке страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM загружен, начинаем загрузку данных...');
-            loadProductDetails();
-        });
-
-        // Функция для загрузки и отображения деталей сборки
-        async function displayBuildDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const buildId = urlParams.get('id');
-            const type = urlParams.get('type');
-
-            if (!buildId || !type) {
-                showToast('Неверные параметры запроса', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:8080/${type}s/${buildId}`);
-                if (!response.ok) {
-                    throw new Error('Ошибка при загрузке данных');
-                }
-                const build = await response.json();
-                console.log('Загруженные данные сборки:', build);
-
-                // Обновляем изображение
-                const mainImage = document.getElementById('mainImage');
-                if (mainImage) {
-                    let imageUrl = build.image_url;
-                    console.log('Исходный URL изображения сборки:', imageUrl);
-                    
-                    if (imageUrl) {
-                        if (!imageUrl.startsWith('http')) {
-                            imageUrl = 'http://localhost:8080' + imageUrl;
-                            console.log('Преобразованный URL изображения сборки:', imageUrl);
-                        }
-                        mainImage.src = imageUrl;
-                        mainImage.alt = build.name;
-                        mainImage.onerror = function() {
-                            console.error('Ошибка загрузки изображения:', imageUrl);
-                            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
-                        };
-                    } else {
-                        mainImage.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gaW1hZ2U8L3RleHQ+PC9zdmc+';
-                        mainImage.alt = 'Изображение отсутствует';
-                    }
-                }
-
-                // Обновляем название
-                const productTitle = document.getElementById('productTitle');
-                if (productTitle) {
-                    productTitle.textContent = build.name;
-                }
-
-                // Обновляем описание
-                const productDescription = document.getElementById('productDescription');
-                if (productDescription) {
-                    productDescription.textContent = build.description || 'Описание отсутствует';
-                }
-
-                // Обновляем цену
-                const productPrice = document.getElementById('productPrice');
-                if (productPrice) {
-                    productPrice.textContent = `${build.total_price.toLocaleString()} ₽`;
-                }
-
-                // Обновляем характеристики
-                const specsGrid = document.getElementById('specsGrid');
-                if (specsGrid) {
-                    specsGrid.innerHTML = `
-                        <div class="component-group">
-                            <div class="component-title">Процессор</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.cpu ? build.cpu.name : 'Не указан'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Производитель</span>
-                                <span class="spec-value">${build.cpu ? build.cpu.manufacturer : 'Не указан'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Характеристики</span>
-                                <span class="spec-value">${build.cpu ? `${build.cpu.cores} ядер, ${build.cpu.threads} потоков` : 'Не указаны'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Сокет</span>
-                                <span class="spec-value">${build.cpu ? build.cpu.socket : 'Не указан'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Видеокарта</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.gpu ? build.gpu.name : 'Не указана'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Производитель</span>
-                                <span class="spec-value">${build.gpu ? build.gpu.manufacturer : 'Не указан'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Характеристики</span>
-                                <span class="spec-value">${build.gpu ? `${build.gpu.vram} ГБ ${build.gpu.memory_type}` : 'Не указаны'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Частота</span>
-                                <span class="spec-value">${build.gpu ? `${build.gpu.gpu_clock} МГц` : 'Не указана'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Материнская плата</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.motherboard ? build.motherboard.name : 'Не указана'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Производитель</span>
-                                <span class="spec-value">${build.motherboard ? build.motherboard.manufacturer : 'Не указан'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Сокет</span>
-                                <span class="spec-value">${build.motherboard ? build.motherboard.socket : 'Не указан'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Оперативная память</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.ram ? build.ram.name : 'Не указана'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Характеристики</span>
-                                <span class="spec-value">${build.ram ? `${build.ram.capacity} ${build.ram.ddr}` : 'Не указаны'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Блок питания</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.power_unit ? build.power_unit.name : 'Не указан'}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Мощность</span>
-                                <span class="spec-value">${build.power_unit ? `${build.power_unit.wattage} Вт` : 'Не указана'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Корпус</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.body ? build.body.name : 'Не указан'}</span>
-                            </div>
-                        </div>
-
-                        <div class="component-group">
-                            <div class="component-title">Накопитель</div>
-                            <div class="spec-item">
-                                <span class="spec-label">Модель</span>
-                                <span class="spec-value">${build.hdd ? build.hdd.name : (build.ssd ? build.ssd.name : 'Не указан')}</span>
-                            </div>
-                            <div class="spec-item">
-                                <span class="spec-label">Тип</span>
-                                <span class="spec-value">${build.hdd ? 'HDD' : (build.ssd ? 'SSD' : 'Не указан')}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Обновляем кнопку добавления в корзину
-                const addToCartBtn = document.querySelector('.add-to-cart');
-                if (addToCartBtn) {
-                    addToCartBtn.onclick = () => addToCart(buildId, type);
-                }
-
-            } catch (error) {
-                console.error('Ошибка при загрузке деталей сборки:', error);
-                showToast('Не удалось загрузить данные сборки', 'error');
-            }
+        // Функция для форматирования названий характеристик
+        function formatSpecLabel(key) {
+            const labels = {
+                'manufacturer': 'Производитель',
+                'socket': 'Сокет',
+                'cores': 'Количество ядер',
+                'threads': 'Количество потоков',
+                'frequency': 'Частота',
+                'vram': 'Объем видеопамяти',
+                'memory_type': 'Тип памяти',
+                'gpu_clock': 'Частота GPU',
+                'capacity': 'Объем',
+                'ddr': 'Тип памяти',
+                'wattage': 'Мощность',
+                'form_factor': 'Форм-фактор'
+            };
+            return labels[key] || key;
         }
 
         // Функция для добавления в корзину
-        async function addToCart(buildId, type) {
+        async function addToCart(productId, type) {
             const token = localStorage.getItem('token');
             if (!token) {
                 showToast('Требуется авторизация', 'error');
@@ -638,13 +398,13 @@
             }
 
             try {
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.ADD), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ build_id: buildId, type: type })
+                    body: JSON.stringify({ build_id: productId, type: type })
                 });
 
                 if (response.ok) {
@@ -659,39 +419,11 @@
             }
         }
 
-        // Функция для обновления счетчика корзины
-        async function updateCartCount() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                document.querySelector('.cart-count').textContent = '0';
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:8080/cart', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const cartItems = await response.json();
-                    const count = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
-                    document.querySelector('.cart-count').textContent = count;
-                } else {
-                    document.querySelector('.cart-count').textContent = '0';
-                }
-            } catch (error) {
-                console.error('Ошибка при обновлении счетчика корзины:', error);
-                document.querySelector('.cart-count').textContent = '0';
-            }
-        }
-
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
-            updateUserName();
+            loadProductDetails();
+            updateAuthUI();
             updateCartCount();
-            displayBuildDetails();
         });
     </script>
 </body>
