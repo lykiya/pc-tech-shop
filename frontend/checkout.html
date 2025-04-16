@@ -896,10 +896,10 @@
                 const orderData = {
                     total_amount: parseFloat(document.getElementById('total').textContent.replace(/[^\d.-]/g, '')),
                     status: 'pending',
-                    shipping_address: document.getElementById('address').value,
+                    shipping_address: document.getElementById('address').value.trim(),
                     payment_method: document.querySelector('input[name="payment"]:checked').value,
                     delivery_method: document.querySelector('input[name="delivery"]:checked').value,
-                    comment: document.getElementById('comment').value,
+                    comment: document.getElementById('comment').value.trim(),
                     items: cartItems.map(item => ({
                         build_id: item.build.id,
                         quantity: item.quantity,
