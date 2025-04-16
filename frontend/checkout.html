@@ -696,7 +696,7 @@
                             imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
                         } else {
                             // Для относительных путей добавляем полный путь
-                            imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
+                            imageUrl = `${API_CONFIG.BASE_URL}/images/builds${imageUrl}`;
                         }
                     } else {
                         imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
@@ -704,6 +704,9 @@
                     
                     console.log('Итоговый URL изображения:', imageUrl);
 
+
+                    console.log('Итоговый URL изображения:', imageUrl);
+                    
                     const itemElement = document.createElement('div');
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
@@ -1158,7 +1161,7 @@
                         imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
                     } else {
                         // Для относительных путей добавляем полный путь
-                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
+                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds${imageUrl}`;
                     }
                 } else {
                     imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
