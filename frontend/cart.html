@@ -409,13 +409,16 @@
         async function loadCart() {
             const token = localStorage.getItem('token');
             if (!token) {
-                displayCartItems([]);
+                console.log('Токен не найден, перенаправление на страницу входа');
+                window.location.href = 'login.html';
                 return;
             }
 
             try {
-                console.log('Загрузка корзины...');
-                const response = await fetch('http://localhost:8080/cart', {
+                console.log('Начало загрузки корзины...');
+                console.log('Используемый токен:', token.substring(0, 10) + '...');
+                
+                const response = await fetch(`${BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -423,14 +426,14 @@
 
                 if (response.ok) {
                     const items = await response.json();
-                    console.log('Получены товары корзины:', items);
+                    console.log('Успешно получены товары корзины:', items);
 
                     // Загружаем компоненты для каждой сборки
                     const itemsWithComponents = await Promise.all(items.map(async (item) => {
                         if (item.build && item.build.id) {
                             try {
                                 console.log('Загрузка компонентов для сборки:', item.build.id);
-                                const buildResponse = await fetch(`http://localhost:8080/builds/${item.build.id}`, {
+                                const buildResponse = await fetch(`${BASE_URL}/builds/${item.build.id}`, {
                                     headers: {
                                         'Authorization': `Bearer ${token}`
                                     }
@@ -438,9 +441,8 @@
                                 
                                 if (buildResponse.ok) {
                                     const buildData = await buildResponse.json();
-                                    console.log('Получены данные сборки:', buildData);
+                                    console.log('Успешно получены данные сборки:', buildData);
                                     
-                                    // Собираем компоненты из отдельных объектов
                                     const components = [
                                         { name: 'Процессор', ...buildData.cpu },
                                         { name: 'Видеокарта', ...buildData.gpu },
@@ -449,15 +451,15 @@
                                         { name: 'SSD', ...buildData.ssd }
                                     ].filter(component => component && component.name);
 
-                                    // Добавляем компоненты в объект сборки
                                     item.build.components = components;
                                     console.log('Добавлены компоненты к сборке:', components);
                                 } else {
-                                    console.error('Ошибка при загрузке сборки:', buildResponse.status);
+                                    console.error('Ошибка при загрузке сборки:', buildResponse.status, buildResponse.statusText);
                                     item.build.components = [];
                                 }
                             } catch (error) {
                                 console.error('Ошибка при загрузке компонентов:', error);
+                                console.error('URL запроса:', `${BASE_URL}/builds/${item.build.id}`);
                                 item.build.components = [];
                             }
                         }
@@ -467,12 +469,14 @@
                     console.log('Товары с компонентами:', itemsWithComponents);
                     displayCartItems(itemsWithComponents);
                 } else {
-                    console.error('Ошибка при загрузке корзины:', response.status);
+                    console.error('Ошибка при загрузке корзины:', response.status, response.statusText);
                     showToast('Не удалось загрузить корзину', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке корзины:', error);
-                showToast('Произошла ошибка при загрузке корзины', 'error');
+                console.error('Тип ошибки:', error.name);
+                console.error('Сообщение об ошибке:', error.message);
+                showToast('Произошла ошибка при загрузке корзины. Проверьте подключение к серверу.', 'error');
             }
         }
 
@@ -567,7 +571,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:8080/cart/${itemId}`, {
+                const response = await fetch(`${BASE_URL}/cart/${itemId}`, {
                     method: 'PATCH',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -597,7 +601,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:8080/cart/${itemId}`, {
+                const response = await fetch(`${BASE_URL}/cart/${itemId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -627,7 +631,7 @@
 
             try {
                 // Сначала получаем текущую корзину
-                const cartResponse = await fetch('http://localhost:8080/cart', {
+                const cartResponse = await fetch(`${BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -648,7 +652,7 @@
                     }))
                 };
 
-                const response = await fetch('http://localhost:8080/orders', {
+                const response = await fetch(`${BASE_URL}/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
