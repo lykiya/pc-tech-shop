@@ -371,6 +371,12 @@
     <script src="js/common.js"></script>
     <script src="js/toast.js"></script>
     <script>
+        // Проверяем наличие API_CONFIG
+        if (typeof API_CONFIG === 'undefined') {
+            console.error('API_CONFIG не определен. Проверьте загрузку config.js');
+            showToast('Ошибка конфигурации. Пожалуйста, обновите страницу.', 'error');
+        }
+
         // Функция для обновления имени пользователя
         function updateUserName() {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -418,7 +424,7 @@
                 console.log('Начало загрузки корзины...');
                 console.log('Используемый токен:', token.substring(0, 10) + '...');
                 
-                const response = await fetch(`${BASE_URL}/cart`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -433,7 +439,7 @@
                         if (item.build && item.build.id) {
                             try {
                                 console.log('Загрузка компонентов для сборки:', item.build.id);
-                                const buildResponse = await fetch(`${BASE_URL}/builds/${item.build.id}`, {
+                                const buildResponse = await fetch(`${API_CONFIG.BASE_URL}/builds/${item.build.id}`, {
                                     headers: {
                                         'Authorization': `Bearer ${token}`
                                     }
@@ -459,7 +465,7 @@
                                 }
                             } catch (error) {
                                 console.error('Ошибка при загрузке компонентов:', error);
-                                console.error('URL запроса:', `${BASE_URL}/builds/${item.build.id}`);
+                                console.error('URL запроса:', `${API_CONFIG.BASE_URL}/builds/${item.build.id}`);
                                 item.build.components = [];
                             }
                         }
@@ -571,7 +577,7 @@
             }
 
             try {
-                const response = await fetch(`${BASE_URL}/cart/${itemId}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/cart/${itemId}`, {
                     method: 'PATCH',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -601,7 +607,7 @@
             }
 
             try {
-                const response = await fetch(`${BASE_URL}/cart/${itemId}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/cart/${itemId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -631,7 +637,7 @@
 
             try {
                 // Сначала получаем текущую корзину
-                const cartResponse = await fetch(`${BASE_URL}/cart`, {
+                const cartResponse = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -652,7 +658,7 @@
                     }))
                 };
 
-                const response = await fetch(`${BASE_URL}/orders`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
