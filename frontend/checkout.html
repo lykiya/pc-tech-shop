@@ -687,9 +687,9 @@
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
-                            <img src="${item.build.image_url || `${API_CONFIG.BASE_URL}/images/placeholder.png`}" 
+                            <img src="${item.build.image_url ? (item.build.image_url.startsWith('http') ? item.build.image_url : API_CONFIG.BASE_URL + item.build.image_url) : `${API_CONFIG.BASE_URL}/images/builds/default.jpg`}" 
                                  alt="${item.build.name}"
-                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/placeholder.png';">
+                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg';">
                         </div>
                         <div class="item-details">
                             <h3>${item.build.name}</h3>
@@ -1125,9 +1125,13 @@
                 const modalDescription = document.getElementById('modalBuildDescription');
 
                 // Обработка URL изображения в модальном окне
-                modalImage.src = build.image_url || `${API_CONFIG.BASE_URL}/images/placeholder.png`;
+                let imageUrl = build.image_url;
+                if (imageUrl && !imageUrl.startsWith('http')) {
+                    imageUrl = API_CONFIG.BASE_URL + imageUrl;
+                }
+                modalImage.src = imageUrl || `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
                 modalImage.onerror = function() {
-                    this.src = `${API_CONFIG.BASE_URL}/images/placeholder.png`;
+                    this.src = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
                 };
 
                 modalName.textContent = build.name;
