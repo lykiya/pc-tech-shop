@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 
@@ -31,6 +33,8 @@ func main() {
 
 	// Perform migrations
 	log.Println("Starting database migrations...")
+	
+	// Создаем таблицы, если они не существуют
 	models := []interface{}{
 		&models.User{},
 		&models.CPU{},
@@ -57,6 +61,27 @@ func main() {
 			log.Printf("Successfully migrated %T", model)
 		}
 	}
+
+	// Применяем дополнительные миграции
+	migrations := []string{
+		"000002_add_order_fields.up.sql",
+	}
+
+	for _, migration := range migrations {
+		log.Printf("Applying migration %s...", migration)
+		migrationSQL, err := os.ReadFile(filepath.Join("migrations", migration))
+		if err != nil {
+			log.Printf("Error reading migration file %s: %v", migration, err)
+			continue
+		}
+
+		if err := db.Exec(string(migrationSQL)).Error; err != nil {
+			log.Printf("Error applying migration %s: %v", migration, err)
+		} else {
+			log.Printf("Successfully applied migration %s", migration)
+		}
+	}
+
 	log.Println("Database migrations completed")
 
 	// Initialize router
