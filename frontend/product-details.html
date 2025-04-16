@@ -173,6 +173,8 @@
                 const productId = urlParams.get('id');
                 const productType = urlParams.get('type');
 
+                console.log('Параметры URL:', { productId, productType });
+
                 if (!productId) {
                     showToast('ID товара не указан', 'error');
                     return;
@@ -183,8 +185,6 @@
                     return;
                 }
 
-                console.log(`Загрузка товара: ID=${productId}, тип=${productType}`);
-
                 let endpoint;
                 if (productType === 'build') {
                     endpoint = API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', productId);
@@ -194,14 +194,30 @@
                     throw new Error('Неверный тип товара');
                 }
 
+                const token = localStorage.getItem('token');
+                const headers = {
+                    'Accept': 'application/json'
+                };
+
+                // Добавляем токен только если он есть
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                console.log('API Config:', API_CONFIG);
+                console.log('Endpoint:', endpoint);
+                console.log('Полный URL:', buildApiUrl(endpoint));
+
                 const response = await fetch(buildApiUrl(endpoint), {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Accept': 'application/json'
-                    }
+                    headers: headers
                 });
 
+                console.log('Статус ответа:', response.status);
+                console.log('Заголовки ответа:', Object.fromEntries(response.headers.entries()));
+
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Текст ошибки:', errorText);
                     throw new Error(`Ошибка при загрузке данных: ${response.status}`);
                 }
 
@@ -364,7 +380,7 @@
                 }
 
             } catch (error) {
-                console.error('Ошибка при загрузке деталей товара:', error);
+                console.error('Полная ошибка:', error);
                 showToast(error.message, 'error');
             }
         }
@@ -392,7 +408,7 @@
         async function addToCart(productId, type) {
             const token = localStorage.getItem('token');
             if (!token) {
-                showToast('Требуется авторизация', 'error');
+                showToast('Для добавления в корзину требуется авторизация', 'error');
                 window.location.href = 'login.html';
                 return;
             }

@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const response = await fetch(buildApiUrl('/help-request'), {
+                const response = await fetch(buildApiUrl('/requests'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
