@@ -247,7 +247,7 @@
                     </span>
                     <div class="user-dropdown">
                         <a href="profile.html">Мой профиль</a>
-                        <a href="admin.html">Панель администратора</a>
+                        <a href="admin.html" class="admin-panel-link">Панель администратора</a>
                         <a href="#" id="logoutBtn">Выйти</a>
                     </div>
                 </div>
@@ -350,6 +350,7 @@
             const userDisplayName = document.getElementById('userDisplayName');
             const loginLink = document.querySelector('.login-link');
             const userMenu = document.querySelector('.user-menu');
+            const adminPanelLink = document.querySelector('.admin-panel-link');
 
             if (user && user.name) {
                 if (userDisplayName) {
@@ -361,6 +362,9 @@
                 if (userMenu) {
                     userMenu.style.display = 'block';
                 }
+                if (adminPanelLink) {
+                    adminPanelLink.style.display = user.role === 'admin' ? 'block' : 'none';
+                }
             } else {
                 if (userDisplayName) {
                     userDisplayName.textContent = 'Гость';
@@ -370,6 +374,9 @@
                 }
                 if (userMenu) {
                     userMenu.style.display = 'none';
+                }
+                if (adminPanelLink) {
+                    adminPanelLink.style.display = 'none';
                 }
             }
         }
