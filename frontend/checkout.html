@@ -790,156 +790,82 @@
 
         // Функция для оформления заказа
         async function placeOrder(event) {
-            console.log('Функция placeOrder вызвана');
             event.preventDefault();
-            console.log('Начало оформления заказа');
             
-            // Получаем текущий токен
-            let token = localStorage.getItem('token');
-            console.log('Исходный токен из localStorage:', token);
-            
+            const token = localStorage.getItem('token');
             if (!token) {
                 showError('Требуется авторизация');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 5000);
+                window.location.href = 'login.html';
                 return;
             }
 
-            // Удаляем возможный префикс Bearer, если он есть
-            token = token.replace('Bearer ', '');
-            console.log('Токен после удаления префикса:', token);
-
             try {
-                // Проверяем авторизацию перед оформлением заказа
-                console.log('Проверка авторизации...');
-                const authResponse = await fetch('http://localhost:8080/users/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!authResponse.ok) {
-                    console.log('Ошибка авторизации:', authResponse.status);
-                    if (authResponse.status === 401) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        localStorage.removeItem('role');
-                        showError('Сессия истекла. Пожалуйста, войдите снова.');
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 5000);
-                        return;
-                    }
-                    throw new Error('Ошибка при проверке авторизации');
-                }
-
-                console.log('Авторизация успешна');
-
                 // Проверяем заполнение обязательных полей
                 const requiredFields = ['name', 'surname', 'email', 'phone', 'address'];
                 for (const fieldId of requiredFields) {
                     const field = document.getElementById(fieldId);
                     if (!field || !field.value.trim()) {
-                        console.log('Не заполнено поле:', fieldId);
                         showError(`Пожалуйста, заполните поле ${fieldId}`);
                         return;
                     }
                 }
 
-                console.log('Все поля заполнены');
+                // Получаем данные корзины
+                const cartResponse = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
 
-                // Проверяем, что корзина не пуста
-                const cartData = await loadCartData();
-                if (!cartData || !cartData.items || cartData.items.length === 0) {
-                    console.log('Корзина пуста');
+                if (!cartResponse.ok) {
+                    showError('Не удалось получить данные корзины');
+                    return;
+                }
+
+                const cartItems = await cartResponse.json();
+                
+                if (!cartItems || cartItems.length === 0) {
                     showError('Корзина пуста');
                     return;
                 }
 
-                console.log('Корзина не пуста');
-                
-                // Получаем текущую дату в формате ISO
-                const orderDate = new Date().toISOString();
-
-                // Получаем итоговую сумму из корзины
-                const totalPrice = parseFloat(document.getElementById('total').textContent.replace(/[^\d.]/g, ''));
-
                 // Формируем данные заказа
                 const orderData = {
-                    order_date: orderDate,
-                    total_price: totalPrice,
-                    status: 'pending', // Статус по умолчанию
+                    items: cartItems.map(item => ({
+                        build_id: item.build.id,
+                        quantity: item.quantity,
+                        price: item.build.total_price
+                    })),
                     shipping_address: document.getElementById('address').value,
                     payment_method: document.querySelector('input[name="payment"]:checked').value,
+                    delivery_method: document.querySelector('input[name="delivery"]:checked').value,
                     comment: document.getElementById('comment').value
                 };
 
-                console.log('Отправка заказа:', orderData);
-                console.log('Используемый токен для заказа:', `Bearer ${token}`);
-
-                // Логируем полный запрос
-                const requestOptions = {
+                // Создаем заказ
+                const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(orderData)
-                };
-                console.log('Полные параметры запроса:', JSON.stringify(requestOptions, null, 2));
-
-                // Проверяем, что токен не пустой
-                if (!token) {
-                    console.error('Токен пустой!');
-                    showError('Ошибка авторизации: токен отсутствует');
-                    return;
-                }
-
-                const response = await fetch('http://localhost:8080/orders', requestOptions);
-
-                console.log('Ответ сервера:', response.status);
-                console.log('Заголовки ответа:', Array.from(response.headers.entries()));
+                });
 
                 if (response.ok) {
-                    showSuccess('Заказ успешно оформлен!');
-                    // Очищаем корзину после успешного оформления заказа
-                    try {
-                        await fetch('http://localhost:8080/cart/clear', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Ошибка при очистке корзины:', error);
-                    }
-                    setTimeout(() => {
-                        window.location.href = 'profile.html';
-                    }, 2000);
-                } else {
-                    const errorText = await response.text();
-                    console.log('Полный ответ сервера:', errorText);
-                    
-                    if (response.status === 401) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                        localStorage.removeItem('role');
-                        showError('Сессия истекла. Пожалуйста, войдите снова.');
-                        setTimeout(() => {
-                            window.location.href = 'login.html';
-                        }, 5000);
-                    } else {
-                        try {
-                            const errorData = JSON.parse(errorText);
-                            console.error('Ошибка при оформлении заказа:', errorData);
-                            showError(errorData.error || 'Не удалось оформить заказ');
-                        } catch (e) {
-                            console.error('Ошибка при парсинге ответа:', e);
-                            showError('Произошла ошибка при оформлении заказа');
+                    showSuccess('Заказ успешно оформлен');
+                    // Очищаем корзину
+                    await fetch(`${API_CONFIG.BASE_URL}/cart`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
                         }
-                    }
+                    });
+                    // Перенаправляем на страницу профиля
+                    window.location.href = 'profile.html';
+                } else {
+                    const errorData = await response.json();
+                    showError(errorData.error || 'Не удалось оформить заказ');
                 }
             } catch (error) {
                 console.error('Ошибка при оформлении заказа:', error);
