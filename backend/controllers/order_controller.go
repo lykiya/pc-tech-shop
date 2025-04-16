@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"pc-tech-shop/models"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -39,12 +38,9 @@ func (oc *OrderController) CreateOrder(c *gin.Context) {
 
 	// Создаем новый заказ
 	order := models.Order{
-		UserID:          int(userID.(int64)),
-		OrderDate:       time.Now(),
-		TotalPrice:      orderData.TotalPrice,
-		Status:          orderData.Status,
-		ShippingAddress: orderData.ShippingAddress,
-		PaymentMethod:   orderData.PaymentMethod,
+		UserID:      uint(userID.(int64)),
+		TotalAmount: orderData.TotalPrice,
+		Status:      models.OrderStatus(orderData.Status),
 	}
 
 	if err := oc.db.Create(&order).Error; err != nil {

@@ -32,21 +32,3 @@ type PCFilter struct {
 	MaxPrice   float64  `json:"max_price"`
 	SortBy     string   `json:"sort_by"`
 }
-
-type Order struct {
-	ID              int       `json:"id" db:"id"`
-	UserID          int       `json:"user_id" db:"user_id"`
-	OrderDate       time.Time `json:"order_date" db:"order_date"`
-	TotalPrice      float64   `json:"total_price" db:"total_price"`
-	Status          string    `json:"status" db:"status"`
-	ShippingAddress string    `json:"shipping_address" db:"shipping_address"`
-	PaymentMethod   string    `json:"payment_method" db:"payment_method"`
-}
-
-type OrderItem struct {
-	ID       int     `json:"id" db:"id"`
-	OrderID  int     `json:"order_id" db:"order_id"`
-	PCID     int     `json:"pc_id" db:"pc_id"`
-	Quantity int     `json:"quantity" db:"quantity"`
-	Price    float64 `json:"price" db:"price"`
-}

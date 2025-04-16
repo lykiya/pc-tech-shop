@@ -44,6 +44,8 @@ func main() {
 		&models.Pcbuild{},
 		&models.CartItem{},
 		&models.Request{},
+		&models.Order{},
+		&models.OrderItem{},
 	}
 
 	for _, model := range models {
