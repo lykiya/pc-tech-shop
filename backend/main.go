@@ -100,6 +100,7 @@ func main() {
 	// Setup routes
 	log.Println("Setting up routes...")
 	routes.UserRoutes(router, db)
+	routes.OrderRoutes(router, db)
 	log.Println("Routes configured successfully")
 
 	// Start server

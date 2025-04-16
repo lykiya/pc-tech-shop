@@ -686,7 +686,8 @@
                 const orderData = {
                     items: cartItems.map(item => ({
                         build_id: item.build.id,
-                        quantity: item.quantity
+                        quantity: item.quantity,
+                        price: item.build.total_price
                     }))
                 };
 
@@ -701,10 +702,17 @@
 
                 if (response.ok) {
                     showToast('Заказ успешно оформлен', 'success');
-                    window.location.href = 'checkout.html';
+                    // Очищаем корзину после успешного оформления заказа
+                    await fetch(`${API_CONFIG.BASE_URL}/cart`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    window.location.href = 'profile.html';
                 } else {
                     const errorData = await response.json();
-                    showToast(errorData.message || 'Не удалось оформить заказ', 'error');
+                    showToast(errorData.error || 'Не удалось оформить заказ', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка при оформлении заказа:', error);
