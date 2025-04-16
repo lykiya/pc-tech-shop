@@ -120,6 +120,8 @@ func (oc *OrderController) GetOrders(c *gin.Context) {
 		err = oc.db.Table("orders").
 			Select("orders.*, users.name as user_name").
 			Joins("LEFT JOIN users ON orders.user_id = users.id").
+			Preload("Items").
+			Preload("Items.Build").
 			Find(&orders).Error
 	} else {
 		// Иначе возвращаем только заказы пользователя
@@ -127,6 +129,8 @@ func (oc *OrderController) GetOrders(c *gin.Context) {
 			Select("orders.*, users.name as user_name").
 			Joins("LEFT JOIN users ON orders.user_id = users.id").
 			Where("orders.user_id = ?", userID).
+			Preload("Items").
+			Preload("Items.Build").
 			Find(&orders).Error
 	}
 

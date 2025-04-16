@@ -1720,11 +1720,23 @@
                             totalPrice: order.total_amount || order.total_price || '0',
                             status: order.status || 'pending',
                             items: order.items || [],
+                            shippingAddress: order.shipping_address || '-',
+                            paymentMethod: order.payment_method || '-',
+                            deliveryMethod: order.delivery_method || '-',
+                            comment: order.comment || '-',
                             updatedAt: order.UpdatedAt || order.updated_at || '-'
                         };
                         
                         console.log('Подготовленные данные заказа:', orderData);
                         
+                        // Форматируем информацию о товарах
+                        const itemsInfo = orderData.items && orderData.items.length > 0 
+                            ? orderData.items.map(item => {
+                                const build = item.build || {};
+                                return `${build.name || 'Неизвестная сборка'} (${item.quantity} шт. × ${item.price} ₽)`;
+                            }).join('<br>')
+                            : 'Нет товаров';
+
                         row.innerHTML = `
                             <td>${orderData.id}</td>
                             <td>${orderData.userId} (${orderData.userName})</td>
@@ -1735,27 +1747,20 @@
                                     ${getOrderStatusText(orderData.status)}
                                 </span>
                             </td>
-                            <td>${orderData.items && orderData.items.length > 0 ? 
-                                orderData.items.map(item => item.name).join(', ') : 
-                                'Нет товаров'}</td>
-                            <td>${orderData.items && orderData.items.length > 0 ? 
-                                orderData.items.length + ' шт.' : 
-                                '0 шт.'}</td>
+                            <td>${itemsInfo}</td>
+                            <td>${orderData.items ? orderData.items.length : 0} шт.</td>
                             <td>
                                 <span class="payment-status payment-${orderData.status === 'completed' ? 'completed' : 'pending'}">
                                     ${orderData.status === 'completed' ? 'Оплачено' : 'Ожидает оплаты'}
                                 </span>
                             </td>
-                            <td>
-                                <button onclick="viewOrderDetails(${orderData.id})" class="action-btn view" title="Просмотреть детали">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="updateOrderStatus(${orderData.id})" class="action-btn edit" title="Изменить статус">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
+                            <td>${orderData.shippingAddress}</td>
+                            <td>${getPaymentMethodText(orderData.paymentMethod)}</td>
+                            <td>${getDeliveryMethodText(orderData.deliveryMethod)}</td>
+                            <td>${orderData.comment || '-'}</td>
                         `;
-                        tbody.appendChild(row);
+                        
+                        ordersTableBody.appendChild(row);
                     });
                 } catch (error) {
                     console.error('Ошибка при загрузке заказов:', error);
@@ -2849,6 +2854,25 @@
                 showToast('Ошибка при загрузке данных сборки: ' + error.message, 'error');
                 closeEditBuildModal();
             }
+        }
+
+        // Добавляем функции для форматирования текста
+        function getPaymentMethodText(method) {
+            const methods = {
+                'card': 'Банковская карта',
+                'cash': 'Наличными при получении',
+                'Не указан': 'Не указан'
+            };
+            return methods[method] || method;
+        }
+
+        function getDeliveryMethodText(method) {
+            const methods = {
+                'courier': 'Курьерская доставка',
+                'pickup': 'Самовывоз',
+                'Не указан': 'Не указан'
+            };
+            return methods[method] || method;
         }
     </script>
 </body>
