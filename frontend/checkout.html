@@ -691,8 +691,11 @@
                         if (imageUrl.startsWith('http')) {
                             // Если URL уже полный (внешняя ссылка), оставляем как есть
                             imageUrl = imageUrl;
+                        } else if (imageUrl.startsWith('/')) {
+                            // Если путь начинается с /, добавляем только BASE_URL
+                            imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
                         } else {
-                            // Для локальных изображений добавляем базовый URL
+                            // Для относительных путей добавляем полный путь
                             imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
                         }
                     } else {
@@ -707,7 +710,7 @@
                         <div class="item-image">
                             <img src="${imageUrl}" 
                                  alt="${item.build.name}"
-                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg';">
+                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'; console.log('Ошибка загрузки изображения:', this.src);">
                         </div>
                         <div class="item-details">
                             <h3>${item.build.name}</h3>
@@ -1143,12 +1146,28 @@
                 const modalDescription = document.getElementById('modalBuildDescription');
 
                 // Обработка URL изображения
-                let imageUrl = build.image_url || 'default.jpg';
-                if (!imageUrl.startsWith('http')) {
-                    imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
+                let imageUrl = build.image_url;
+                console.log('Исходный URL изображения в модальном окне:', imageUrl);
+                
+                if (imageUrl) {
+                    if (imageUrl.startsWith('http')) {
+                        // Если URL уже полный (внешняя ссылка), оставляем как есть
+                        imageUrl = imageUrl;
+                    } else if (imageUrl.startsWith('/')) {
+                        // Если путь начинается с /, добавляем только BASE_URL
+                        imageUrl = `${API_CONFIG.BASE_URL}${imageUrl}`;
+                    } else {
+                        // Для относительных путей добавляем полный путь
+                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
+                    }
+                } else {
+                    imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
                 }
+                
+                console.log('Итоговый URL изображения в модальном окне:', imageUrl);
                 modalImage.src = imageUrl;
                 modalImage.onerror = function() {
+                    console.log('Ошибка загрузки изображения в модальном окне:', this.src);
                     this.src = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
                 };
 
