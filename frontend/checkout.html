@@ -892,19 +892,22 @@
                     return;
                 }
 
-                // Формируем данные заказа
+                // Формируем данные заказа в соответствии с моделью
                 const orderData = {
-                    items: cartItems.map(item => ({
-                        build_id: item.build.id,
-                        quantity: item.quantity,
-                        price: item.build.total_price
-                    })),
+                    total_amount: parseFloat(document.getElementById('total').textContent.replace(/[^\d.-]/g, '')),
+                    status: 'pending',
                     shipping_address: document.getElementById('address').value,
                     payment_method: document.querySelector('input[name="payment"]:checked').value,
                     delivery_method: document.querySelector('input[name="delivery"]:checked').value,
                     comment: document.getElementById('comment').value,
-                    total_amount: parseFloat(document.getElementById('total').textContent.replace(/[^\d.-]/g, ''))
+                    items: cartItems.map(item => ({
+                        build_id: item.build.id,
+                        quantity: item.quantity,
+                        price: item.build.total_price
+                    }))
                 };
+
+                console.log('Отправляемые данные заказа:', orderData);
 
                 // Создаем заказ
                 const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {

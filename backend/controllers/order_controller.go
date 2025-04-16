@@ -23,12 +23,17 @@ func (oc *OrderController) CreateOrder(c *gin.Context) {
 	}
 
 	var orderData struct {
-		OrderDate       string  `json:"order_date"`
-		TotalPrice      float64 `json:"total_price"`
+		TotalAmount     float64 `json:"total_amount"`
 		Status          string  `json:"status"`
 		ShippingAddress string  `json:"shipping_address"`
 		PaymentMethod   string  `json:"payment_method"`
+		DeliveryMethod  string  `json:"delivery_method"`
 		Comment         string  `json:"comment"`
+		Items           []struct {
+			BuildID  uint    `json:"build_id"`
+			Quantity int     `json:"quantity"`
+			Price    float64 `json:"price"`
+		} `json:"items"`
 	}
 
 	if err := c.ShouldBindJSON(&orderData); err != nil {
@@ -38,13 +43,48 @@ func (oc *OrderController) CreateOrder(c *gin.Context) {
 
 	// Создаем новый заказ
 	order := models.Order{
-		UserID:      uint(userID.(int64)),
-		TotalAmount: orderData.TotalPrice,
-		Status:      models.OrderStatus(orderData.Status),
+		UserID:          uint(userID.(int64)),
+		TotalAmount:     orderData.TotalAmount,
+		Status:          models.OrderStatus(orderData.Status),
+		ShippingAddress: orderData.ShippingAddress,
+		PaymentMethod:   orderData.PaymentMethod,
+		DeliveryMethod:  orderData.DeliveryMethod,
+		Comment:         orderData.Comment,
 	}
 
-	if err := oc.db.Create(&order).Error; err != nil {
+	// Начинаем транзакцию
+	tx := oc.db.Begin()
+	if tx.Error != nil {
 		c.JSON(500, gin.H{"error": "Ошибка при создании заказа"})
+		return
+	}
+
+	// Создаем заказ
+	if err := tx.Create(&order).Error; err != nil {
+		tx.Rollback()
+		c.JSON(500, gin.H{"error": "Ошибка при создании заказа"})
+		return
+	}
+
+	// Создаем элементы заказа
+	for _, item := range orderData.Items {
+		orderItem := models.OrderItem{
+			OrderID:  order.ID,
+			BuildID:  item.BuildID,
+			Quantity: item.Quantity,
+			Price:    item.Price,
+		}
+		if err := tx.Create(&orderItem).Error; err != nil {
+			tx.Rollback()
+			c.JSON(500, gin.H{"error": "Ошибка при создании элементов заказа"})
+			return
+		}
+	}
+
+	// Завершаем транзакцию
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(500, gin.H{"error": "Ошибка при завершении заказа"})
 		return
 	}
 
