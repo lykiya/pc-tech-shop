@@ -395,8 +395,11 @@
                 if (userMenu) {
                     userMenu.style.display = 'block';
                 }
+                // Проверяем роль пользователя
                 if (adminPanelLink && user.role === 'admin') {
                     adminPanelLink.style.display = 'block';
+                } else if (adminPanelLink) {
+                    adminPanelLink.style.display = 'none';
                 }
             } else {
                 if (userDisplayName) {
@@ -407,6 +410,9 @@
                 }
                 if (userMenu) {
                     userMenu.style.display = 'none';
+                }
+                if (adminPanelLink) {
+                    adminPanelLink.style.display = 'none';
                 }
             }
         }
@@ -536,11 +542,18 @@
                         
                         <div class="components-list">
                             ${item.build.components && item.build.components.length > 0 ? 
-                                item.build.components.map(component => `
-                                    <div class="component-item">
-                                        <span class="component-name">${component.name}: ${component.model || component.name}</span>
-                                    </div>
-                                `).join('') : 
+                                item.build.components.map(component => {
+                                    let displayName = component.model || component.name;
+                                    // Если производитель указан в начале модели, убираем его
+                                    if (component.manufacturer && displayName.startsWith(component.manufacturer)) {
+                                        displayName = displayName.substring(component.manufacturer.length).trim();
+                                    }
+                                    return `
+                                        <div class="component-item">
+                                            <span class="component-name">${component.name}: ${displayName}</span>
+                                        </div>
+                                    `;
+                                }).join('') : 
                                 '<div class="component-item">Компоненты не загружены</div>'
                             }
                         </div>
