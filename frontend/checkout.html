@@ -645,14 +645,8 @@
 
         // Функция для загрузки данных корзины
         async function loadCartData() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showError('Требуется авторизация');
-                window.location.href = 'login.html';
-                return;
-            }
-
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch(`${API_CONFIG.BASE_URL}/cart`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -663,21 +657,20 @@
                     throw new Error('Ошибка при загрузке корзины');
                 }
 
-                const cartData = await response.json();
-                console.log('Данные корзины:', cartData);
+                const cart = await response.json();
+                console.log('Данные корзины:', cart);
 
-                const checkoutItems = document.getElementById('checkoutItems');
-                const subtotal = document.getElementById('subtotal');
-                const deliveryCost = document.getElementById('deliveryCost');
-                const total = document.getElementById('total');
+                const cartItemsContainer = document.getElementById('checkoutItems');
+                cartItemsContainer.innerHTML = '';
+
                 let totalPrice = 0;
 
-                checkoutItems.innerHTML = '';
-                
-                cartData.forEach(item => {
+                for (const item of cart.items) {
+                    console.log('Обработка элемента корзины:', item);
+                    
                     if (!item.build) {
-                        console.error('Отсутствуют данные о сборке:', item);
-                        return;
+                        console.error('Отсутствуют данные сборки для элемента:', item);
+                        continue;
                     }
 
                     console.log('Обработка элемента корзины:', item);
@@ -685,18 +678,31 @@
                     console.log('Цена сборки:', item.build.total_price);
                     console.log('Количество:', item.quantity);
 
+                    // Обработка URL изображения
                     let imageUrl = item.build.image_url;
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = API_CONFIG.BASE_URL + imageUrl;
+                    console.log('Исходный URL изображения:', imageUrl);
+                    
+                    if (imageUrl) {
+                        if (imageUrl.startsWith('http')) {
+                            // Если URL уже полный (внешняя ссылка), оставляем как есть
+                            imageUrl = imageUrl;
+                        } else {
+                            // Для локальных изображений добавляем базовый URL
+                            imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
+                        }
+                    } else {
+                        imageUrl = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
                     }
+                    
+                    console.log('Итоговый URL изображения:', imageUrl);
 
                     const itemElement = document.createElement('div');
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
-                            <img src="${imageUrl || `${API_CONFIG.BASE_URL}/images/builds/default.jpg`}" 
+                            <img src="${imageUrl}" 
                                  alt="${item.build.name}"
-                                 onerror="this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
+                                 onerror="this.onerror=null; this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'; console.log('Ошибка загрузки изображения, загружаем изображение по умолчанию');">
                         </div>
                         <div class="item-details">
                             <h3>${item.build.name}</h3>
@@ -709,7 +715,7 @@
                     `;
                     checkoutItems.appendChild(itemElement);
                     totalPrice += item.build.total_price * item.quantity;
-                });
+                };
 
                 console.log('Итоговая сумма:', totalPrice);
 
@@ -1096,12 +1102,12 @@
         });
 
         // Функция для отображения подробной информации о сборке
-        async function showBuildDetails(buildId) {
+        async function showBuildDetails(id) {
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/builds/${id}`, {
+                    method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     }
                 });
 
@@ -1110,26 +1116,28 @@
                 }
 
                 const build = await response.json();
-                console.log('Данные сборки для модального окна:', build);
+                console.log('Данные сборки:', build);
 
-                // Заполняем модальное окно данными
                 const modal = document.getElementById('buildDetailsModal');
                 const modalImage = document.getElementById('modalBuildImage');
                 const modalName = document.getElementById('modalBuildName');
                 const modalDescription = document.getElementById('modalBuildDescription');
-                const componentList = document.getElementById('modalComponentList');
 
-                let imageUrl = build.image_url;
-                if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = API_CONFIG.BASE_URL + imageUrl;
+                // Обработка URL изображения
+                let imageUrl = build.image_url || 'default.jpg';
+                if (!imageUrl.startsWith('http')) {
+                    imageUrl = `${API_CONFIG.BASE_URL}/images/builds/${imageUrl}`;
                 }
+                modalImage.src = imageUrl;
+                modalImage.onerror = function() {
+                    this.src = `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
+                };
 
-                modalImage.src = imageUrl || `${API_CONFIG.BASE_URL}/images/builds/default.jpg`;
-                modalImage.alt = build.name;
                 modalName.textContent = build.name;
                 modalDescription.textContent = build.description || 'Описание отсутствует';
 
                 // Формируем список компонентов
+                const componentList = document.getElementById('modalComponentList');
                 componentList.innerHTML = `
                     <div class="component-item">
                         <h4>Процессор</h4>
@@ -1163,7 +1171,6 @@
                     </div>
                 `;
 
-                // Показываем модальное окно
                 modal.style.display = 'block';
 
                 // Добавляем обработчик закрытия
@@ -1180,7 +1187,7 @@
                 };
             } catch (error) {
                 console.error('Ошибка при загрузке данных сборки:', error);
-                showError('Не удалось загрузить подробную информацию о сборке');
+                alert('Произошла ошибка при загрузке данных сборки');
             }
         }
     </script>
