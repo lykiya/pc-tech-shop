@@ -562,21 +562,34 @@
                 checkoutItems.innerHTML = '';
                 
                 cartData.forEach(item => {
+                    console.log('Обработка элемента корзины:', item);
+                    
+                    if (!item.build) {
+                        console.error('Отсутствуют данные о сборке:', item);
+                        return;
+                    }
+
+                    console.log('Данные сборки:', item.build);
+                    console.log('Цена сборки:', item.build.total_price);
+                    console.log('Количество:', item.quantity);
+
                     const itemElement = document.createElement('div');
                     itemElement.className = 'checkout-item';
                     itemElement.innerHTML = `
                         <div class="item-image">
-                            <img src="${item.image_url || `${API_CONFIG.BASE_URL}/images/placeholder.png`}" alt="${item.name}">
+                            <img src="${item.build.image_url || `${API_CONFIG.BASE_URL}/images/placeholder.png`}" alt="${item.build.name}">
                         </div>
                         <div class="item-details">
-                            <h3>${item.name}</h3>
-                            <p class="item-price">${item.price} ₽</p>
+                            <h3>${item.build.name}</h3>
+                            <p class="item-price">${item.build.total_price} ₽</p>
                             <p class="item-quantity">Количество: ${item.quantity}</p>
                         </div>
                     `;
                     checkoutItems.appendChild(itemElement);
-                    totalPrice += item.price * item.quantity;
+                    totalPrice += item.build.total_price * item.quantity;
                 });
+
+                console.log('Итоговая сумма:', totalPrice);
 
                 // Обновляем стоимость доставки
                 const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
