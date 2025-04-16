@@ -26,7 +26,7 @@ type OrderItem struct {
 	BuildID  uint    `json:"build_id" gorm:"not null"`
 	Quantity int     `json:"quantity" gorm:"not null"`
 	Price    float64 `json:"price" gorm:"not null"`
-	PC       PC      `json:"pc" gorm:"foreignKey:BuildID"`
+	Build    Pcbuild `json:"build" gorm:"foreignKey:BuildID;references:ID"`
 }
 
 // CreateOrder создает новый заказ
@@ -37,14 +37,14 @@ func CreateOrder(db *gorm.DB, order *Order) error {
 // GetOrdersByUserID возвращает все заказы пользователя
 func GetOrdersByUserID(db *gorm.DB, userID uint) ([]Order, error) {
 	var orders []Order
-	err := db.Preload("Items.PC").Where("user_id = ?", userID).Order("created_at DESC").Find(&orders).Error
+	err := db.Preload("Items.Build").Where("user_id = ?", userID).Order("created_at DESC").Find(&orders).Error
 	return orders, err
 }
 
 // GetOrderByID возвращает заказ по ID
 func GetOrderByID(db *gorm.DB, id uint) (*Order, error) {
 	var order Order
-	err := db.Preload("Items.PC").First(&order, id).Error
+	err := db.Preload("Items.Build").First(&order, id).Error
 	return &order, err
 }
 

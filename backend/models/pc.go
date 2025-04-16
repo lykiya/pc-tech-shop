@@ -12,14 +12,14 @@ type PC struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 
 	// Компоненты
-	CPU         CPU         `json:"cpu" gorm:"foreignKey:PCID"`
-	GPU         GPU         `json:"gpu" gorm:"foreignKey:PCID"`
-	Motherboard Motherboard `json:"motherboard" gorm:"foreignKey:PCID"`
-	RAM         RAM         `json:"ram" gorm:"foreignKey:PCID"`
-	PowerUnit   PowerUnit   `json:"power_unit" gorm:"foreignKey:PCID"`
-	Body        Body        `json:"body" gorm:"foreignKey:PCID"`
-	HDD         HDD         `json:"hdd" gorm:"foreignKey:PCID"`
-	SSD         SSD         `json:"ssd" gorm:"foreignKey:PCID"`
+	CPU         CPU         `json:"cpu" gorm:"foreignKey:ID;references:ID"`
+	GPU         GPU         `json:"gpu" gorm:"foreignKey:ID;references:ID"`
+	Motherboard Motherboard `json:"motherboard" gorm:"foreignKey:ID;references:ID"`
+	RAM         RAM         `json:"ram" gorm:"foreignKey:ID;references:ID"`
+	PowerUnit   PowerUnit   `json:"power_unit" gorm:"foreignKey:ID;references:ID"`
+	Body        Body        `json:"body" gorm:"foreignKey:ID;references:ID"`
+	HDD         HDD         `json:"hdd" gorm:"foreignKey:ID;references:ID"`
+	SSD         SSD         `json:"ssd" gorm:"foreignKey:ID;references:ID"`
 }
 
 func (PC) TableName() string {
