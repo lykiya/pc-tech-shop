@@ -1034,7 +1034,7 @@
         }
 
         async function fetchComponents(type) {
-            const response = await fetch(`http://localhost:8080/components?category=${type}`, {
+            const response = await fetch(`${API_CONFIG.BASE_URL}/components?category=${type}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -1205,7 +1205,7 @@
                                     throw new Error('Требуется авторизация');
                                 }
 
-                                const response = await fetch(`http://localhost:8080/builds/${id}`, {
+                                const response = await fetch(`${API_CONFIG.BASE_URL}builds/${id}`, {
                                     method: 'DELETE',
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
@@ -1259,25 +1259,25 @@
 
                     // Получаем данные из разных эндпоинтов
                     const [buildsResponse, usersResponse, requestsResponse, cartResponse] = await Promise.all([
-                        fetch('http://localhost:8080/builds', {
+                        fetch(`${API_CONFIG.BASE_URL}/builds`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
                         }),
-                        fetch('http://localhost:8080/users', {
+                        fetch(`${API_CONFIG.BASE_URL}/users`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
                         }),
-                        fetch('http://localhost:8080/requests', {
+                        fetch(`${API_CONFIG.BASE_URL}/requests`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             }
                         }),
-                        fetch('http://localhost:8080/cart', {
+                        fetch(`${API_CONFIG.BASE_URL}/cart`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`,
                                 'Content-Type': 'application/json'
@@ -1318,7 +1318,7 @@
                         throw new Error('Требуется авторизация');
                     }
 
-                    const response = await fetch('http://localhost:8080/builds', {
+                    const response = await fetch(`${API_CONFIG.BASE_URL}/builds`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
@@ -1365,7 +1365,7 @@
             // Функция для загрузки заказов
             async function loadOrders() {
                 try {
-                    const response = await fetch('http://localhost:8080/orders', {
+                    const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
@@ -1447,7 +1447,7 @@
                 if (!newStatus) return;
                 
                 try {
-                    const response = await fetch(`http://localhost:8080/orders/${orderId}`, {
+                    const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1475,7 +1475,7 @@
                         throw new Error('Требуется авторизация');
                     }
 
-                    const response = await fetch('http://localhost:8080/users', {
+                    const response = await fetch(`${API_CONFIG.BASE_URL}/users`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -1523,7 +1523,7 @@
                         throw new Error('Требуется авторизация');
                     }
 
-                    const response = await fetch('http://localhost:8080/requests', {
+                    const response = await fetch(`${API_CONFIG.BASE_URL}/requests`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
@@ -1580,11 +1580,11 @@
 
                         let endpoint = '';
                         if (tableId === 'tickets-table') {
-                            endpoint = `http://localhost:8080/requests/${id}`;
+                            endpoint = `${API_CONFIG.BASE_URL}/requests/${id}`;
                         } else if (tableId === 'orders-table') {
-                            endpoint = `http://localhost:8080/orders/${id}`;
+                            endpoint = `${API_CONFIG.BASE_URL}/orders/${id}`;
                         } else if (tableId === 'users-table') {
-                            endpoint = `http://localhost:8080/users/${id}`;
+                            endpoint = `${API_CONFIG.BASE_URL}/users/${id}`;
                         }
 
                         if (endpoint) {
@@ -1612,7 +1612,7 @@
 
             // Функции для работы с комплектующими
             function loadComponents(category = 'cpu') {
-                fetch(`http://localhost:8080/components?category=${category}`, {
+                fetch(`${API_CONFIG.BASE_URL}/components?category=${category}`, {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
@@ -1814,7 +1814,7 @@
             }
 
             function editComponent(id, category) {
-                fetch(`http://localhost:8080/components/${id}`, {
+                fetch(`${API_CONFIG.BASE_URL}/components/${id}`, {
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
