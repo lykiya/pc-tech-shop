@@ -538,7 +538,7 @@
                             ${item.build.components && item.build.components.length > 0 ? 
                                 item.build.components.map(component => `
                                     <div class="component-item">
-                                        <span class="component-name">${component.name}: ${component.manufacturer || ''} ${component.model || component.name}</span>
+                                        <span class="component-name">${component.name}: ${component.model || component.name}</span>
                                     </div>
                                 `).join('') : 
                                 '<div class="component-item">Компоненты не загружены</div>'
