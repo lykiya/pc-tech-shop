@@ -594,6 +594,18 @@
             }
         }
 
+        // Функция для отображения ошибок
+        function showError(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-error';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
         // Функция для просмотра деталей заказа
         async function viewOrderDetails(orderId) {
             const token = localStorage.getItem('token');
@@ -603,19 +615,25 @@
             }
 
             try {
-                const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS.DETAIL.replace(':id', orderId)}`, {
+                const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
-                if (response.ok) {
-                    const order = await response.json();
-                    displayOrderDetails(order);
-                } else {
-                    const errorData = await response.json();
-                    showError(errorData.error || 'Не удалось загрузить детали заказа');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        showError(errorData.error || 'Не удалось загрузить детали заказа');
+                    } catch (e) {
+                        showError('Не удалось загрузить детали заказа');
+                    }
+                    return;
                 }
+
+                const order = await response.json();
+                displayOrderDetails(order);
             } catch (error) {
                 console.error('Ошибка при загрузке деталей заказа:', error);
                 showError('Произошла ошибка при загрузке деталей заказа');
