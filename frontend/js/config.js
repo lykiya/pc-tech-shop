@@ -24,9 +24,9 @@ const API_CONFIG = {
             DETAIL: '/orders/:id'
         },
         ADMIN: {
-            STATS: '/admin/stats',
-            USERS: '/admin/users',
-            PRODUCTS: '/admin/products'
+            STATS: '/orders', // Используем заказы как источник статистики
+            USERS: '/users', // Обновленный маршрут для пользователей
+            PRODUCTS: '/products' // Обновленный маршрут для продуктов
         },
         COMPONENTS: {
             LIST: '/components',

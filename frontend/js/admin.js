@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         switch(section) {
             case 'dashboard':
-                // Загрузка статистики
+                // Загрузка статистики на основе заказов
                 try {
                     const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.STATS, {
                         headers: {
@@ -66,8 +66,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     if (response.ok) {
-                        const stats = await response.json();
-                        updateDashboardStats(stats);
+                        const orders = await response.json();
+                        // Создаем статистику на основе заказов
+                        const stats = {
+                            totalOrders: orders.length,
+                            newOrders: orders.filter(order => order.status === 'pending').length,
+                            totalUsers: 0, // Будет обновлено после загрузки пользователей
+                            totalRevenue: orders.reduce((sum, order) => sum + (order.total_price || 0), 0)
+                        };
+                        
+                        // Загружаем пользователей для подсчета общего количества
+                        const usersResponse = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (usersResponse.ok) {
+                            const users = await usersResponse.json();
+                            stats.totalUsers = users.length;
+                        }
+                        
+                        updateDashboard(stats);
                     }
                 } catch (error) {
                     console.error('Error loading stats:', error);
@@ -76,7 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'products':
                 // Загрузка товаров
                 try {
-                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS);
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     if (response.ok) {
                         const products = await response.json();
                         updateProductsList(products);
@@ -88,7 +111,11 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'orders':
                 // Загрузка заказов
                 try {
-                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST);
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     if (response.ok) {
                         const orders = await response.json();
                         updateOrdersList(orders);
@@ -102,7 +129,11 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'users':
                 // Загрузка пользователей
                 try {
-                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
+                    const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                     if (response.ok) {
                         const users = await response.json();
                         updateUsersList(users);
@@ -115,26 +146,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Функции для обновления данных в разделах
-    function updateDashboardStats(stats) {
+    function updateDashboard(stats) {
         const statsContainer = document.getElementById('dashboard-stats');
         if (statsContainer) {
             statsContainer.innerHTML = `
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Всего заказов</h3>
-                        <div class="value">${stats.totalOrders}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Всего заказов</h3>
+                            <p>${stats.totalOrders}</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3>Новых заказов</h3>
-                        <div class="value">${stats.newOrders}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Новых заказов</h3>
+                            <p>${stats.newOrders}</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3>Всего пользователей</h3>
-                        <div class="value">${stats.totalUsers}</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Всего пользователей</h3>
+                            <p>${stats.totalUsers}</p>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <h3>Общая выручка</h3>
-                        <div class="value">${stats.totalRevenue.toLocaleString()} ₽</div>
+                        <div class="stat-icon">
+                            <i class="fas fa-ruble-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Общая выручка</h3>
+                            <p>${stats.totalRevenue.toLocaleString()} ₽</p>
+                        </div>
                     </div>
                 </div>
             `;
@@ -142,129 +193,70 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateProductsList(products) {
-        const productsContainer = document.getElementById('products-list');
-        if (productsContainer) {
-            productsContainer.innerHTML = `
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Название</th>
-                            <th>Цена</th>
-                            <th>Категория</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${products.map(product => `
-                            <tr>
-                                <td>${product.id}</td>
-                                <td>${product.name}</td>
-                                <td>${product.price.toLocaleString()} ₽</td>
-                                <td>${product.category}</td>
-                                <td>
-                                    <button class="action-btn edit-btn" onclick="editProduct(${product.id})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="action-btn delete-btn" onclick="deleteProduct(${product.id})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        const productsTableBody = document.getElementById('productsTableBody');
+        if (productsTableBody) {
+            productsTableBody.innerHTML = products.map(product => `
+                <tr>
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.price}</td>
+                    <td>${product.category}</td>
+                    <td>${product.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
     }
 
     function updateOrdersList(orders) {
-        const ordersContainer = document.getElementById('orders-list');
-        if (ordersContainer) {
-            ordersContainer.innerHTML = `
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Пользователь</th>
-                            <th>Статус</th>
-                            <th>Сумма</th>
-                            <th>Дата</th>
-                            <th>Адрес доставки</th>
-                            <th>Способ оплаты</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map(order => `
-                            <tr>
-                                <td>${order.id}</td>
-                                <td>${order.user_id}</td>
-                                <td>
-                                    <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
-                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Ожидает</option>
-                                        <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>В обработке</option>
-                                        <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Отправлен</option>
-                                        <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Доставлен</option>
-                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Отменен</option>
-                                    </select>
-                                </td>
-                                <td>${order.total_price.toLocaleString()} ₽</td>
-                                <td>${new Date(order.order_date).toLocaleDateString()}</td>
-                                <td>${order.shipping_address}</td>
-                                <td>${order.payment_method === 'card' ? 'Карта' : 'Наличные'}</td>
-                                <td>
-                                    <button class="action-btn edit-btn" onclick="viewOrder(${order.id})">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        if (ordersTableBody) {
+            ordersTableBody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${order.user_id}</td>
+                    <td>${order.total_amount}</td>
+                    <td>${order.status}</td>
+                    <td>${new Date(order.created_at).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editOrder(${order.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
     }
 
     function updateUsersList(users) {
-        const usersContainer = document.getElementById('users-list');
-        if (usersContainer) {
-            usersContainer.innerHTML = `
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Имя</th>
-                            <th>Email</th>
-                            <th>Роль</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${users.map(user => `
-                            <tr>
-                                <td>${user.id}</td>
-                                <td>${user.name}</td>
-                                <td>${user.email}</td>
-                                <td>
-                                    <select class="role-select" onchange="updateUserRole(${user.id}, this.value)">
-                                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
-                                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button class="action-btn edit-btn" onclick="editUser(${user.id})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="action-btn delete-btn" onclick="deleteUser(${user.id})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
+        const usersTableBody = document.getElementById('usersTableBody');
+        if (usersTableBody) {
+            usersTableBody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
     }
 
@@ -958,20 +950,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${user.id}</td>
-                    <td>${user.name}</td>
+                    <td>${user.username}</td>
                     <td>${user.email}</td>
+                    <td>${user.role}</td>
                     <td>
-                        <select class="role-select" data-id="${user.id}">
-                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
-                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
-                        </select>
-                    </td>
-                    <td>${new Date(user.created_at).toLocaleString()}</td>
-                    <td>
-                        <button class="action-btn edit" data-id="${user.id}" title="Изменить роль">
+                        <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" data-id="${user.id}" data-name="${user.name}" title="Удалить пользователя">
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -1106,4 +1092,25 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUserRole(userId);
         }
     });
+
+    function updateCategoriesList(categories) {
+        const categoriesTableBody = document.getElementById('categoriesTableBody');
+        if (categoriesTableBody) {
+            categoriesTableBody.innerHTML = categories.map(category => `
+                <tr>
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>${category.description}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editCategory(${category.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCategory(${category.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
 }); 
