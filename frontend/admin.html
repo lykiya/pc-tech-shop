@@ -851,9 +851,13 @@
                                     <th>Дата заказа</th>
                                     <th>Сумма</th>
                                     <th>Статус</th>
+                                    <th>Товары</th>
+                                    <th>Количество</th>
+                                    <th>Статус оплаты</th>
                                     <th>Адрес доставки</th>
                                     <th>Способ оплаты</th>
-                                    <th>Статус оплаты</th>
+                                    <th>Способ доставки</th>
+                                    <th>Комментарий</th>
                                     <th>Действия</th>
                                 </tr>
                             </thead>
@@ -1758,6 +1762,14 @@
                             <td>${getPaymentMethodText(orderData.paymentMethod)}</td>
                             <td>${getDeliveryMethodText(orderData.deliveryMethod)}</td>
                             <td>${orderData.comment || '-'}</td>
+                            <td>
+                                <button onclick="viewOrderDetails(${orderData.id})" class="action-btn view" title="Просмотреть детали">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="updateOrderStatus(${orderData.id})" class="action-btn edit" title="Изменить статус">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
                         `;
                         
                         ordersTableBody.appendChild(row);
