@@ -417,7 +417,7 @@
         // Функция для загрузки конкретной сборки
         async function loadBuildById(id) {
             try {
-                const response = await fetch(`http://localhost:8080/builds/${id}`);
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', id)));
                 if (!response.ok) {
                     throw new Error('Сборка не найдена');
                 }
@@ -602,7 +602,7 @@
                     return;
                 }
 
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -622,7 +622,7 @@
         }
 
         // Функция для добавления товара в корзину
-        async function addToCart(buildId) {
+        async function addToCart(buildId, type) {
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
@@ -637,16 +637,15 @@
                     return;
                 }
 
-                const response = await fetch('http://localhost:8080/cart', {
+                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.ADD), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        pcbuild_id: buildId,
-                        quantity: 1,
-                        type: 'build'
+                        build_id: buildId,
+                        type: type
                     })
                 });
 
