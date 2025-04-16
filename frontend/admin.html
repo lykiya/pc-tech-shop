@@ -1660,7 +1660,7 @@
                                 <img src="${build.image_url ? (build.image_url.startsWith('http') ? build.image_url : API_CONFIG.BASE_URL + build.image_url) : `${API_CONFIG.BASE_URL}/images/builds/default.jpg`}" 
                                      alt="${build.name}" 
                                      style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
-                                     onerror="this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
+                                     onerror="if (this.src !== '${API_CONFIG.BASE_URL}/images/builds/default.jpg') this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
                             </td>
                             <td>${build.name}</td>
                             <td>${build.description}</td>
