@@ -453,7 +453,7 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ build_id: buildId, type: type })
+                    body: JSON.stringify({ pcbuild_id: buildId, quantity: 1 })
                 });
 
                 if (response.ok) {
@@ -553,20 +553,28 @@
 
         async function addToCart(productId) {
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showToast('Требуется авторизация', 'error');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
                 const response = await fetch(buildApiUrl('/cart'), {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    credentials: 'include',
-                    body: JSON.stringify({ productId })
+                    body: JSON.stringify({ pcbuild_id: productId, quantity: 1 })
                 });
 
                 if (response.ok) {
                     showToast('Товар добавлен в корзину', 'success');
                     updateCartCount();
                 } else {
-                    showToast('Не удалось добавить товар в корзину', 'error');
+                    const data = await response.json();
+                    showToast(data.error || 'Не удалось добавить товар в корзину', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка при добавлении в корзину:', error);
