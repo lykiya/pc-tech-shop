@@ -1711,35 +1711,39 @@
                         console.log('Обработка заказа:', order);
                         const row = document.createElement('tr');
                         
-                        // Проверяем структуру данных заказа
+                        // Обработка данных в соответствии с фактической структурой
                         const orderData = {
-                            id: order.id || order.order_id || '-',
-                            userId: order.user_id || order.userId || '-',
-                            orderDate: order.order_date || order.created_at || order.date || '-',
-                            totalPrice: order.total_price || order.price || order.amount || '-',
-                            status: order.status || order.order_status || 'pending',
-                            shippingAddress: order.shipping_address || order.address || order.delivery_address || '-',
-                            paymentMethod: order.payment_method || order.payment || '-',
-                            paymentStatus: order.payment_status || order.pay_status || 'pending'
+                            id: order.ID || order.id || '-',
+                            userId: order.user_id || '-',
+                            userName: order.user_name || '-',
+                            orderDate: order.CreatedAt || order.created_at || '-',
+                            totalPrice: order.total_amount || order.total_price || '0',
+                            status: order.status || 'pending',
+                            items: order.items || [],
+                            updatedAt: order.UpdatedAt || order.updated_at || '-'
                         };
                         
                         console.log('Подготовленные данные заказа:', orderData);
                         
                         row.innerHTML = `
                             <td>${orderData.id}</td>
-                            <td>${orderData.userId}</td>
+                            <td>${orderData.userId} (${orderData.userName})</td>
                             <td>${orderData.orderDate !== '-' ? new Date(orderData.orderDate).toLocaleString('ru-RU') : '-'}</td>
-                            <td>${orderData.totalPrice !== '-' ? parseFloat(orderData.totalPrice).toFixed(2) + ' ₽' : '-'}</td>
+                            <td>${parseFloat(orderData.totalPrice).toFixed(2)} ₽</td>
                             <td>
                                 <span class="status-badge status-${orderData.status}">
                                     ${getOrderStatusText(orderData.status)}
                                 </span>
                             </td>
-                            <td>${orderData.shippingAddress}</td>
-                            <td>${orderData.paymentMethod}</td>
+                            <td>${orderData.items && orderData.items.length > 0 ? 
+                                orderData.items.map(item => item.name).join(', ') : 
+                                'Нет товаров'}</td>
+                            <td>${orderData.items && orderData.items.length > 0 ? 
+                                orderData.items.length + ' шт.' : 
+                                '0 шт.'}</td>
                             <td>
-                                <span class="payment-status payment-${orderData.paymentStatus}">
-                                    ${getPaymentStatusText(orderData.paymentStatus)}
+                                <span class="payment-status payment-${orderData.status === 'completed' ? 'completed' : 'pending'}">
+                                    ${orderData.status === 'completed' ? 'Оплачено' : 'Ожидает оплаты'}
                                 </span>
                             </td>
                             <td>
@@ -1771,18 +1775,6 @@
                     'new': 'Новый',
                     'in_progress': 'В обработке',
                     'done': 'Завершен'
-                };
-                return statusMap[status] || 'Неизвестный статус';
-            }
-
-            // Функция для получения текстового представления статуса оплаты
-            function getPaymentStatusText(status) {
-                const statusMap = {
-                    'pending': 'Ожидает оплаты',
-                    'completed': 'Оплачено',
-                    'failed': 'Ошибка оплаты',
-                    'paid': 'Оплачено',
-                    'unpaid': 'Не оплачено'
                 };
                 return statusMap[status] || 'Неизвестный статус';
             }
