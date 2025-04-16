@@ -552,12 +552,24 @@
                         <div class="components-list">
                             ${item.build.components && item.build.components.length > 0 ? 
                                 item.build.components.map(component => {
-                                    // Используем название компонента из данных
-                                    const componentType = component.name.split(' ')[0]; // Берем первое слово как тип компонента
-                                    const componentName = component.name.substring(componentType.length).trim();
+                                    // Определяем тип компонента
+                                    let componentType = '';
+                                    if (component.name.includes('Ryzen') || component.name.includes('Core')) {
+                                        componentType = 'Процессор';
+                                    } else if (component.name.includes('Radeon') || component.name.includes('GeForce')) {
+                                        componentType = 'Видеокарта';
+                                    } else if (component.name.includes('AORUS') || component.name.includes('ROG')) {
+                                        componentType = 'Материнская плата';
+                                    } else if (component.name.includes('HyperX') || component.name.includes('Corsair')) {
+                                        componentType = 'Оперативная память';
+                                    } else if (component.name.includes('Blue') || component.name.includes('SSD')) {
+                                        componentType = 'SSD';
+                                    } else {
+                                        componentType = 'Компонент';
+                                    }
                                     return `
                                         <div class="component-item">
-                                            <span class="component-name">${componentType}: ${componentName}</span>
+                                            <span class="component-name">${componentType}: ${component.name}</span>
                                         </div>
                                     `;
                                 }).join('') : 
