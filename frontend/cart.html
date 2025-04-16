@@ -446,35 +446,33 @@
                                         { name: 'Видеокарта', ...buildData.gpu },
                                         { name: 'Материнская плата', ...buildData.motherboard },
                                         { name: 'Оперативная память', ...buildData.ram },
-                                        { name: 'SSD', ...buildData.ssd },
-                                        { name: 'HDD', ...buildData.hdd },
-                                        { name: 'Блок питания', ...buildData.power_unit },
-                                        { name: 'Корпус', ...buildData.body }
-                                    ].filter(component => component.id); // Фильтруем только существующие компоненты
+                                        { name: 'SSD', ...buildData.ssd }
+                                    ].filter(component => component && component.name);
 
+                                    // Добавляем компоненты в объект сборки
                                     item.build.components = components;
-                                    console.log('Собранные компоненты:', components);
+                                    console.log('Добавлены компоненты к сборке:', components);
                                 } else {
                                     console.error('Ошибка при загрузке сборки:', buildResponse.status);
+                                    item.build.components = [];
                                 }
                             } catch (error) {
-                                console.error('Ошибка при загрузке компонентов сборки:', error);
+                                console.error('Ошибка при загрузке компонентов:', error);
+                                item.build.components = [];
                             }
-                        } else {
-                            console.error('Отсутствует ID сборки:', item);
                         }
                         return item;
                     }));
-                    
+
                     console.log('Товары с компонентами:', itemsWithComponents);
                     displayCartItems(itemsWithComponents);
                 } else {
                     console.error('Ошибка при загрузке корзины:', response.status);
-                    displayCartItems([]);
+                    showToast('Не удалось загрузить корзину', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке корзины:', error);
-                displayCartItems([]);
+                showToast('Произошла ошибка при загрузке корзины', 'error');
             }
         }
 
@@ -485,17 +483,15 @@
             const subtotal = document.getElementById('subtotal');
             const checkoutBtn = document.getElementById('checkoutBtn');
 
+            if (!cartItemsContainer || !cartTotal || !subtotal || !checkoutBtn) {
+                console.error('Не найдены необходимые элементы на странице');
+                return;
+            }
+
             if (!items || items.length === 0) {
-                cartItemsContainer.innerHTML = `
-                    <div class="empty-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        <h2>Корзина пуста</h2>
-                        <p>В вашей корзине пока нет товаров</p>
-                        <a href="builds.html" class="continue-shopping">Продолжить покупки</a>
-                    </div>
-                `;
-                cartTotal.textContent = '0 руб.';
-                subtotal.textContent = '0 руб.';
+                cartItemsContainer.innerHTML = '<div class="empty-cart">Корзина пуста</div>';
+                cartTotal.textContent = '0 ₽';
+                subtotal.textContent = '0 ₽';
                 checkoutBtn.disabled = true;
                 return;
             }
