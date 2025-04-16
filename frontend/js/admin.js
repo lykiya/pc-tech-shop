@@ -264,11 +264,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function getOrderStatusText(status) {
         const statusMap = {
             'pending': 'Ожидает обработки',
-            'processing': 'В обработке',
             'completed': 'Завершен',
             'cancelled': 'Отменен'
         };
-        return statusMap[status] || 'Неизвестный статус';
+        return statusMap[status] || status;
     }
 
     function updateUsersList(users) {

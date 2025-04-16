@@ -555,6 +555,7 @@
 
                 const checkoutItems = document.getElementById('checkoutItems');
                 const subtotal = document.getElementById('subtotal');
+                const deliveryCost = document.getElementById('deliveryCost');
                 const total = document.getElementById('total');
                 let totalPrice = 0;
 
@@ -577,8 +578,14 @@
                     totalPrice += item.price * item.quantity;
                 });
 
+                // Обновляем стоимость доставки
+                const deliveryMethod = document.querySelector('input[name="delivery"]:checked').value;
+                const deliveryPrice = deliveryMethod === 'courier' ? 500 : 0;
+                deliveryCost.textContent = `${deliveryPrice} ₽`;
+
+                // Обновляем итоговую сумму
                 subtotal.textContent = `${totalPrice} ₽`;
-                total.textContent = `${totalPrice} ₽`;
+                total.textContent = `${totalPrice + deliveryPrice} ₽`;
             } catch (error) {
                 console.error('Ошибка при загрузке корзины:', error);
                 showError('Произошла ошибка при загрузке корзины');
@@ -758,7 +765,8 @@
                     shipping_address: document.getElementById('address').value,
                     payment_method: document.querySelector('input[name="payment"]:checked').value,
                     delivery_method: document.querySelector('input[name="delivery"]:checked').value,
-                    comment: document.getElementById('comment').value
+                    comment: document.getElementById('comment').value,
+                    total_amount: parseFloat(document.getElementById('total').textContent.replace(/[^\d.-]/g, ''))
                 };
 
                 // Создаем заказ
