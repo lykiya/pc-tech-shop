@@ -908,6 +908,9 @@
                 };
 
                 console.log('Отправляемые данные заказа:', orderData);
+                console.log('Адрес доставки:', orderData.shipping_address);
+                console.log('Способ оплаты:', orderData.payment_method);
+                console.log('Способ доставки:', orderData.delivery_method);
 
                 // Создаем заказ
                 const response = await fetch(`${API_CONFIG.BASE_URL}/orders`, {
@@ -918,6 +921,10 @@
                     },
                     body: JSON.stringify(orderData)
                 });
+
+                console.log('Ответ сервера:', response.status);
+                const responseData = await response.json();
+                console.log('Данные ответа:', responseData);
 
                 if (response.ok) {
                     showSuccess('Заказ успешно оформлен');
@@ -931,8 +938,7 @@
                     // Перенаправляем на страницу профиля
                     window.location.href = 'profile.html';
                 } else {
-                    const errorData = await response.json();
-                    showError(errorData.error || 'Не удалось оформить заказ');
+                    showError(responseData.error || 'Не удалось оформить заказ');
                 }
             } catch (error) {
                 console.error('Ошибка при оформлении заказа:', error);
