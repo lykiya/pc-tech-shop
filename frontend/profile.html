@@ -706,15 +706,15 @@
             const deliveryInfo = `
                 <div class="order-details-section">
                     <h3>Информация о доставке</h3>
-                    <p><strong>Адрес:</strong> ${order.ShippingAddress || order.shipping_address || 'Не указан'}</p>
-                    <p><strong>Способ доставки:</strong> ${order.DeliveryMethod || order.delivery_method || 'Не указан'}</p>
+                    <p><strong>Адрес:</strong> ${order.shipping_address || 'Не указан'}</p>
+                    <p><strong>Способ доставки:</strong> ${order.delivery_method || 'Не указан'}</p>
                 </div>
             `;
 
             const paymentInfo = `
                 <div class="order-details-section">
                     <h3>Информация об оплате</h3>
-                    <p><strong>Способ оплаты:</strong> ${order.PaymentMethod || order.payment_method || 'Не указан'}</p>
+                    <p><strong>Способ оплаты:</strong> ${order.payment_method || 'Не указан'}</p>
                     <p><strong>Статус оплаты:</strong> <span class="order-status ${statusClass}">${statusText}</span></p>
                 </div>
             `;
