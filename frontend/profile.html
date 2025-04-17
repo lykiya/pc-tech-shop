@@ -633,12 +633,21 @@
                 }
 
                 const orders = await response.json();
+                console.log('Полученные заказы:', orders);
+                
                 const order = orders.find(o => o.ID === orderId || o.id === orderId);
+                console.log('Найденный заказ:', order);
                 
                 if (!order) {
                     showError('Заказ не найден');
                     return;
                 }
+
+                // Проверяем структуру данных заказа
+                console.log('Shipping Address:', order.shipping_address);
+                console.log('Delivery Method:', order.delivery_method);
+                console.log('Payment Method:', order.payment_method);
+                console.log('Order Items:', order.Items || order.items);
 
                 displayOrderDetails(order);
             } catch (error) {
@@ -649,6 +658,8 @@
 
         // Функция для отображения деталей заказа в модальном окне
         function displayOrderDetails(order) {
+            console.log('Отображение деталей заказа:', order);
+            
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('orderDetailsContent');
             
@@ -684,7 +695,10 @@
             }
 
             // Форматируем товары
-            const itemsHtml = order.Items ? order.Items.map(item => {
+            const items = order.Items || order.items || [];
+            console.log('Товары в заказе:', items);
+            
+            const itemsHtml = items.map(item => {
                 const build = item.Build || item.build;
                 const imageUrl = build.image_url ? 
                     (build.image_url.startsWith('http') ? build.image_url : API_CONFIG.BASE_URL + build.image_url) : 
@@ -700,21 +714,21 @@
                         </div>
                     </div>
                 `;
-            }).join('') : '';
+            }).join('');
 
             // Форматируем информацию о доставке и оплате
             const deliveryInfo = `
                 <div class="order-details-section">
                     <h3>Информация о доставке</h3>
-                    <p><strong>Адрес:</strong> ${order.shipping_address || 'Не указан'}</p>
-                    <p><strong>Способ доставки:</strong> ${order.delivery_method || 'Не указан'}</p>
+                    <p><strong>Адрес:</strong> ${order.ShippingAddress || order.shipping_address || 'Не указан'}</p>
+                    <p><strong>Способ доставки:</strong> ${order.DeliveryMethod || order.delivery_method || 'Не указан'}</p>
                 </div>
             `;
 
             const paymentInfo = `
                 <div class="order-details-section">
                     <h3>Информация об оплате</h3>
-                    <p><strong>Способ оплаты:</strong> ${order.payment_method || 'Не указан'}</p>
+                    <p><strong>Способ оплаты:</strong> ${order.PaymentMethod || order.payment_method || 'Не указан'}</p>
                     <p><strong>Статус оплаты:</strong> <span class="order-status ${statusClass}">${statusText}</span></p>
                 </div>
             `;
