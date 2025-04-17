@@ -36,7 +36,9 @@ func main() {
 	
 	// Применяем SQL миграции
 	migrations := []string{
+		"000001_init_schema.up.sql",
 		"000002_add_order_fields.up.sql",
+		"000011_fix_relationships.up.sql"
 	}
 
 	for _, migration := range migrations {
