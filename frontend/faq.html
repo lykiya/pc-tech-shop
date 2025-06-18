@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - PC Tech Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="js/config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/toast.js"></script>
+    <style>
+        .faq-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .faq-section {
+            margin-bottom: 40px;
+        }
+
+        .faq-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #333;
+            transition: background-color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background-color: #f8f9fa;
+        }
+
+        .faq-question i {
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 1000px;
+        }
+
+        .search-box {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px;
+            padding-left: 50px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .faq-container {
+                margin: 20px auto;
+            }
+
+            .faq-question {
+                padding: 15px;
+                font-size: 16px;
+            }
+
+            .faq-answer {
+                padding: 0 15px;
+                font-size: 14px;
+            }
+
+            .faq-item.active .faq-answer {
+                padding: 0 15px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="logo">
+                <h1>PC Tech Shop</h1>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Главная</a>
+                <a href="builds.html">Готовые сборки</a>
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html" class="active">FAQ</a>
+                <a href="cart.html" class="cart-link">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </a>
+                <a href="login.html" class="login-link">Войти</a>
+                <div class="user-menu">
+                    <span class="user-name">
+                        <i class="fas fa-user"></i>
+                        <span id="userDisplayName">Загрузка...</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="user-dropdown">
+                        <a href="profile.html">Мой профиль</a>
+                        <a href="admin.html" class="admin-panel-link">Панель администратора</a>
+                        <a href="#" id="logoutBtn">Выйти</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="faq-container">
+            <h1>Часто задаваемые вопросы</h1>
+            
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Поиск по вопросам..." id="faqSearch">
+            </div>
+
+            <div class="faq-section">
+                <h2>Общие вопросы</h2>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Как сделать заказ на сайте?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Для оформления заказа необходимо выбрать интересующий вас товар, добавить его в корзину и перейти к оформлению заказа. Вам нужно будет указать контактные данные и адрес доставки. После подтверждения заказа наш менеджер свяжется с вами для уточнения деталей.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Какие способы оплаты доступны?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Мы принимаем оплату банковскими картами Visa, MasterCard, МИР, а также возможна оплата наличными при получении заказа. Для юридических лиц доступна оплата по безналичному расчету.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Какова стоимость доставки?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Стоимость доставки зависит от региона и выбранного способа доставки. При заказе от 50 000 рублей доставка по России бесплатная. Точную стоимость доставки вы можете узнать при оформлении заказа.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h2>Гарантия и возврат</h2>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Какой срок гарантии на товары?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        На все товары предоставляется гарантия от производителя сроком от 1 до 3 лет. Точный срок гарантии указан в характеристиках каждого товара. Дополнительно мы предоставляем расширенную гарантию на сборку компьютера.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Как вернуть товар?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Вы можете вернуть товар в течение 14 дней с момента получения, если он не подошел вам по каким-либо параметрам. Товар должен быть в полной комплектации, без следов использования и в оригинальной упаковке.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h2>Сборка и настройка</h2>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Предоставляете ли вы услуги по сборке ПК?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Да, мы предоставляем услуги по сборке компьютера из выбранных вами комплектующих. Сборка производится опытными специалистами с тестированием всех компонентов. Стоимость сборки зависит от конфигурации.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Можно ли заказать установку программного обеспечения?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Да, мы можем установить операционную систему и необходимое программное обеспечение на ваш компьютер. Установка производится с использованием лицензионного ПО.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>О нас</h3>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе и покупке компьютерной техники. Мы предлагаем только качественные товары по лучшим ценам.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (993) 746-99-58</p>
+                    <p><i class="fas fa-envelope"></i> pc-tech-magazine@yandex.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Гусь-Хрустальный, ул. Микройрайон, д. 45</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 PC Tech Shop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Функция для обновления имени пользователя
+        function updateUserName() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userDisplayName = document.getElementById('userDisplayName');
+            const loginLink = document.querySelector('.login-link');
+            const userMenu = document.querySelector('.user-menu');
+            const adminPanelLink = document.querySelector('.admin-panel-link');
+
+            if (user && user.name) {
+                if (userDisplayName) {
+                    userDisplayName.textContent = user.name;
+                }
+                if (loginLink) {
+                    loginLink.style.display = 'none';
+                }
+                if (userMenu) {
+                    userMenu.style.display = 'block';
+                }
+                if (adminPanelLink) {
+                    adminPanelLink.style.display = user.role === 'admin' ? 'block' : 'none';
+                }
+            } else {
+                if (userDisplayName) {
+                    userDisplayName.textContent = 'Гость';
+                }
+                if (loginLink) {
+                    loginLink.style.display = 'block';
+                }
+                if (userMenu) {
+                    userMenu.style.display = 'none';
+                }
+                if (adminPanelLink) {
+                    adminPanelLink.style.display = 'none';
+                }
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserName();
+            
+            // Добавляем обработчик для кнопки выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = 'login.html';
+                });
+            }
+
+            // Добавляем обработчик для выпадающего меню
+            const userMenu = document.querySelector('.user-menu');
+            if (userMenu) {
+                userMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Закрываем меню при клике вне его
+                document.addEventListener('click', () => {
+                    const dropdown = userMenu.querySelector('.user-dropdown');
+                    dropdown.style.display = 'none';
+                });
+            }
+
+            // Обработчики для FAQ
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                question.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    faqItems.forEach(faq => faq.classList.remove('active'));
+                    if (!isActive) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+
+            // Поиск по FAQ
+            const searchInput = document.getElementById('faqSearch');
+            searchInput.addEventListener('input', (e) => {
+                const searchText = e.target.value.toLowerCase();
+                faqItems.forEach(item => {
+                    const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                    const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                    if (question.includes(searchText) || answer.includes(searchText)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

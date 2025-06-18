@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"pc-tech-shop/models"
 	"strconv"
@@ -11,19 +14,29 @@ import (
 
 type AddToCartRequest struct {
 	PcbuildID int `json:"pcbuild_id" binding:"required"`
-	Quantity  int `json:"quantity" binding:"required"`
 }
 
 // Добавление товара в корзину
 func AddToCart(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var input struct {
-			PcbuildID int `json:"pcbuild_id" binding:"required"`
-			Quantity  int `json:"quantity" binding:"required"`
+		// Читаем тело запроса для отладки
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Ошибка чтения тела запроса"})
+			return
 		}
+		// Восстанавливаем тело запроса для дальнейшей обработки
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
+		var input AddToCartRequest
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Неверный формат данных",
+				"details": map[string]interface{}{
+					"received_body": string(body),
+					"error":         err.Error(),
+				},
+			})
 			return
 		}
 
@@ -46,7 +59,7 @@ func AddToCart(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Добавляем сборку в корзину
-		if err := models.AddToCart(db, userID.(int64), uint(input.PcbuildID), input.Quantity); err != nil {
+		if err := models.AddToCart(db, userID.(int64), uint(input.PcbuildID)); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при добавлении в корзину"})
 			return
 		}
@@ -70,13 +83,19 @@ func GetCart(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Загружаем связанные компоненты
+		// Загружаем связанные компоненты для каждой сборки
 		for i := range cartItems {
-			if cartItems[i].Build.ID != 0 {
-				db.Preload("CPU").Preload("GPU").Preload("Motherboard").
+			if cartItems[i].BuildID != 0 {
+				// Загружаем сборку с компонентами
+				err := db.Preload("CPU").Preload("GPU").Preload("Motherboard").
 					Preload("RAM").Preload("PowerUnit").Preload("Body").
 					Preload("HDD").Preload("SSD").
-					First(&cartItems[i].Build, cartItems[i].Build.ID)
+					First(&cartItems[i].Build, cartItems[i].BuildID).Error
+
+				if err != nil {
+					// Если не удалось загрузить сборку, логируем ошибку, но продолжаем
+					fmt.Printf("Error loading build %d: %v\n", cartItems[i].BuildID, err)
+				}
 			}
 		}
 

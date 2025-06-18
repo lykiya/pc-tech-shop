@@ -158,10 +158,38 @@
         }
 
         .request-section {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: white;
-            padding: 40px 0;
+            padding: 80px 0;
             margin-top: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .request-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1920') center/cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .request-container {
@@ -169,48 +197,96 @@
             margin: 0 auto;
             text-align: center;
             padding: 0 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .request-container h2 {
             margin-bottom: 20px;
-            font-size: 28px;
+            font-size: 36px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .request-container p {
             margin-bottom: 30px;
-            font-size: 16px;
+            font-size: 18px;
             opacity: 0.9;
+            line-height: 1.6;
         }
 
         .request-form {
             display: grid;
-            gap: 15px;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .request-form input,
         .request-form textarea {
             width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 4px;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
             font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+
+        .request-form input:focus,
+        .request-form textarea:focus {
+            outline: none;
+            border-color: #fff;
+            background: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
 
         .request-form textarea {
-            height: 100px;
+            height: 120px;
             resize: vertical;
         }
 
         .request-form .btn {
             width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            background: white;
-            color: var(--primary-color);
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            background: #fff;
+            color: #1a2a6c;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .request-form .btn:hover {
-            background: #f0f0f0;
+            background: #1a2a6c;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .request-section {
+                padding: 60px 0;
+            }
+
+            .request-container h2 {
+                font-size: 28px;
+            }
+
+            .request-container p {
+                font-size: 16px;
+            }
+
+            .request-form {
+                padding: 20px;
+            }
         }
 
         .build-link {
@@ -223,6 +299,373 @@
             color: var(--secondary-color);
             text-decoration: underline;
         }
+
+        .reviews-section {
+            background-color: #f8f9fa;
+            padding: 60px 0;
+            margin-top: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reviews-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .reviews-container h2 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #333;
+        }
+
+        .reviews-slider {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .reviews-grid {
+            display: flex;
+            gap: 30px;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+        }
+
+        .review-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            flex: 0 0 calc(33.333% - 20px);
+            min-width: 300px;
+            opacity: 0.7;
+            transform: scale(0.95);
+        }
+
+        .review-card.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .review-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .reviewer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .reviewer-info h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .stars {
+            color: #ffc107;
+            margin-top: 5px;
+        }
+
+        .review-text {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .review-date {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .slider-arrow:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .prev-arrow {
+            left: 0;
+        }
+
+        .next-arrow {
+            right: 0;
+        }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider-dot.active {
+            background: #007bff;
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 1200px) {
+            .review-card {
+                flex: 0 0 calc(50% - 15px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .review-card {
+                flex: 0 0 100%;
+            }
+            
+            .reviews-container h2 {
+                font-size: 28px;
+            }
+
+            .slider-arrow {
+                width: 35px;
+                height: 35px;
+            }
+        }
+
+        .advantages {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: visible;
+        }
+
+        .advantages::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1920') center/cover;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .advantages .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .advantages h2 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 50px;
+            color: #333;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .advantages h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: #007bff;
+            border-radius: 2px;
+        }
+
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .advantage-card {
+            background: white;
+            border-radius: 15px;
+            overflow: visible;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            height: 100%;
+        }
+
+        .advantage-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .advantage-content {
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 250px;
+        }
+
+        .advantage-content i.fa-truck,
+        .advantage-content i.fa-shield-alt,
+        .advantage-content i.fa-tools,
+        .advantage-content i.fa-headset {
+            font-size: 40px;
+            color: #007bff;
+            margin-bottom: 20px;
+            background: rgba(0, 123, 255, 0.1);
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .advantage-card:hover .advantage-content i {
+            background: #007bff;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .advantage-content h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .advantage-content p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .tooltip {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #007bff;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            background: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .tooltip:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            background: #007bff;
+            color: white;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 1200px) {
+            .advantages-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .advantages {
+                padding: 60px 0;
+            }
+
+            .advantages h2 {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .advantages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tooltip-content {
+                width: 250px;
+            }
+
+            .advantage-content {
+                min-height: 200px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -234,6 +677,9 @@
             <div class="nav-links">
                 <a href="index.html" class="active">Главная</a>
                 <a href="builds.html">Готовые сборки</a>
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html">FAQ</a>
                 <a href="cart.html" class="cart-link">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
@@ -280,24 +726,56 @@
                 <h2>Почему выбирают нас</h2>
                 <div class="advantages-grid">
                     <div class="advantage-card">
-                        <i class="fas fa-truck"></i>
-                        <h3>Быстрая доставка</h3>
-                        <p>Доставка по всей России</p>
+                        <div class="advantage-content">
+                            <i class="fas fa-truck"></i>
+                            <h3>Быстрая доставка</h3>
+                            <p>Доставка по всей России</p>
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="tooltip-content">
+                                    Доставляем по всей России в течение 1-3 дней. Работаем с надежными транспортными компаниями. Отслеживание заказа в реальном времени.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="advantage-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>Гарантия качества</h3>
-                        <p>Официальная гарантия на все товары</p>
+                        <div class="advantage-content">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>Гарантия качества</h3>
+                            <p>Официальная гарантия на все товары</p>
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="tooltip-content">
+                                    Гарантия на все товары от 1 до 3 лет. Официальная гарантия от производителей. Бесплатное сервисное обслуживание.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="advantage-card">
-                        <i class="fas fa-tools"></i>
-                        <h3>Профессиональная сборка</h3>
-                        <p>Сборка ПК опытными специалистами</p>
+                        <div class="advantage-content">
+                            <i class="fas fa-tools"></i>
+                            <h3>Профессиональная сборка</h3>
+                            <p>Сборка ПК опытными специалистами</p>
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="tooltip-content">
+                                    Профессиональная сборка опытными специалистами. Тестирование всех компонентов. Настройка под ваши потребности.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="advantage-card">
-                        <i class="fas fa-headset"></i>
-                        <h3>Поддержка 24/7</h3>
-                        <p>Всегда на связи с клиентами</p>
+                        <div class="advantage-content">
+                            <i class="fas fa-headset"></i>
+                            <h3>Поддержка 24/7</h3>
+                            <p>Всегда на связи с клиентами</p>
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="tooltip-content">
+                                    Поддержка 24/7 через чат, телефон и email. Консультации по выбору комплектующих. Помощь с настройкой и решением проблем.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -306,7 +784,7 @@
         <div class="request-section">
             <div class="request-container">
                 <h2>Нужна помощь с выбором?</h2>
-                <p>Оставьте свои контакты, и наш специалист поможет вам подобрать идеальную сборку</p>
+                <p>Оставьте свои контакты, и наш специалист поможет вам подобрать идеальную сборку под ваши потребности и бюджет</p>
                 <form id="requestForm" class="request-form">
                     <div class="form-group">
                         <input type="text" id="requestName" name="name" placeholder="Ваше имя" required>
@@ -317,10 +795,115 @@
                     <div class="form-group">
                         <textarea id="requestMessage" name="message" placeholder="Опишите, какая сборка вас интересует (необязательно)"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Отправить</button>
+                    <button type="submit" class="btn">Отправить заявку</button>
                 </form>
             </div>
         </div>
+
+        <section class="reviews-section">
+            <div class="reviews-container">
+                <h2>Отзывы наших покупателей</h2>
+                <div class="reviews-slider">
+                    <button class="slider-arrow prev-arrow" onclick="slideReviews('prev')">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="reviews-grid">
+                        <div class="review-card">
+                            <div class="review-header">
+                                <img src="https://i.pravatar.cc/150?img=1" alt="Александр" class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <h3>Александр</h3>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">"Отличный магазин! Заказал игровой компьютер, всё пришло в идеальном состоянии. Сборка на высшем уровне, все компоненты работают безупречно. Спасибо за качественный сервис!"</p>
+                            <span class="review-date">15 марта 2024</span>
+                        </div>
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <img src="https://i.pravatar.cc/150?img=5" alt="Елена" class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <h3>Елена</h3>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">"Покупала здесь ноутбук для работы. Очень довольна выбором и консультацией менеджера. Доставили быстро, упаковка надёжная. Рекомендую!"</p>
+                            <span class="review-date">2 марта 2024</span>
+                        </div>
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <img src="https://i.pravatar.cc/150?img=8" alt="Дмитрий" class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <h3>Дмитрий</h3>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">"Заказывал комплектующие для сборки ПК. Все детали оригинальные, цены адекватные. Особенно порадовала быстрая доставка и профессиональная консультация при выборе."</p>
+                            <span class="review-date">28 февраля 2024</span>
+                        </div>
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <img src="https://i.pravatar.cc/150?img=3" alt="Михаил" class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <h3>Михаил</h3>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">"Отличный сервис! Заказал монитор и клавиатуру. Всё пришло в срок, упаковка целая. Особенно понравилось, что можно было выбрать удобное время доставки."</p>
+                            <span class="review-date">20 марта 2024</span>
+                        </div>
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <img src="https://i.pravatar.cc/150?img=9" alt="Анна" class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <h3>Анна</h3>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">"Покупала здесь компьютер для сына-школьника. Менеджер помог подобрать оптимальную конфигурацию по бюджету. Ребёнок в восторге от производительности!"</p>
+                            <span class="review-date">10 марта 2024</span>
+                        </div>
+                    </div>
+                    <button class="slider-arrow next-arrow" onclick="slideReviews('next')">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
@@ -477,29 +1060,40 @@
 
         // Функция для обновления счетчика корзины
         async function updateCartCount() {
+            const cartCount = document.querySelector('.cart-count');
+            if (!cartCount) return;
+            
             const token = localStorage.getItem('token');
             if (!token) {
-                document.querySelector('.cart-count').textContent = '0';
+                cartCount.textContent = '0';
+                cartCount.classList.remove('loading');
                 return;
             }
+
+            // Показываем индикатор загрузки
+            cartCount.classList.add('loading');
 
             try {
                 const response = await fetch(buildApiUrl('/cart'), {
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
                     const cartItems = await response.json();
-                    const count = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
-                    document.querySelector('.cart-count').textContent = count;
+                    cartCount.textContent = cartItems.length || 0;
                 } else {
-                    document.querySelector('.cart-count').textContent = '0';
+                    cartCount.textContent = '0';
                 }
             } catch (error) {
                 console.error('Ошибка при обновлении счетчика корзины:', error);
-                document.querySelector('.cart-count').textContent = '0';
+                cartCount.textContent = '0';
+            } finally {
+                // Скрываем индикатор загрузки
+                cartCount.classList.remove('loading');
             }
         }
 
@@ -588,6 +1182,110 @@
                 showToast('Произошла ошибка', 'error');
             }
         }
+
+        // Функция для слайдера отзывов
+        let currentSlide = 0;
+        let autoSlideInterval;
+        const reviewsGrid = document.querySelector('.reviews-grid');
+        const reviewCards = document.querySelectorAll('.review-card');
+        
+        function getCardsPerView() {
+            if (window.innerWidth > 1200) return 3;
+            if (window.innerWidth > 768) return 2;
+            return 1;
+        }
+
+        function updateSlider() {
+            const cardsPerView = getCardsPerView();
+            const cardWidth = reviewsGrid.offsetWidth / cardsPerView;
+            const offset = currentSlide * cardWidth;
+            reviewsGrid.style.transform = `translateX(-${offset}px)`;
+
+            // Обновляем активные карточки
+            reviewCards.forEach((card, index) => {
+                if (index >= currentSlide && index < currentSlide + cardsPerView) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            // Обновляем индикаторы
+            updateDots();
+        }
+
+        function createDots() {
+            const dotsContainer = document.createElement('div');
+            dotsContainer.className = 'slider-dots';
+            const totalSlides = Math.ceil(reviewCards.length / getCardsPerView());
+            
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'slider-dot';
+                dot.addEventListener('click', () => {
+                    currentSlide = i;
+                    updateSlider();
+                    resetAutoSlide();
+                });
+                dotsContainer.appendChild(dot);
+            }
+            
+            document.querySelector('.reviews-slider').appendChild(dotsContainer);
+        }
+
+        function updateDots() {
+            const dots = document.querySelectorAll('.slider-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        function slideReviews(direction) {
+            const cardsPerView = getCardsPerView();
+            const totalSlides = Math.ceil(reviewCards.length / cardsPerView);
+            
+            if (direction === 'next') {
+                currentSlide = (currentSlide + 1) % totalSlides;
+            } else {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            }
+
+            updateSlider();
+            resetAutoSlide();
+        }
+
+        function startAutoSlide() {
+            autoSlideInterval = setInterval(() => {
+                slideReviews('next');
+            }, 5000); // Смена слайда каждые 5 секунд
+        }
+
+        function resetAutoSlide() {
+            clearInterval(autoSlideInterval);
+            startAutoSlide();
+        }
+
+        // Инициализация слайдера
+        window.addEventListener('load', () => {
+            createDots();
+            updateSlider();
+            startAutoSlide();
+        });
+        
+        // Обновление при изменении размера окна
+        window.addEventListener('resize', () => {
+            currentSlide = 0;
+            updateSlider();
+        });
+
+        // Остановка автопрокрутки при наведении
+        document.querySelector('.reviews-slider').addEventListener('mouseenter', () => {
+            clearInterval(autoSlideInterval);
+        });
+
+        document.querySelector('.reviews-slider').addEventListener('mouseleave', () => {
+            startAutoSlide();
+        });
     </script>
 </body>
 </html>

@@ -152,16 +152,38 @@
         }
 
         .price-range input {
-            width: 100px;
+            width: 120px;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+            text-align: center;
+        }
+
+        .price-range input::-webkit-inner-spin-button,
+        .price-range input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .price-range input[type=number] {
+            -moz-appearance: textfield;
         }
 
         .price-range span {
             color: #666;
             font-weight: bold;
+        }
+
+        .price-range-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .price-range-wrapper label {
+            font-size: 12px;
+            color: #666;
         }
 
         .build-card {
@@ -275,6 +297,9 @@
             <div class="nav-links">
                 <a href="index.html">Главная</a>
                 <a href="builds.html" class="active">Готовые сборки</a>
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html">FAQ</a>
                 <a href="cart.html" class="cart-link">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
@@ -296,109 +321,90 @@
         </nav>
     </header>
 
-    <div class="hero" style="height: 300px; background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
-        <div class="hero-content">
-            <h2>Готовые сборки ПК</h2>
-            <p>Выберите оптимальную конфигурацию для ваших задач</p>
-        </div>
-    </div>
-
-    <section class="featured-products">
+    <nav class="secondary-nav">
         <div class="container">
-            <h2>Популярные сборки</h2>
-            
-            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
-                <!-- Боковая панель с фильтрами -->
-                <div class="filters-section" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: fit-content;">
-                    <h3 style="margin-bottom: 20px;">Фильтры</h3>
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- Ценовой диапазон -->
-                        <div class="filter-group">
-                            <label for="priceRange">Ценовой диапазон:</label>
-                            <div class="price-range">
-                                <input type="number" id="minPrice" placeholder="От" min="0">
-                                <span>-</span>
-                                <input type="number" id="maxPrice" placeholder="До" min="0">
+            <a href="news.html">Новости</a>
+            <a href="articles.html">Статьи</a>
+            <a href="faq.html">FAQ</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero" style="height: 300px; background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1587202372775-e229f172b9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+            <div class="hero-content">
+                <h2>Готовые сборки ПК</h2>
+                <p>Выберите оптимальную конфигурацию для ваших задач</p>
+            </div>
+        </div>
+
+        <section class="featured-products">
+            <div class="container">
+                <h2>Популярные сборки</h2>
+                
+                <div style="display: grid; grid-template-columns: 250px 1fr; gap: 30px; margin-top: 20px;">
+                    <!-- Боковая панель с фильтрами -->
+                    <div class="filters-section" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: fit-content;">
+                        <h3 style="margin-bottom: 20px;">Фильтры</h3>
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Ценовой диапазон -->
+                            <div class="filter-group">
+                                <label for="priceRange">Ценовой диапазон:</label>
+                                <div class="price-range-wrapper">
+                                    <div class="price-range">
+                                        <input type="number" id="minPrice" placeholder="От" min="0" max="1000000" step="1000">
+                                        <span>-</span>
+                                        <input type="number" id="maxPrice" placeholder="До" min="0" max="1000000" step="1000">
+                                    </div>
+                                    <label>от 0 до 1 000 000 ₽</label>
+                                </div>
+                            </div>
+
+                            <!-- Сортировка -->
+                            <div class="filter-group">
+                                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Сортировка</label>
+                                <select id="sortOrder" style="width: 100%; padding: 8px;">
+                                    <option value="price_asc">По возрастанию цены</option>
+                                    <option value="price_desc">По убыванию цены</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <button onclick="applyFilters()" style="padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Применить</button>
+                                <button onclick="resetFilters()" style="padding: 10px; background: #f0f0f0; color: #333; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Сбросить</button>
                             </div>
                         </div>
-
-                        <!-- Назначение -->
-                        <div class="filter-group">
-                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Назначение</label>
-                            <select id="purpose" style="width: 100%; padding: 8px;">
-                                <option value="">Все</option>
-                                <option value="gaming">Игровой</option>
-                                <option value="work">Рабочий</option>
-                                <option value="universal">Универсальный</option>
-                            </select>
-                        </div>
-
-                        <!-- Производитель процессора -->
-                        <div class="filter-group">
-                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Процессор</label>
-                            <select id="processor" style="width: 100%; padding: 8px;">
-                                <option value="">Все</option>
-                                <option value="intel">Intel</option>
-                                <option value="amd">AMD</option>
-                            </select>
-                        </div>
-
-                        <!-- Объем видеопамяти -->
-                        <div class="filter-group">
-                            <label style="display: block; margin-bottom: 10px; font-weight: bold;">Видеопамять</label>
-                            <select id="vram" style="width: 100%; padding: 8px;">
-                                <option value="">Все</option>
-                                <option value="4">4 ГБ</option>
-                                <option value="6">6 ГБ</option>
-                                <option value="8">8 ГБ</option>
-                                <option value="12">12 ГБ</option>
-                                <option value="16">16 ГБ</option>
-                            </select>
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <button onclick="applyFilters()" style="padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Применить</button>
-                            <button onclick="resetFilters()" style="padding: 10px; background: #f0f0f0; color: #333; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Сбросить</button>
-                        </div>
                     </div>
-                </div>
 
-                <!-- Список сборок -->
-                <div>
-                    <div class="products-grid" id="builds-container" style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- Сборки будут добавляться здесь -->
-                    </div>
-                    <div class="pagination" id="pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
-                        <!-- Кнопки пагинации будут добавляться здесь -->
+                    <!-- Список сборок -->
+                    <div>
+                        <div class="products-grid" id="builds-container" style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Сборки будут добавляться здесь -->
+                        </div>
+                        <div class="pagination" id="pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                            <!-- Кнопки пагинации будут добавляться здесь -->
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>О нас</h3>
-                    <p>PC Tech Shop - ваш надежный помощник в выборе компьютерной техники</p>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе и покупке компьютерной техники. Мы предлагаем только качественные товары по лучшим ценам.</p>
                 </div>
                 <div class="footer-section">
                     <h3>Контакты</h3>
-                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
-                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Социальные сети</h3>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-vk"></i></a>
-                        <a href="#"><i class="fab fa-telegram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
+                    <p><i class="fas fa-phone"></i> +7 (993) 746-99-58</p>
+                    <p><i class="fas fa-envelope"></i> pc-tech-magazine@yandex.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Гусь-Хрустальный, ул. Микройрайон, д. 45</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+                <p>&copy; 2025 PC Tech Shop. Все права защищены.</p>
             </div>
         </div>
     </footer>
@@ -428,7 +434,7 @@
                 container.innerHTML = `
                     <div class="build-card">
                         <div class="build-image">
-                            <img src="${build.image_url || 'images/placeholder.jpg'}" alt="${build.name}">
+                            <img src="${build.image_url || '../assets/default-build.jpg'}" alt="${build.name}" onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
                         </div>
                         <div class="build-info">
                             <h2>${build.name}</h2>
@@ -463,43 +469,11 @@
                     throw new Error('Сборки не найдены');
                 }
 
-                const buildsContainer = document.getElementById('builds-container');
-                if (!buildsContainer) {
-                    console.error('Элемент builds-container не найден');
-                    return;
-                }
+                // Сохраняем сборки в глобальную переменную
+                allBuilds = builds;
 
-                buildsContainer.innerHTML = '';
-
-                builds.forEach(build => {
-                    let imageUrl = build.image_url;
-                    // Если URL локальный, добавляем базовый URL сервера
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = API_CONFIG.BASE_URL + imageUrl;
-                    }
-
-                    const buildCard = document.createElement('div');
-                    buildCard.className = 'build-card';
-                    buildCard.style.display = 'flex';
-                    buildCard.innerHTML = `
-                        <div class="build-image">
-                            <img src="${imageUrl || 'images/builds/default.jpg'}" alt="${build.name || 'Сборка ПК'}">
-                        </div>
-                        <div class="build-info">
-                            <div>
-                                <h3><a href="product-details.html?id=${build.id}&type=build" style="color: var(--text-color); text-decoration: none;">${build.name || 'Сборка ПК'}</a></h3>
-                                <p>${build.description || 'Готовая сборка компьютера'}</p>
-                            </div>
-                            <div class="build-price">
-                                <span class="price">${build.total_price ? build.total_price.toLocaleString() : '0'} ₽</span>
-                                <button onclick="addToCart(${build.id}, 'build')" class="add-to-cart-btn">
-                                    <i class="fas fa-shopping-cart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    buildsContainer.appendChild(buildCard);
-                });
+                // Отображаем сборки
+                displayBuilds(builds);
 
                 console.log('Карточки сборок созданы');
             } catch (error) {
@@ -595,29 +569,40 @@
 
         // Функция для обновления количества товаров в корзине
         async function updateCartCount() {
+            const cartCount = document.querySelector('.cart-count');
+            if (!cartCount) return;
+            
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    document.querySelector('.cart-count').textContent = '0';
+                    cartCount.textContent = '0';
+                    cartCount.classList.remove('loading');
                     return;
                 }
 
+                // Показываем индикатор загрузки
+                cartCount.classList.add('loading');
+
                 const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.LIST), {
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
                     const cartItems = await response.json();
-                    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-                    document.querySelector('.cart-count').textContent = totalItems;
+                    cartCount.textContent = cartItems.length || 0;
                 } else {
-                    document.querySelector('.cart-count').textContent = '0';
+                    cartCount.textContent = '0';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                document.querySelector('.cart-count').textContent = '0';
+                cartCount.textContent = '0';
+            } finally {
+                // Скрываем индикатор загрузки
+                cartCount.classList.remove('loading');
             }
         }
 
@@ -733,7 +718,7 @@
                 buildCard.className = 'build-card';
                 buildCard.innerHTML = `
                     <div class="build-image">
-                        <img src="${imageUrl || 'images/builds/default.jpg'}" alt="${build.name}">
+                        <img src="${imageUrl || '../assets/default-build.jpg'}" alt="${build.name}" onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
                     </div>
                     <div class="build-info">
                         <h3>${build.name}</h3>
@@ -758,91 +743,83 @@
 
         // Функция для применения фильтров
         function applyFilters() {
-            const minPrice = document.getElementById('minPrice').value;
-            const maxPrice = document.getElementById('maxPrice').value;
-            const purpose = document.getElementById('purpose').value;
-            const processor = document.getElementById('processor').value;
-            const vram = document.getElementById('vram').value;
+            const minPriceInput = document.getElementById('minPrice');
+            const maxPriceInput = document.getElementById('maxPrice');
+            const sortOrder = document.getElementById('sortOrder').value;
 
-            // Получаем все карточки сборок
-            const buildCards = document.querySelectorAll('.build-card');
-            console.log('Найдено карточек:', buildCards.length);
-            
-            buildCards.forEach(card => {
-                const priceElement = card.querySelector('.build-price .price');
-                if (!priceElement) {
-                    console.error('Не найден элемент с ценой в карточке:', card);
-                    return;
-                }
+            // Получаем значения цен и преобразуем их в числа
+            const minPrice = minPriceInput.value ? parseInt(minPriceInput.value, 10) : 0;
+            const maxPrice = maxPriceInput.value ? parseInt(maxPriceInput.value, 10) : Infinity;
 
-                const price = parseFloat(priceElement.textContent.replace(/[^0-9.]/g, ''));
-                const name = card.querySelector('h3').textContent.toLowerCase();
-                
-                let shouldShow = true;
-                
-                // Фильтр по цене
-                if (minPrice && price < parseFloat(minPrice)) {
-                    shouldShow = false;
-                }
-                if (maxPrice && price > parseFloat(maxPrice)) {
-                    shouldShow = false;
-                }
-                
-                // Фильтр по назначению
-                if (purpose) {
-                    if (purpose === 'gaming' && !name.includes('игровой')) {
-                        shouldShow = false;
-                    }
-                    if (purpose === 'work' && !name.includes('рабочий')) {
-                        shouldShow = false;
-                    }
-                    if (purpose === 'universal' && !name.includes('универсальный')) {
-                        shouldShow = false;
-                    }
-                }
-                
-                // Фильтр по процессору
-                if (processor) {
-                    if (processor === 'intel' && !name.includes('intel')) {
-                        shouldShow = false;
-                    }
-                    if (processor === 'amd' && !name.includes('amd')) {
-                        shouldShow = false;
-                    }
-                }
-                
-                card.style.display = shouldShow ? 'block' : 'none';
+            // Проверяем корректность ценового диапазона
+            if (minPrice > maxPrice) {
+                showToast('Минимальная цена не может быть больше максимальной', 'error');
+                return;
+            }
+
+            console.log('Фильтрация по цене:', { minPrice, maxPrice });
+
+            // Фильтруем сборки из глобального массива
+            let filteredBuilds = allBuilds.filter(build => {
+                const price = build.total_price;
+                console.log('Проверка цены:', { 
+                    buildName: build.name,
+                    price: price,
+                    minPrice,
+                    maxPrice
+                });
+
+                // Проверяем, находится ли цена в диапазоне
+                const isInRange = price >= minPrice && price <= maxPrice;
+                console.log('Результат проверки:', isInRange);
+
+                return isInRange;
             });
+
+            console.log('Отфильтрованные сборки:', filteredBuilds.length);
+
+            // Сортируем сборки
+            filteredBuilds.sort((a, b) => {
+                return sortOrder === 'price_asc' ? a.total_price - b.total_price : b.total_price - a.total_price;
+            });
+
+            // Отображаем отфильтрованные сборки
+            displayBuilds(filteredBuilds);
         }
 
         // Функция для сброса фильтров
         function resetFilters() {
             document.getElementById('minPrice').value = '';
             document.getElementById('maxPrice').value = '';
-            document.getElementById('purpose').value = '';
-            document.getElementById('processor').value = '';
-            document.getElementById('vram').value = '';
+            document.getElementById('sortOrder').value = 'price_asc';
             
-            // Показываем все карточки
-            const buildCards = document.querySelectorAll('.build-card');
-            buildCards.forEach(card => {
-                card.style.display = 'block';
-            });
+            // Отображаем все сборки из глобальной переменной
+            if (allBuilds && allBuilds.length > 0) {
+                displayBuilds(allBuilds);
+            } else {
+                // Если данных нет, перезагружаем
+                loadBuilds();
+            }
         }
 
-        // Добавляем обработчики для полей ввода цены
-        document.getElementById('minPrice').addEventListener('input', function() {
-            const maxPrice = document.getElementById('maxPrice');
-            if (this.value && maxPrice.value && parseFloat(this.value) > parseFloat(maxPrice.value)) {
-                maxPrice.value = this.value;
-            }
-        });
+        // Добавляем обработчики событий для полей ввода цены
+        document.addEventListener('DOMContentLoaded', () => {
+            const minPriceInput = document.getElementById('minPrice');
+            const maxPriceInput = document.getElementById('maxPrice');
 
-        document.getElementById('maxPrice').addEventListener('input', function() {
-            const minPrice = document.getElementById('minPrice');
-            if (this.value && minPrice.value && parseFloat(this.value) < parseFloat(minPrice.value)) {
-                minPrice.value = this.value;
-            }
+            // Обработчик для минимальной цены
+            minPriceInput.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value, 10);
+                if (value < 0) e.target.value = 0;
+                if (value > 1000000) e.target.value = 1000000;
+            });
+
+            // Обработчик для максимальной цены
+            maxPriceInput.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value, 10);
+                if (value < 0) e.target.value = 0;
+                if (value > 1000000) e.target.value = 1000000;
+            });
         });
     </script>
 </body>

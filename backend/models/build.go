@@ -8,8 +8,8 @@ type CPU struct {
 	ID           int64   `gorm:"primaryKey;column:id" json:"id"`
 	Name         string  `gorm:"column:name" json:"name"`
 	Manufacturer string  `gorm:"column:manufacturer" json:"manufacturer"`
-	Cores        string  `gorm:"column:cores" json:"cores"`
-	Threads      string  `gorm:"column:threads" json:"threads"`
+	Cores        int     `gorm:"column:cores" json:"cores"`
+	Threads      int     `gorm:"column:threads" json:"threads"`
 	Socket       string  `gorm:"column:socket" json:"socket"`
 	Price        float64 `gorm:"column:price" json:"price"`
 }
@@ -25,7 +25,7 @@ type GPU struct {
 	VRAM         int        `gorm:"column:vram" json:"vram"`
 	MemoryType   string     `gorm:"column:memory_type" json:"memory_type"`
 	GPUClock     float64    `gorm:"column:gpu_clock" json:"gpu_clock"`
-	Price        float64    `gorm:"column:price" json:"price"`
+	Price        string     `gorm:"column:price" json:"price"`
 	ReleaseDate  *time.Time `gorm:"column:release_date" json:"release_date,omitempty"`
 }
 
@@ -34,11 +34,11 @@ func (GPU) TableName() string {
 }
 
 type Motherboard struct {
-	ID           int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name         string  `gorm:"column:name" json:"name"`
-	Manufacturer string  `gorm:"column:manufacturer" json:"manufacturer"`
-	Socket       string  `gorm:"column:socket" json:"socket"`
-	Price        float64 `gorm:"column:price" json:"price"`
+	ID           int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name         string `gorm:"column:name" json:"name"`
+	Manufacturer string `gorm:"column:manufacturer" json:"manufacturer"`
+	Socket       string `gorm:"column:socket" json:"socket"`
+	Price        string `gorm:"column:price" json:"price"`
 }
 
 func (Motherboard) TableName() string {
@@ -46,10 +46,10 @@ func (Motherboard) TableName() string {
 }
 
 type Body struct {
-	ID           int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name         string  `gorm:"column:name" json:"name"`
-	Manufacturer string  `gorm:"column:manufacturer" json:"manufacturer"`
-	Price        float64 `gorm:"column:price" json:"price"`
+	ID           int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name         string `gorm:"column:name" json:"name"`
+	Manufacturer string `gorm:"column:manufacturer" json:"manufacturer"`
+	Price        string `gorm:"column:price" json:"price"`
 }
 
 func (Body) TableName() string {
@@ -57,11 +57,11 @@ func (Body) TableName() string {
 }
 
 type RAM struct {
-	ID       int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name     string  `gorm:"column:name" json:"name"`
-	Capacity string  `gorm:"column:capacity" json:"capacity"`
-	DDR      string  `gorm:"column:ddr" json:"ddr"`
-	Price    float64 `gorm:"column:price" json:"price"`
+	ID       int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name     string `gorm:"column:name" json:"name"`
+	Capacity string `gorm:"column:capacity" json:"capacity"`
+	DDR      string `gorm:"column:ddr" json:"ddr"`
+	Price    string `gorm:"column:price" json:"price"`
 }
 
 func (RAM) TableName() string {
@@ -69,10 +69,10 @@ func (RAM) TableName() string {
 }
 
 type PowerUnit struct {
-	ID      int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name    string  `gorm:"column:name" json:"name"`
-	Wattage string  `gorm:"column:wattage" json:"wattage"`
-	Price   float64 `gorm:"column:price" json:"price"`
+	ID      int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name    string `gorm:"column:name" json:"name"`
+	Wattage string `gorm:"column:wattage" json:"wattage"`
+	Price   string `gorm:"column:price" json:"price"`
 }
 
 func (PowerUnit) TableName() string {
@@ -80,11 +80,11 @@ func (PowerUnit) TableName() string {
 }
 
 type HDD struct {
-	ID           int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name         string  `gorm:"column:name" json:"name"`
-	Manufacturer string  `gorm:"column:manufacturer" json:"manufacturer"`
-	Capacity     string  `gorm:"column:capacity" json:"capacity"`
-	Price        float64 `gorm:"column:price" json:"price"`
+	ID           int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name         string `gorm:"column:name" json:"name"`
+	Manufacturer string `gorm:"column:manufacturer" json:"manufacturer"`
+	Capacity     string `gorm:"column:capacity" json:"capacity"`
+	Price        string `gorm:"column:price" json:"price"`
 }
 
 func (HDD) TableName() string {
@@ -92,11 +92,11 @@ func (HDD) TableName() string {
 }
 
 type SSD struct {
-	ID           int64   `gorm:"primaryKey;column:id" json:"id"`
-	Name         string  `gorm:"column:name" json:"name"`
-	Manufacturer string  `gorm:"column:manufacturer" json:"manufacturer"`
-	Capacity     string  `gorm:"column:capacity" json:"capacity"`
-	Price        float64 `gorm:"column:price" json:"price"`
+	ID           int64  `gorm:"primaryKey;column:id" json:"id"`
+	Name         string `gorm:"column:name" json:"name"`
+	Manufacturer string `gorm:"column:manufacturer" json:"manufacturer"`
+	Capacity     string `gorm:"column:capacity" json:"capacity"`
+	Price        string `gorm:"column:price" json:"price"`
 }
 
 func (SSD) TableName() string {
@@ -115,7 +115,7 @@ type Pcbuild struct {
 	PowerUnitID   int64       `gorm:"column:power_unit_id" json:"power_unit_id"`
 	HDDID         int64       `gorm:"column:hdd_id" json:"hdd_id"`
 	SSDID         int64       `gorm:"column:ssd_id" json:"ssd_id"`
-	TotalPrice    float64     `gorm:"column:total_price" json:"total_price"`
+	TotalPrice    string      `gorm:"column:total_price" json:"total_price"`
 	ImageURL      string      `gorm:"column:image_url" json:"image_url"`
 	CPU           CPU         `gorm:"foreignKey:CPUID;references:ID" json:"cpu"`
 	GPU           GPU         `gorm:"foreignKey:GPUID;references:ID" json:"gpu"`

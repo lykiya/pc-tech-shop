@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"pc-tech-shop/config"
-	"pc-tech-shop/models"
 	"pc-tech-shop/routes"
 )
 
@@ -33,12 +32,17 @@ func main() {
 
 	// Perform migrations
 	log.Println("Starting database migrations...")
-	
+
 	// Применяем SQL миграции
 	migrations := []string{
-		"000001_init_schema.up.sql",
-		"000002_add_order_fields.up.sql",
-		"000011_fix_relationships.up.sql",
+		"init.sql",
+		"test_data.sql",
+		"000012_add_gorm_fields_to_orders.up.sql",
+		"000013_fix_orders_table.up.sql",
+		"000013_fix_order_items_table.up.sql",
+		"000014_add_quantity_to_cart_items.up.sql",
+		"000015_fix_order_items_simple.up.sql",
+		"check_and_fix_order_items.sql",
 	}
 
 	for _, migration := range migrations {
@@ -53,34 +57,6 @@ func main() {
 			log.Printf("Error applying migration %s: %v", migration, err)
 		} else {
 			log.Printf("Successfully applied migration %s", migration)
-		}
-	}
-
-	// Создаем таблицы, если они не существуют
-	models := []interface{}{
-		&models.User{},
-		&models.CPU{},
-		&models.GPU{},
-		&models.Motherboard{},
-		&models.Body{},
-		&models.RAM{},
-		&models.PowerUnit{},
-		&models.HDD{},
-		&models.SSD{},
-		&models.Pcbuild{},
-		&models.CartItem{},
-		&models.Request{},
-		&models.Order{},
-		&models.OrderItem{},
-	}
-
-	for _, model := range models {
-		log.Printf("Migrating %T...", model)
-		if err := db.AutoMigrate(model); err != nil {
-			log.Printf("Error migrating %T: %v", model, err)
-			// Continue with other migrations even if one fails
-		} else {
-			log.Printf("Successfully migrated %T", model)
 		}
 	}
 
@@ -102,6 +78,8 @@ func main() {
 		allowedOrigins := []string{
 			"https://pc-tech-shop-1.onrender.com",
 			"https://pc-tech-shop-1-backend.onrender.com",
+			"http://localhost:8080",
+			"http://127.0.0.1:5500",
 		}
 
 		origin := c.Request.Header.Get("Origin")

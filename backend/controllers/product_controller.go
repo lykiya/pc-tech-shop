@@ -73,8 +73,8 @@ func GetProducts(db *gorm.DB) gin.HandlerFunc {
 				"manufacturer": cpu.Manufacturer,
 				"price":        cpu.Price,
 				"specs": map[string]string{
-					"Ядра":   cpu.Cores,
-					"Потоки": cpu.Threads,
+					"Ядра":   strconv.Itoa(cpu.Cores),
+					"Потоки": strconv.Itoa(cpu.Threads),
 					"Сокет":  cpu.Socket,
 				},
 			})

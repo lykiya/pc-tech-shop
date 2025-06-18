@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 surname: document.getElementById('surname').value,
                 phone: document.getElementById('phone').value,
                 email: document.getElementById('email').value,
-                password: password
+                password: password,
+                role: "user"
             };
 
             try {

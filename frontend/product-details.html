@@ -73,6 +73,9 @@
             <div class="nav-links">
                 <a href="index.html">Главная</a>
                 <a href="builds.html">Готовые сборки</a>
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html">FAQ</a>
                 <a href="cart.html" class="cart-link">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
@@ -93,6 +96,14 @@
             </div>
         </nav>
     </header>
+
+    <nav class="secondary-nav">
+        <div class="container">
+            <a href="news.html">Новости</a>
+            <a href="articles.html">Статьи</a>
+            <a href="faq.html">FAQ</a>
+        </div>
+    </nav>
 
     <main>
         <div class="container">
@@ -414,24 +425,39 @@
             }
 
             try {
-                const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.CART.ADD), {
+                const url = buildApiUrl(API_CONFIG.ENDPOINTS.CART.ADD);
+                const data = { pcbuild_id: parseInt(productId) };
+                
+                console.log('Отправка запроса на добавление в корзину:');
+                console.log('URL:', url);
+                console.log('Данные:', data);
+                console.log('Тип товара:', type);
+                console.log('ID товара:', productId);
+                console.log('Тип ID товара:', typeof productId);
+                console.log('Токен:', token.substring(0, 10) + '...');
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ build_id: productId, type: type })
+                    body: JSON.stringify(data)
                 });
 
+                console.log('Статус ответа:', response.status);
+                const responseData = await response.json();
+                console.log('Данные ответа:', responseData);
+
                 if (response.ok) {
-                    showToast('Сборка добавлена в корзину', 'success');
+                    showToast('Товар добавлен в корзину', 'success');
                     updateCartCount();
                 } else {
-                    showToast('Не удалось добавить сборку в корзину', 'error');
+                    showToast(responseData.error || 'Не удалось добавить товар в корзину', 'error');
                 }
             } catch (error) {
                 console.error('Ошибка при добавлении в корзину:', error);
-                showToast('Произошла ошибка', 'error');
+                showToast('Произошла ошибка при добавлении в корзину', 'error');
             }
         }
 

@@ -7,9 +7,10 @@ import (
 type OrderStatus string
 
 const (
-	OrderStatusPending   OrderStatus = "pending"
-	OrderStatusCompleted OrderStatus = "completed"
-	OrderStatusCancelled OrderStatus = "cancelled"
+	OrderStatusPending    OrderStatus = "pending"
+	OrderStatusProcessing OrderStatus = "processing"
+	OrderStatusCompleted  OrderStatus = "completed"
+	OrderStatusCancelled  OrderStatus = "cancelled"
 )
 
 type Order struct {
@@ -25,12 +26,12 @@ type Order struct {
 }
 
 type OrderItem struct {
-	gorm.Model
+	ID       uint    `json:"id" gorm:"primaryKey"`
 	OrderID  uint    `json:"order_id" gorm:"not null"`
-	BuildID  uint    `json:"build_id" gorm:"not null"`
+	BuildID  uint    `json:"build_id" gorm:"column:pcbuild_id;not null"`
 	Quantity int     `json:"quantity" gorm:"not null"`
 	Price    float64 `json:"price" gorm:"not null"`
-	Build    Pcbuild `json:"build" gorm:"foreignKey:BuildID;references:ID"`
+	Build    Pcbuild `json:"build" gorm:"foreignKey:BuildID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // CreateOrder создает новый заказ

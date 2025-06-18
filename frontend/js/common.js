@@ -82,8 +82,10 @@ async function updateCartCount() {
 
         if (response.ok) {
             const cartItems = await response.json();
-            const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-            document.querySelector('.cart-count').textContent = totalItems;
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = cartItems.length || 0;
+            }
         } else {
             document.querySelector('.cart-count').textContent = '0';
         }

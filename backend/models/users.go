@@ -7,5 +7,5 @@ type User struct {
 	Phone        string `gorm:"unique;not null" json:"phone"`        // Уникальное поле, обязательное
 	Email        string `gorm:"unique;not null" json:"email"`        // Уникальное поле, обязательное
 	Passwordhash string `gorm:"not null" json:"password"`            // Обязательное поле
-	Type         string `gorm:"not null;default:'user'" json:"type"` // Тип пользователя (user или admin)
+	Role         string `gorm:"not null;default:'user'" json:"role"` // Тип пользователя (user или admin)
 }

@@ -45,8 +45,12 @@ func GetBuilds(db *gorm.DB) gin.HandlerFunc {
 
 		// Преобразуем только локальные URL изображений
 		for i := range builds {
-			if builds[i].ImageURL != "" && !strings.HasPrefix(builds[i].ImageURL, "http") {
-				builds[i].ImageURL = "/static/images/builds/" + filepath.Base(builds[i].ImageURL)
+			if builds[i].ImageURL != "" {
+				if !strings.HasPrefix(builds[i].ImageURL, "http") {
+					// Если это локальный путь, добавляем базовый URL
+					builds[i].ImageURL = "/static/images/builds/" + filepath.Base(builds[i].ImageURL)
+				}
+				// Если это полный URL (например, с unsplash.com), оставляем как есть
 			}
 		}
 

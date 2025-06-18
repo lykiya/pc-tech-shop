@@ -137,6 +137,11 @@
             color: white;
         }
 
+        .status-processing {
+            background: #3498db;
+            color: white;
+        }
+
         .status-cancelled {
             background: #e74c3c;
             color: white;
@@ -165,26 +170,75 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
+        /* Стили для модального окна подтверждения */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
 
-        .modal-title {
-            margin: 0;
-            font-size: 24px;
+        .confirm-modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
         }
 
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
+        .confirm-modal-title {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .confirm-modal-message {
+            margin-bottom: 30px;
             color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .confirm-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn-yes {
+            background: #007bff;
+            color: white;
+        }
+
+        .confirm-btn-yes:hover {
+            background: #0056b3;
+        }
+
+        .confirm-btn-no {
+            background: #6c757d;
+            color: white;
+        }
+
+        .confirm-btn-no:hover {
+            background: #545b62;
         }
 
         .order-details {
@@ -274,6 +328,65 @@
             border-radius: 4px;
             font-size: 18px;
         }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Стили для toast-уведомлений */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast-success {
+            background: #28a745;
+        }
+
+        .toast-error {
+            background: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -290,6 +403,18 @@
         </div>
     </div>
 
+    <!-- Модальное окно подтверждения изменений профиля -->
+    <div id="confirmProfileModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <h3 class="confirm-modal-title">Подтверждение изменений</h3>
+            <p class="confirm-modal-message">Вы действительно хотите изменить данные профиля?</p>
+            <div class="confirm-modal-buttons">
+                <button class="confirm-btn confirm-btn-yes" id="confirmYesBtn">Да</button>
+                <button class="confirm-btn confirm-btn-no" id="confirmNoBtn">Нет</button>
+            </div>
+        </div>
+    </div>
+
     <header class="header">
         <nav class="nav-container">
             <div class="logo">
@@ -298,6 +423,9 @@
             <div class="nav-links">
                 <a href="index.html">Главная</a>
                 <a href="builds.html">Готовые сборки</a>
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html">FAQ</a>
                 <a href="cart.html" class="cart-link">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
@@ -319,65 +447,74 @@
         </nav>
     </header>
 
-    <div class="profile-container">
-        <div class="profile-header">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h1 id="userName"></h1>
+                    <p id="userEmail"></p>
+                </div>
             </div>
-            <div class="profile-info">
-                <h1 id="userName"></h1>
-                <p id="userEmail"></p>
-                <p>Дата регистрации: <span id="registrationDate"></span></p>
+
+            <div class="profile-section">
+                <h2>Личные данные</h2>
+                <form class="profile-form" id="profileForm">
+                    <div class="form-group">
+                        <label for="name">Имя</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="surname">Фамилия</label>
+                        <input type="text" id="surname" name="surname">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Телефон</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    <div class="profile-actions">
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        <button type="button" class="btn btn-secondary" id="changePasswordBtn">Изменить пароль</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="profile-section">
+                <h2>История заказов</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span></span>
+                    <button class="btn btn-secondary" onclick="loadOrderHistory()" style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновить
+                    </button>
+                </div>
+                <table class="order-history">
+                    <thead>
+                        <tr>
+                            <th>Номер заказа</th>
+                            <th>Дата</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderHistory">
+                        <!-- Данные будут загружены динамически -->
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <div class="profile-section">
-            <h2>Личные данные</h2>
-            <form class="profile-form" id="profileForm">
-                <div class="form-group">
-                    <label for="name">Имя</label>
-                    <input type="text" id="name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="surname">Фамилия</label>
-                    <input type="text" id="surname" name="surname">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Телефон</label>
-                    <input type="tel" id="phone" name="phone">
-                </div>
-                <div class="profile-actions">
-                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-                    <button type="button" class="btn btn-secondary" id="changePasswordBtn">Изменить пароль</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="profile-section">
-            <h2>История заказов</h2>
-            <table class="order-history">
-                <thead>
-                    <tr>
-                        <th>Номер заказа</th>
-                        <th>Дата</th>
-                        <th>Сумма</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody id="orderHistory">
-                    <!-- Данные будут загружены динамически -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+    </main>
 
     <script src="js/config.js"></script>
     <script src="js/toast.js"></script>
+    <script src="js/common.js"></script>
     <script>
         // Функция для обновления имени пользователя и меню
         function updateUserName() {
@@ -410,6 +547,25 @@
         // Функция для обновления профиля
         async function updateProfile(event) {
             event.preventDefault();
+            
+            // Показываем модальное окно подтверждения
+            showConfirmModal();
+        }
+
+        // Функция для показа модального окна подтверждения
+        function showConfirmModal() {
+            const modal = document.getElementById('confirmProfileModal');
+            modal.style.display = 'block';
+        }
+
+        // Функция для скрытия модального окна подтверждения
+        function hideConfirmModal() {
+            const modal = document.getElementById('confirmProfileModal');
+            modal.style.display = 'none';
+        }
+
+        // Функция для выполнения обновления профиля после подтверждения
+        async function executeProfileUpdate() {
             const token = localStorage.getItem('token');
             if (!token) {
                 showError('Требуется авторизация');
@@ -486,18 +642,12 @@
                     // Обновляем информацию в профиле
                     const userName = document.getElementById('userName');
                     const userEmail = document.getElementById('userEmail');
-                    const registrationDate = document.getElementById('registrationDate');
                     
                     if (userName) {
                         userName.textContent = `${userData.name} ${userData.surname}`.trim() || 'Пользователь';
                     }
                     if (userEmail) {
                         userEmail.textContent = userData.email || '';
-                    }
-                    if (registrationDate) {
-                        // Форматируем дату регистрации
-                        const date = new Date(userData.created_at);
-                        registrationDate.textContent = date.toLocaleDateString('ru-RU');
                     }
                     
                     // Обновляем отображаемое имя в шапке
@@ -528,6 +678,20 @@
                 return;
             }
 
+            const orderHistoryTable = document.getElementById('orderHistory');
+            
+            // Показываем индикатор загрузки
+            orderHistoryTable.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span>Загрузка истории заказов...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
             try {
                 const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ORDERS.LIST, {
                     headers: {
@@ -537,10 +701,13 @@
 
                 if (response.ok) {
                     const orders = await response.json();
-                    const orderHistoryTable = document.getElementById('orderHistory');
+                    console.log('Загруженные заказы:', orders);
+                    
+                    // Проверяем изменения статусов
+                    checkOrderStatusChanges(orders);
                     
                     if (!orders || orders.length === 0) {
-                        orderHistoryTable.innerHTML = '<tr><td colspan="5" class="text-center">У вас пока нет заказов</td></tr>';
+                        orderHistoryTable.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">У вас пока нет заказов</td></tr>';
                         return;
                     }
 
@@ -560,6 +727,10 @@
                             case 'pending':
                                 statusClass = 'status-pending';
                                 statusText = 'Ожидает обработки';
+                                break;
+                            case 'processing':
+                                statusClass = 'status-processing';
+                                statusText = 'В обработке';
                                 break;
                             case 'cancelled':
                                 statusClass = 'status-cancelled';
@@ -587,11 +758,57 @@
                 } else {
                     const errorData = await response.json();
                     showError(errorData.error || 'Не удалось загрузить историю заказов');
+                    orderHistoryTable.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #e74c3c;">Ошибка при загрузке заказов</td></tr>';
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке истории заказов:', error);
                 showError('Произошла ошибка при загрузке истории заказов');
+                orderHistoryTable.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #e74c3c;">Ошибка при загрузке заказов</td></tr>';
             }
+        }
+
+        // Функция для проверки изменений статуса заказов
+        function checkOrderStatusChanges(newOrders) {
+            const storedOrders = JSON.parse(localStorage.getItem('orderStatuses') || '[]');
+            
+            newOrders.forEach(order => {
+                const orderId = order.ID || order.id;
+                const newStatus = order.Status || order.status;
+                const oldOrder = storedOrders.find(o => o.id === orderId);
+                
+                if (oldOrder && oldOrder.status !== newStatus) {
+                    // Статус изменился, показываем уведомление
+                    const statusText = getStatusText(newStatus);
+                    showSuccess(`Статус заказа #${orderId} изменился на "${statusText}"`);
+                }
+            });
+            
+            // Сохраняем новые статусы
+            const newOrderStatuses = newOrders.map(order => ({
+                id: order.ID || order.id,
+                status: order.Status || order.status
+            }));
+            localStorage.setItem('orderStatuses', JSON.stringify(newOrderStatuses));
+        }
+
+        // Функция для получения текста статуса
+        function getStatusText(status) {
+            switch(status) {
+                case 'completed': return 'Завершен';
+                case 'pending': return 'Ожидает обработки';
+                case 'processing': return 'В обработке';
+                case 'cancelled': return 'Отменен';
+                default: return 'Неизвестный статус';
+            }
+        }
+
+        // Функция для форматирования способа оплаты
+        function getPaymentMethodText(method) {
+            const methods = {
+                'card': 'Банковская карта',
+                'cash': 'Наличными при получении'
+            };
+            return methods[method] || method || 'Не указан';
         }
 
         // Функция для отображения ошибок
@@ -604,6 +821,49 @@
             setTimeout(() => {
                 toast.remove();
             }, 3000);
+        }
+
+        // Функция для отображения успешных сообщений
+        function showSuccess(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-success';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Функция для обновления счетчика корзины
+        async function updateCartCount() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.querySelector('.cart-count').textContent = '0';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_CONFIG.BASE_URL + '/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = cartItems.length || 0;
+                    }
+                } else {
+                    document.querySelector('.cart-count').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Ошибка при обновлении счетчика корзины:', error);
+                document.querySelector('.cart-count').textContent = '0';
+            }
         }
 
         // Функция для просмотра деталей заказа
@@ -673,7 +933,7 @@
                 minute: '2-digit'
             });
 
-            // Форматируем статус
+            // Форматируем статус заказа
             let statusClass = '';
             let statusText = '';
             switch(order.Status || order.status) {
@@ -685,6 +945,10 @@
                     statusClass = 'status-pending';
                     statusText = 'Ожидает обработки';
                     break;
+                case 'processing':
+                    statusClass = 'status-processing';
+                    statusText = 'В обработке';
+                    break;
                 case 'cancelled':
                     statusClass = 'status-cancelled';
                     statusText = 'Отменен';
@@ -692,6 +956,23 @@
                 default:
                     statusClass = 'status-pending';
                     statusText = 'Ожидает обработки';
+            }
+
+            // Форматируем статус оплаты
+            let paymentStatusClass = '';
+            let paymentStatusText = '';
+            switch(order.Status || order.status) {
+                case 'completed':
+                    paymentStatusClass = 'status-completed';
+                    paymentStatusText = 'Оплачено';
+                    break;
+                case 'cancelled':
+                    paymentStatusClass = 'status-cancelled';
+                    paymentStatusText = 'Отменено';
+                    break;
+                default:
+                    paymentStatusClass = 'status-pending';
+                    paymentStatusText = 'Ожидает оплаты';
             }
 
             // Форматируем товары
@@ -706,7 +987,9 @@
                 
                 return `
                     <div class="order-item">
-                        <img src="${imageUrl}" alt="${build.name}" onerror="this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
+                        <img src="${imageUrl}" 
+                             alt="${build.name}" 
+                             onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
                         <div class="order-item-info">
                             <h3 class="order-item-title">${build.name}</h3>
                             <p class="order-item-price">${parseFloat(item.Price || item.price).toFixed(2)} ₽</p>
@@ -728,8 +1011,8 @@
             const paymentInfo = `
                 <div class="order-details-section">
                     <h3>Информация об оплате</h3>
-                    <p><strong>Способ оплаты:</strong> ${order.PaymentMethod || order.payment_method || 'Не указан'}</p>
-                    <p><strong>Статус оплаты:</strong> <span class="order-status ${statusClass}">${statusText}</span></p>
+                    <p><strong>Способ оплаты:</strong> ${getPaymentMethodText(order.PaymentMethod || order.payment_method)}</p>
+                    <p><strong>Статус оплаты:</strong> <span class="order-status ${paymentStatusClass}">${paymentStatusText}</span></p>
                 </div>
             `;
 
@@ -790,14 +1073,28 @@
                 return;
             }
 
+            // Проверяем, есть ли параметр для принудительного обновления
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceRefresh = urlParams.get('refresh');
+            
             // Обновляем информацию о пользователе в шапке
             updateUserName();
             
             // Загружаем данные профиля
             loadProfileData();
             
-            // Загружаем историю заказов
-            loadOrderHistory();
+            // Загружаем историю заказов (с принудительным обновлением если нужно)
+            if (forceRefresh === 'true') {
+                // Убираем параметр из URL
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+                // Принудительно обновляем данные
+                setTimeout(() => {
+                    loadOrderHistory();
+                }, 500);
+            } else {
+                loadOrderHistory();
+            }
             
             // Добавляем обработчик для формы
             const profileForm = document.getElementById('profileForm');
@@ -814,6 +1111,69 @@
                     localStorage.removeItem('user');
                     window.location.href = 'login.html';
                 });
+            }
+
+            // Добавляем обработчики для модального окна подтверждения
+            const confirmYesBtn = document.getElementById('confirmYesBtn');
+            const confirmNoBtn = document.getElementById('confirmNoBtn');
+            
+            if (confirmYesBtn) {
+                confirmYesBtn.addEventListener('click', () => {
+                    hideConfirmModal();
+                    executeProfileUpdate();
+                });
+            }
+            
+            if (confirmNoBtn) {
+                confirmNoBtn.addEventListener('click', hideConfirmModal);
+            }
+
+            // Закрытие модального окна подтверждения при клике вне его
+            const confirmModal = document.getElementById('confirmProfileModal');
+            if (confirmModal) {
+                confirmModal.addEventListener('click', (event) => {
+                    if (event.target === confirmModal) {
+                        hideConfirmModal();
+                    }
+                });
+            }
+
+            // Обновляем количество товаров в корзине
+            updateCartCount();
+            
+            // Запускаем автоматическое обновление истории заказов каждые 30 секунд
+            setInterval(() => {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    loadOrderHistory();
+                }
+            }, 30000);
+        });
+
+        // Добавляем обработчик для обновления данных при переходе на страницу
+        window.addEventListener('pageshow', (event) => {
+            // Проверяем, что страница загружена из кэша или при переходе
+            if (event.persisted || document.visibilityState === 'visible') {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    // Обновляем историю заказов при каждом переходе на страницу
+                    loadOrderHistory();
+                    // Обновляем счетчик корзины
+                    updateCartCount();
+                }
+            }
+        });
+
+        // Добавляем обработчик для обновления при возвращении на вкладку
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    // Обновляем историю заказов при возвращении на вкладку
+                    loadOrderHistory();
+                    // Обновляем счетчик корзины
+                    updateCartCount();
+                }
             }
         });
 

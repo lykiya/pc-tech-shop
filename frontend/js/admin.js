@@ -1,9 +1,14 @@
+console.log('[DEBUG] admin.js загружен');
+
 document.addEventListener('DOMContentLoaded', function() {
     // Проверяем авторизацию и роль администратора
     if (!checkAuth() || !checkAdminRole()) {
         window.location.href = 'login.html';
         return;
     }
+
+    // Загружаем данные пользователей при инициализации
+    loadUsers();
 
     // Получаем все элементы меню
     const menuItems = document.querySelectorAll('.admin-menu a');
@@ -20,6 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const activeSection = document.getElementById(sectionId);
         if (activeSection) {
             activeSection.style.display = 'block';
+            
+            // Загружаем данные для раздела
+            if (sectionId === 'users') {
+                loadUsers();
+            } else if (sectionId === 'components') {
+                loadComponents('cpu');
+            }
         }
 
         // Обновляем активное состояние в меню
@@ -38,9 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const sectionId = this.getAttribute('data-section');
             if (sectionId) {
                 switchSection(sectionId);
-                if (sectionId === 'components') {
-                    loadComponents('cpu'); // Загружаем процессоры по умолчанию
-                }
             }
         });
     });
@@ -194,33 +203,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateProductsList(products) {
         const productsTableBody = document.getElementById('productsTableBody');
-        if (productsTableBody) {
-            productsTableBody.innerHTML = products.map(product => `
+        if (!productsTableBody) {
+            console.error('Products table body not found');
+            return;
+        }
+
+        productsTableBody.innerHTML = products.map(product => {
+            return `
                 <tr>
                     <td>${product.id}</td>
-                    <td>${product.name}</td>
-                    <td>${product.price}</td>
-                    <td>${product.category}</td>
-                    <td>${product.stock}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="build-image-container" style="width: 100px; height: 100px; position: relative;">
+                            <img src="${product.image_url || '../assets/default-build.jpg'}" 
+                                 alt="${product.name}" 
+                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;"
+                                 onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
+                        </div>
+                    </td>
+                    <td>${product.name || 'Без названия'}</td>
+                    <td>${product.description || 'Нет описания'}</td>
+                    <td>${product.total_price ? product.total_price.toLocaleString() + ' ₽' : 'Нет цены'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-btn" onclick="viewBuild(${product.id})" title="Просмотр">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-btn" data-id="${product.id}" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteBuild(${product.id}, '${product.name}')" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
-            `).join('');
-        }
+            `;
+        }).join('');
     }
 
     function updateOrdersList(orders) {
         const ordersTableBody = document.getElementById('ordersTableBody');
         if (ordersTableBody) {
             ordersTableBody.innerHTML = orders.map(order => {
-                // Форматируем дату (используем CreatedAt из бэкенда)
-                const orderDate = new Date(order.CreatedAt);
+                // Форматируем дату (используем created_at из GORM)
+                const orderDate = new Date(order.created_at || order.CreatedAt);
                 const formattedDate = orderDate.toLocaleString('ru-RU', {
                     year: 'numeric',
                     month: 'long',
@@ -229,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     minute: '2-digit'
                 });
 
-                // Форматируем сумму (используем total_amount из бэкенда)
+                // Форматируем сумму (используем total_amount из модели)
                 const formattedAmount = new Intl.NumberFormat('ru-RU', {
                     style: 'currency',
                     currency: 'RUB'
@@ -237,21 +263,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 return `
                     <tr>
-                        <td>${order.ID || ''}</td>
-                        <td>${order.UserID || ''}</td>
+                        <td>${order.id || order.ID || ''}</td>
+                        <td>${order.user_id || order.UserID || ''}</td>
                         <td>${formattedDate}</td>
                         <td>${formattedAmount}</td>
                         <td>
-                            <select class="status-select" onchange="updateOrderStatus(${order.ID}, this.value)">
-                                <option value="pending" ${order.Status === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
-                                <option value="processing" ${order.Status === 'processing' ? 'selected' : ''}>В обработке</option>
-                                <option value="completed" ${order.Status === 'completed' ? 'selected' : ''}>Завершен</option>
-                                <option value="cancelled" ${order.Status === 'cancelled' ? 'selected' : ''}>Отменен</option>
+                            <select class="status-select" onchange="updateOrderStatus(${order.id || order.ID}, this.value)">
+                                <option value="pending" ${(order.status || order.Status) === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
+                                <option value="processing" ${(order.status || order.Status) === 'processing' ? 'selected' : ''}>В обработке</option>
+                                <option value="completed" ${(order.status || order.Status) === 'completed' ? 'selected' : ''}>Завершен</option>
+                                <option value="cancelled" ${(order.status || order.Status) === 'cancelled' ? 'selected' : ''}>Отменен</option>
                             </select>
                         </td>
                         <td>
-                            <button class="action-btn view" onclick="viewOrderDetails(${order.ID})" title="Просмотр деталей">
+                            <button class="action-btn view" onclick="viewOrderDetails(${order.id || order.ID})" title="Просмотр деталей">
                                 <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit" onclick="editOrder(${order.id || order.ID})" title="Редактировать заказ">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteOrder(${order.id || order.ID})" title="Удалить заказ">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -271,16 +303,44 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUsersList(users) {
+        console.log('Updating users list with data:', users);
         const usersTableBody = document.getElementById('usersTableBody');
-        if (usersTableBody) {
-            usersTableBody.innerHTML = users.map(user => `
+        if (!usersTableBody) {
+            console.error('Users table body element not found');
+            return;
+        }
+
+        if (!Array.isArray(users)) {
+            console.error('Users data is not an array:', users);
+            return;
+        }
+
+        usersTableBody.innerHTML = users.map((user, index) => {
+            console.log('Processing user:', user);
+            const role = user.role || 'user';
+            console.log('User role:', role);
+            
+            // Форматирование номера телефона
+            let phone = user.phone || '';
+            if (phone) {
+                // Удаляем все нецифровые символы
+                phone = phone.replace(/\D/g, '');
+                // Форматируем номер в формат +7 (XXX) XXX-XX-XX
+                if (phone.length === 11) {
+                    phone = `+7 (${phone.slice(1, 4)}) ${phone.slice(4, 7)}-${phone.slice(7, 9)}-${phone.slice(9)}`;
+                }
+            }
+
+            // Кнопка редактирования пользователя
+            return `
                 <tr>
+                    <td>${index + 1}</td>
                     <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.email}</td>
-                    <td>${user.role}</td>
+                    <td>${user.name || user.username || ''}</td>
+                    <td>${user.email || ''}</td>
+                    <td>${role}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
+                        <button class="btn btn-sm btn-primary edit-user-btn" data-user-id="${user.id}">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
@@ -288,8 +348,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         </button>
                     </td>
                 </tr>
-            `).join('');
-        }
+            `;
+        }).join('');
+
+        // Навешиваем обработчики на кнопки редактирования пользователя
+        document.querySelectorAll('.edit-user-btn').forEach(btn => {
+            btn.onclick = function() {
+                const userId = this.getAttribute('data-user-id');
+                const user = users.find(u => u.id == userId);
+                if (user) window.showEditUserModal(user);
+            };
+        });
     }
 
     // Глобальные функции для обработки действий
@@ -320,6 +389,197 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
+
+    // Функция для редактирования заказа
+    window.editOrder = async function(orderId) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке данных заказа');
+            }
+
+            const order = await response.json();
+            showEditOrderModal(order);
+        } catch (error) {
+            console.error('Ошибка при загрузке заказа:', error);
+            showToast('Ошибка', 'Не удалось загрузить данные заказа', 'error');
+        }
+    };
+
+    // Функция для удаления заказа с подтверждением
+    window.deleteOrder = async function(orderId) {
+        // Показываем модальное окно подтверждения
+        showDeleteOrderConfirmation(orderId);
+    };
+
+    // Функция для показа модального окна подтверждения удаления
+    function showDeleteOrderConfirmation(orderId) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <h3>Подтверждение удаления</h3>
+                <p>Вы уверены, что хотите удалить этот заказ?</p>
+                <p><strong>Внимание:</strong> Это действие нельзя отменить!</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button onclick="closeDeleteOrderModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">
+                        Отмена
+                    </button>
+                    <button onclick="confirmDeleteOrder(${orderId})" style="padding: 8px 16px; border: none; background: #e74c3c; color: white; border-radius: 4px; cursor: pointer;">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    // Функция для закрытия модального окна подтверждения
+    window.closeDeleteOrderModal = function() {
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+    // Функция для подтверждения удаления заказа
+    window.confirmDeleteOrder = async function(orderId) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении заказа');
+            }
+
+            showToast('Успешно', 'Заказ удален', 'success');
+            closeDeleteOrderModal();
+            
+            // Перезагружаем список заказов
+            loadSectionData('orders');
+        } catch (error) {
+            console.error('Ошибка при удалении заказа:', error);
+            showToast('Ошибка', 'Не удалось удалить заказ', 'error');
+            closeDeleteOrderModal();
+        }
+    };
+
+    // Функция для показа модального окна редактирования заказа
+    function showEditOrderModal(order) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <span class="close" onclick="closeEditOrderModal()">&times;</span>
+                <h3>Редактирование заказа #${order.id || order.ID}</h3>
+                <form id="editOrderForm">
+                    <div class="form-group">
+                        <label for="editOrderStatus">Статус заказа</label>
+                        <select id="editOrderStatus" required>
+                            <option value="pending" ${(order.status || order.Status) === 'pending' ? 'selected' : ''}>Ожидает обработки</option>
+                            <option value="processing" ${(order.status || order.Status) === 'processing' ? 'selected' : ''}>В обработке</option>
+                            <option value="completed" ${(order.status || order.Status) === 'completed' ? 'selected' : ''}>Завершен</option>
+                            <option value="cancelled" ${(order.status || order.Status) === 'cancelled' ? 'selected' : ''}>Отменен</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderAddress">Адрес доставки</label>
+                        <input type="text" id="editOrderAddress" value="${order.shipping_address || order.ShippingAddress || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderPayment">Способ оплаты</label>
+                        <select id="editOrderPayment" required>
+                            <option value="card" ${(order.payment_method || order.PaymentMethod) === 'card' ? 'selected' : ''}>Банковская карта</option>
+                            <option value="cash" ${(order.payment_method || order.PaymentMethod) === 'cash' ? 'selected' : ''}>Наличные</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderDelivery">Способ доставки</label>
+                        <select id="editOrderDelivery" required>
+                            <option value="pickup" ${(order.delivery_method || order.DeliveryMethod) === 'pickup' ? 'selected' : ''}>Самовывоз</option>
+                            <option value="courier" ${(order.delivery_method || order.DeliveryMethod) === 'courier' ? 'selected' : ''}>Курьер</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editOrderComment">Комментарий</label>
+                        <textarea id="editOrderComment" rows="3">${order.comment || order.Comment || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                        <button type="button" onclick="closeEditOrderModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">
+                            Отмена
+                        </button>
+                        <button type="submit" style="padding: 8px 16px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer;">
+                            Сохранить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Добавляем обработчик отправки формы
+        document.getElementById('editOrderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveOrderChanges(order.id || order.ID);
+        });
+    }
+
+    // Функция для закрытия модального окна редактирования
+    window.closeEditOrderModal = function() {
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+    // Функция для сохранения изменений заказа
+    async function saveOrderChanges(orderId) {
+        try {
+            const token = localStorage.getItem('token');
+            const formData = {
+                status: document.getElementById('editOrderStatus').value,
+                shipping_address: document.getElementById('editOrderAddress').value,
+                payment_method: document.getElementById('editOrderPayment').value,
+                delivery_method: document.getElementById('editOrderDelivery').value,
+                comment: document.getElementById('editOrderComment').value
+            };
+
+            const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при обновлении заказа');
+            }
+
+            showToast('Успешно', 'Заказ обновлен', 'success');
+            closeEditOrderModal();
+            
+            // Перезагружаем список заказов
+            loadSectionData('orders');
+        } catch (error) {
+            console.error('Ошибка при обновлении заказа:', error);
+            showToast('Ошибка', 'Не удалось обновить заказ', 'error');
+        }
+    }
 
     async function updateOrderStatus(orderId, newStatus) {
         try {
@@ -379,20 +639,32 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Функция для загрузки компонентов
-    async function loadComponents(category = 'cpu') {
+    async function loadComponents() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`);
-
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+            
+            const categories = ['cpu', 'gpu', 'motherboard', 'body', 'ram', 'power_unit', 'hdd', 'ssd'];
+            const components = {};
+            
+            for (const category of categories) {
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
             if (!response.ok) {
-                throw new Error('Ошибка при загрузке компонентов');
+                    throw new Error(`Ошибка при загрузке компонентов категории ${category}`);
+                }
+                components[category] = await response.json();
             }
 
-            const components = await response.json();
-            displayComponents(components, category);
+            return components;
         } catch (error) {
             console.error('Ошибка при загрузке компонентов:', error);
-            showToast('Ошибка при загрузке компонентов', 'error');
+            throw error;
         }
     }
 
@@ -415,28 +687,122 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${component.data.name}</td>
                 <td>${component.data.price} ₽</td>
                 <td>
-                    <button class="btn btn-sm btn-warning" onclick="editComponent(${component.data.id}, '${category}')">
+                    <button class="btn btn-sm btn-warning btn-edit-component"
+                            data-component='${JSON.stringify(component).replace(/'/g, '&apos;')}'
+                            data-category='${category}'>
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteComponent(${component.data.id}, '${category}')">
+                    <button class="btn btn-sm btn-danger" onclick="showDeleteComponentModal(${component.data.id}, '${category}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
             `;
             tbody.appendChild(row);
         });
+        // Навешиваем обработчик на все кнопки редактирования
+        tbody.querySelectorAll('.btn-edit-component').forEach(btn => {
+            btn.onclick = function() {
+                const component = JSON.parse(this.dataset.component.replace(/&apos;/g, "'"));
+                const category = this.dataset.category;
+                window.showEditComponentModal(component, category);
+            };
+        });
     }
 
     // Функция для отображения модального окна добавления компонента
-    function showAddComponentModal() {
+    window.showAddComponentModal = function() {
         const modal = document.getElementById('componentModal');
         if (modal) {
             modal.style.display = 'block';
             document.getElementById('componentForm').reset();
             document.getElementById('componentModalTitle').textContent = 'Добавить компонент';
             document.getElementById('componentForm').dataset.mode = 'add';
+            window.hideAllComponentFields();
+            const fieldsContainer = document.getElementById('fieldsContainer');
+            if (fieldsContainer) fieldsContainer.style.display = 'none';
+            const categorySelect = document.getElementById('category');
+            const addButton = modal.querySelector('button[type="submit"]');
+            if (categorySelect) {
+                categorySelect.value = '';
+                if (addButton) addButton.disabled = true;
+                if (!categorySelect.dataset.listenerAdded) {
+                    categorySelect.addEventListener('change', function() {
+                        console.log('[DEBUG] Категория выбрана (modal):', this.value);
+                        window.showFieldsForCategory(this.value);
+                        if (addButton) addButton.disabled = !this.value;
+                    });
+                    categorySelect.dataset.listenerAdded = 'true';
+                }
+            }
         }
     }
+
+    // Функция для скрытия всех специфичных полей
+    window.hideAllComponentFields = function() {
+        const gpuFields = document.getElementById('gpuFields');
+        const bodyFields = document.getElementById('bodyFields');
+        const cpuFields = document.getElementById('cpuFields');
+        const universalFields = document.getElementById('universalFields');
+        if (gpuFields) gpuFields.style.display = 'none';
+        if (bodyFields) bodyFields.style.display = 'none';
+        if (cpuFields) cpuFields.style.display = 'none';
+        if (universalFields) universalFields.style.display = 'block'; // по умолчанию universalFields видим
+        // Добавьте сюда другие поля, если появятся
+    }
+
+    // Функция для показа полей по категории
+    window.showFieldsForCategory = function(category) {
+        console.log('[DEBUG] showFieldsForCategory вызвана с категорией:', category);
+        window.hideAllComponentFields();
+        const fieldsContainer = document.getElementById('fieldsContainer');
+        if (fieldsContainer) fieldsContainer.style.display = category ? 'block' : 'none';
+        if (category === 'gpu') {
+            const gpuFields = document.getElementById('gpuFields');
+            if (gpuFields) {
+                gpuFields.style.display = 'block';
+                console.log('[DEBUG] Показываю gpuFields');
+            } else {
+                console.error('[DEBUG] Не найден gpuFields');
+            }
+        } else if (category === 'body') {
+            const bodyFields = document.getElementById('bodyFields');
+            if (bodyFields) {
+                bodyFields.style.display = 'block';
+                console.log('[DEBUG] Показываю bodyFields');
+            } else {
+                console.error('[DEBUG] Не найден bodyFields');
+            }
+        } else if (category === 'cpu') {
+            const cpuFields = document.getElementById('cpuFields');
+            const universalFields = document.getElementById('universalFields');
+            if (cpuFields) {
+                cpuFields.style.display = 'block';
+                console.log('[DEBUG] Показываю cpuFields');
+            } else {
+                console.error('[DEBUG] Не найден cpuFields');
+            }
+            if (universalFields) {
+                universalFields.style.display = 'none';
+                console.log('[DEBUG] Скрываю universalFields');
+            } else {
+                console.error('[DEBUG] Не найден universalFields');
+            }
+        }
+        // Добавьте сюда другие условия для других категорий, если нужно
+    }
+
+    // Навешиваем обработчик на select категории после загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) {
+            categorySelect.addEventListener('change', function() {
+                console.log('[DEBUG] Категория выбрана:', this.value);
+                window.showFieldsForCategory(this.value);
+            });
+        } else {
+            console.error('[DEBUG] Не найден select с id="category"');
+        }
+    });
 
     // Функция для редактирования компонента
     async function editComponent(id, category) {
@@ -457,51 +823,109 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Функция для отображения модального окна редактирования компонента
-    function showEditComponentModal(component, category) {
-        const modal = document.getElementById('componentModal');
-        if (modal) {
+    window.showEditComponentModal = function(component, category) {
+        const modal = document.getElementById('editComponentModal');
+        if (!modal) return;
+        document.getElementById('editComponentId').value = component.data.id;
+        document.getElementById('editComponentName').value = component.data.name;
+        document.getElementById('editComponentPrice').value = component.data.price;
             modal.style.display = 'block';
-            document.getElementById('componentModalTitle').textContent = 'Редактировать компонент';
-            
-            // Заполняем форму данными компонента
-            document.getElementById('componentName').value = component.data.name;
-            document.getElementById('componentPrice').value = component.data.price;
-            document.getElementById('category').value = category;
-            
-            // Сохраняем ID компонента и режим редактирования
-            document.getElementById('componentForm').dataset.mode = 'edit';
-            document.getElementById('componentForm').dataset.id = component.data.id;
-            document.getElementById('componentForm').dataset.category = category;
-        }
-    }
+        document.getElementById('editComponentModalTitle').textContent = `Редактировать компонент (${category})`;
+        modal.dataset.category = category;
+    };
 
-    // Функция для удаления компонента
-    async function deleteComponent(id, category) {
-        if (confirm('Вы уверены, что хотите удалить этот компонент?')) {
+    window.closeEditComponentModal = function() {
+        const modal = document.getElementById('editComponentModal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    // --- Модальное окно подтверждения удаления комплектующего ---
+    let componentToDelete = null;
+    let componentCategoryToDelete = null;
+
+    window.showDeleteComponentModal = function(id, category) {
+        componentToDelete = id;
+        componentCategoryToDelete = category;
+        document.getElementById('deleteComponentModal').style.display = 'block';
+    };
+
+    window.closeDeleteComponentModal = function() {
+        document.getElementById('deleteComponentModal').style.display = 'none';
+        componentToDelete = null;
+        componentCategoryToDelete = null;
+    };
+
+    document.getElementById('editComponentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('editComponentId').value;
+        const data = {
+            name: document.getElementById('editComponentName').value,
+            price: parseFloat(document.getElementById('editComponentPrice').value)
+            // ... другие поля ...
+        };
+        const category = document.getElementById('editComponentModal').dataset.category;
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.DELETE + `?category=${category}&id=${id}`);
+            const response = await fetch(`${API_CONFIG.BASE_URL}/components/${id}?category=${category}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('Ошибка при сохранении компонента');
+            showToast('Компонент успешно обновлен', 'success');
+            window.closeEditComponentModal();
+            loadComponents(category);
+        } catch (error) {
+            showToast('Ошибка при сохранении компонента', 'error');
+        }
+    });
 
-                if (!response.ok) {
-                    throw new Error('Ошибка при удалении компонента');
-                }
-
+    document.getElementById('confirmDeleteComponentBtn').onclick = async function() {
+        if (!componentToDelete || !componentCategoryToDelete) return;
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/components/${componentToDelete}?category=${componentCategoryToDelete}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Ошибка при удалении компонента');
                 showToast('Компонент успешно удален', 'success');
-                loadComponents(category);
+            window.closeDeleteComponentModal();
+            loadComponents(componentCategoryToDelete);
             } catch (error) {
-                console.error('Ошибка при удалении компонента:', error);
                 showToast('Ошибка при удалении компонента', 'error');
             }
-        }
-    }
+    };
 
     // Обработчик отправки формы компонента
     document.getElementById('componentForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
         const formData = new FormData(this);
         const mode = this.dataset.mode;
         const category = formData.get('category');
+        let data = {};
+
+        if (category === 'cpu') {
+            data = {
+                name: document.getElementById('cpuName').value,
+                manufacturer: document.getElementById('cpuManufacturer').value,
+                cores: parseInt(document.getElementById('cpuCores').value, 10),
+                threads: parseInt(document.getElementById('cpuThreads').value, 10),
+                socket: document.getElementById('cpuSocket').value,
+                price: parseFloat(document.getElementById('cpuPrice').value)
+                // category: category // не добавлять в тело запроса!
+            };
+        } else {
+            data = {
+                name: document.getElementById('componentName').value,
+                price: parseFloat(document.getElementById('componentPrice').value),
+                category: category
+                // ... другие универсальные поля ...
+            };
+        }
         
         try {
             const token = localStorage.getItem('token');
@@ -511,6 +935,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mode === 'edit') {
                 url += `/${this.dataset.id}?category=${category}`;
                 method = 'PUT';
+            } else {
+                url += `?category=${category}`;
             }
             
             const response = await fetch(url, {
@@ -519,11 +945,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    name: formData.get('componentName'),
-                    price: parseFloat(formData.get('componentPrice')),
-                    category: category
-                })
+                body: JSON.stringify(data)
             });
 
             if (!response.ok) {
@@ -544,14 +966,31 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('componentModal').style.display = 'none';
     });
 
+    // Добавляю функцию для закрытия модального окна по крестику
+    window.closeComponentModal = function() {
+        document.getElementById('componentModal').style.display = 'none';
+    }
+
     async function loadProducts() {
         try {
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.PRODUCTS);
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке продуктов');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
             }
-            const products = await response.json();
-            displayProducts(products);
+
+            const response = await fetch(`${API_CONFIG.BASE_URL}/builds`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке сборок');
+            }
+
+            const builds = await response.json();
+            updateProductsList(builds);
         } catch (error) {
             console.error('Ошибка при загрузке продуктов:', error);
             showToast('Не удалось загрузить продукты', 'error');
@@ -560,15 +999,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadUsers() {
         try {
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+
+            // Показываем секцию пользователей
+            const usersSection = document.getElementById('users');
+            if (usersSection) {
+                usersSection.style.display = 'block';
+            }
+
+            console.log('Fetching users with token:', token);
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке пользователей');
             }
+
             const users = await response.json();
-            displayUsers(users);
+            console.log('Raw users data from server:', users);
+            
+            // Проверяем структуру данных
+            if (Array.isArray(users)) {
+                console.log('Users is an array with length:', users.length);
+                users.forEach((user, index) => {
+                    console.log(`User ${index}:`, user);
+                });
+            } else {
+                console.log('Users is not an array:', typeof users);
+            }
+
+            const usersTableBody = document.getElementById('usersTableBody');
+            if (!usersTableBody) {
+                console.error('Users table body element not found');
+                return;
+            }
+
+            updateUsersList(users);
         } catch (error) {
             console.error('Ошибка при загрузке пользователей:', error);
-            showToast('Не удалось загрузить пользователей', 'error');
+            showToast('Ошибка при загрузке пользователей: ' + error.message, 'error');
         }
     }
 
@@ -604,11 +1079,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadComponents() {
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Требуется авторизация');
+            }
+            
             const categories = ['cpu', 'gpu', 'motherboard', 'body', 'ram', 'power_unit', 'hdd', 'ssd'];
             const components = {};
             
             for (const category of categories) {
-                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`);
+                const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + `?category=${category}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (!response.ok) {
                     throw new Error(`Ошибка при загрузке компонентов категории ${category}`);
                 }
@@ -643,274 +1127,175 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    async function showEditBuildModal(buildId) {
+    // Кэш для компонентов
+    let componentsCache = {
+        cpu: null,
+        gpu: null,
+        motherboard: null,
+        body: null,
+        ram: null,
+        power_unit: null,
+        hdd: null,
+        ssd: null
+    };
+
+    // Глобальные функции
+    window.loadComponentsForEdit = async function() {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('Требуется авторизация');
             }
 
-            // Показываем модальное окно сразу
-            const modal = document.getElementById('editBuildModal');
-            if (!modal) {
-                throw new Error('Модальное окно редактирования не найдено');
-            }
-            modal.style.display = 'block';
-
-            // Загружаем данные асинхронно
-            const [buildResponse, componentsResponse] = await Promise.all([
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', buildId), {
+            console.log('Starting to load components for edit...');
+            
+            // Загружаем все компоненты параллельно
+            const [cpuResponse, gpuResponse, motherboardResponse, bodyResponse, 
+                   ramResponse, powerUnitResponse, hddResponse, ssdResponse] = await Promise.all([
+                fetch(`${API_CONFIG.BASE_URL}/components?category=cpu`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                loadComponentsForEdit()
+                fetch(`${API_CONFIG.BASE_URL}/components?category=gpu`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=motherboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=body`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=ram`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=power_unit`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=hdd`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_CONFIG.BASE_URL}/components?category=ssd`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
             ]);
 
-            if (!buildResponse.ok) {
-                throw new Error('Ошибка при загрузке данных сборки');
+            // Проверяем все ответы
+            const responses = [cpuResponse, gpuResponse, motherboardResponse, bodyResponse, 
+                            ramResponse, powerUnitResponse, hddResponse, ssdResponse];
+            
+            for (const response of responses) {
+                if (!response.ok) {
+                    throw new Error(`Ошибка при загрузке компонентов: ${response.statusText}`);
+                }
             }
 
-            const build = await buildResponse.json();
-            console.log('Загруженные данные сборки:', build);
+            // Получаем данные
+            const [cpuData, gpuData, motherboardData, bodyData, 
+                   ramData, powerUnitData, hddData, ssdData] = await Promise.all([
+                cpuResponse.json(),
+                gpuResponse.json(),
+                motherboardResponse.json(),
+                bodyResponse.json(),
+                ramResponse.json(),
+                powerUnitResponse.json(),
+                hddResponse.json(),
+                ssdResponse.json()
+            ]);
 
-            // Заполняем форму данными сборки
-            const form = document.getElementById('editBuildForm');
-            if (!form) {
-                throw new Error('Форма редактирования не найдена');
-            }
-
-            form.querySelector('#editBuildName').value = build.name;
-            form.querySelector('#editBuildDescription').value = build.description;
-            form.querySelector('#editBuildPrice').value = build.total_price;
-            
-            // Устанавливаем выбранные компоненты
-            form.querySelector('#editBuildCPU').value = build.cpu_id;
-            form.querySelector('#editBuildGPU').value = build.gpu_id;
-            form.querySelector('#editBuildMotherboard').value = build.motherboard_id;
-            form.querySelector('#editBuildBody').value = build.body_id;
-            form.querySelector('#editBuildRAM').value = build.ram_id;
-            form.querySelector('#editBuildPowerUnit').value = build.power_unit_id;
-            form.querySelector('#editBuildHDD').value = build.hdd_id || '';
-            form.querySelector('#editBuildSSD').value = build.ssd_id || '';
-            
-            // Сохраняем ID сборки в форме
-            form.dataset.buildId = buildId;
-            
-            // Обновляем предпросмотр
-            updateEditPreview();
-
-            // Фокусируемся на первом поле ввода
-            const firstInput = form.querySelector('input, select, textarea');
-            if (firstInput) {
-                firstInput.focus();
-            }
-        } catch (error) {
-            console.error('Ошибка при открытии модального окна редактирования:', error);
-            showToast('Ошибка при загрузке данных сборки: ' + error.message, 'error');
-            closeModal('editBuildModal');
-        }
-    }
-
-    // Обработчик отправки формы редактирования
-    document.getElementById('editBuildForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        try {
-            const buildId = this.dataset.buildId;
-            const token = localStorage.getItem('token');
-            
-            // Получаем данные формы
-            const formData = {
-                name: document.getElementById('editBuildName').value,
-                description: document.getElementById('editBuildDescription').value,
-                total_price: parseFloat(document.getElementById('editBuildPrice').value),
-                cpu_id: parseInt(document.getElementById('editBuildCPU').value),
-                gpu_id: parseInt(document.getElementById('editBuildGPU').value),
-                motherboard_id: parseInt(document.getElementById('editBuildMotherboard').value),
-                body_id: parseInt(document.getElementById('editBuildBody').value),
-                ram_id: parseInt(document.getElementById('editBuildRAM').value),
-                power_unit_id: parseInt(document.getElementById('editBuildPowerUnit').value),
-                hdd_id: document.getElementById('editBuildHDD').value ? parseInt(document.getElementById('editBuildHDD').value) : null,
-                ssd_id: document.getElementById('editBuildSSD').value ? parseInt(document.getElementById('editBuildSSD').value) : null
-            };
-
-            // Загружаем изображение, если оно выбрано
-            const imageFile = document.getElementById('editBuildImage').files[0];
-            if (imageFile) {
-                const imageFormData = new FormData();
-                imageFormData.append('image', imageFile);
-
-                const imageData = await uploadBuildImage(imageFormData);
-                formData.image_url = imageData.image_url;
-            }
-
-            // Отправляем данные сборки
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', buildId), {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
+            console.log('Loaded component data:', {
+                cpu: cpuData,
+                gpu: gpuData,
+                motherboard: motherboardData,
+                body: bodyData,
+                ram: ramData,
+                powerUnit: powerUnitData,
+                hdd: hddData,
+                ssd: ssdData
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Ошибка при обновлении сборки');
-            }
+            // Функция для форматирования текста опции
+            const formatOptionText = (component) => {
+                let text = `${component.data.name} - ${component.data.price} ₽`;
+                if (component.data.cores) {
+                    text += ` (${component.data.cores} ядер)`;
+                } else if (component.data.vram) {
+                    text += ` (${component.data.vram}GB VRAM)`;
+                } else if (component.data.capacity) {
+                    text += ` (${component.data.capacity})`;
+                } else if (component.data.wattage) {
+                    text += ` (${component.data.wattage})`;
+                }
+                return text;
+            };
 
-            // Закрываем модальное окно и обновляем список сборок
-            closeModal('editBuildModal');
-            await loadProducts();
-            showToast('Сборка успешно обновлена', 'success');
-        } catch (error) {
-            console.error('Ошибка при обновлении сборки:', error);
-            showToast('Ошибка при обновлении сборки: ' + error.message, 'error');
-        }
-    });
+            // Функция для заполнения селекта
+            const populateSelect = (selectId, components) => {
+                const select = document.getElementById(selectId);
+                if (!select) {
+                    console.error(`Select element not found: ${selectId}`);
+                    return;
+                }
 
-    // Обработчики для кнопок действий
-    document.addEventListener('click', async function(e) {
-        if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
-            const button = e.target.classList.contains('edit-btn') ? e.target : e.target.closest('.edit-btn');
-            const id = button.getAttribute('data-id');
-            if (id) {
-                await showEditBuildModal(id);
-            }
-        }
 
-        if (e.target.classList.contains('delete-btn')) {
-            const id = e.target.getAttribute('data-id');
-            const table = e.target.closest('table');
-            if (!table) return;
-            
-            const tableId = table.id;
-            
-            if (tableId === 'products-table') {
-                const buildName = e.target.closest('tr').querySelector('td:nth-child(3)').textContent;
-                const modal = document.getElementById('deleteConfirmationModal');
-                const message = document.getElementById('confirmationMessage');
-                const confirmBtn = document.getElementById('confirmDelete');
-                const cancelBtn = document.getElementById('cancelDelete');
+                // Добавляем опции
+                components.forEach(component => {
+                    const option = document.createElement('option');
+                    option.value = String(component.data.id); // <-- id как value
+                    option.textContent = formatOptionText(component); // название и характеристики
+                    select.appendChild(option);
+                });
 
-                // Показываем модальное окно с подтверждением
-                message.textContent = `Вы действительно хотите удалить сборку "${buildName}"?`;
-                modal.style.display = 'block';
+                console.log(`Populated ${selectId} with ${components.length} options`);
+            };
 
-                // Обработчики для кнопок подтверждения
-                confirmBtn.onclick = async function() {
-                    try {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                            throw new Error('Требуется авторизация');
-                        }
+            // Заполняем все селекты
+            populateSelect('editBuildCPU', cpuData);
+            populateSelect('editBuildGPU', gpuData);
+            populateSelect('editBuildMotherboard', motherboardData);
+            populateSelect('editBuildBody', bodyData);
+            populateSelect('editBuildRAM', ramData);
+            populateSelect('editBuildPowerUnit', powerUnitData);
+            populateSelect('editBuildHDD', hddData);
+            populateSelect('editBuildSSD', ssdData);
 
-                        const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.BUILDS.DETAIL.replace(':id', id), {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
+            // Добавляем обработчики для предпросмотра
+            const addEditPreviewHandlers = () => {
+                const componentTypes = {
+                    'editBuildCPU': 'CPU',
+                    'editBuildGPU': 'GPU',
+                    'editBuildMotherboard': 'Motherboard',
+                    'editBuildBody': 'Body',
+                    'editBuildRAM': 'RAM',
+                    'editBuildPowerUnit': 'PowerUnit',
+                    'editBuildHDD': 'HDD',
+                    'editBuildSSD': 'SSD'
+                };
+
+                Object.entries(componentTypes).forEach(([selectId, type]) => {
+                    const select = document.getElementById(selectId);
+                    const preview = document.getElementById(`editPreview${type}`);
+                    
+                    if (select && preview) {
+                        select.addEventListener('change', () => {
+                            const selectedOption = select.options[select.selectedIndex];
+                            if (selectedOption.value) {
+                                preview.textContent = selectedOption.textContent;
+                            } else {
+                                preview.textContent = 'Не выбран';
                             }
                         });
-
-                        if (!response.ok) {
-                            throw new Error('Ошибка при удалении сборки');
-                        }
-
-                        showToast('Сборка успешно удалена', 'success');
-                        await loadProducts();
-                        closeModal('deleteConfirmationModal');
-                    } catch (error) {
-                        console.error('Ошибка при удалении сборки:', error);
-                        showToast('Ошибка при удалении сборки: ' + error.message, 'error');
                     }
-                };
+                });
+            };
 
-                // Обработчик отмены удаления
-                cancelBtn.onclick = function() {
-                    closeModal('deleteConfirmationModal');
-                };
-            }
-        }
-    });
-
-    async function loadComponentsForEdit() {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('Требуется авторизация');
-            }
-
-            // Загружаем все компоненты параллельно
-            const [cpus, gpus, motherboards, bodies, rams, powerUnits, hdds, ssds] = await Promise.all([
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=cpu', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=gpu', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=motherboard', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=body', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=ram', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=power_unit', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=hdd', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || []),
-                fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.COMPONENTS.LIST + '?category=ssd', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(res => res.json()).then(data => data.data || [])
-            ]);
-
-            // Заполняем селекты компонентами
-            populateSelect('editBuildCPU', cpus);
-            populateSelect('editBuildGPU', gpus);
-            populateSelect('editBuildMotherboard', motherboards);
-            populateSelect('editBuildBody', bodies);
-            populateSelect('editBuildRAM', rams);
-            populateSelect('editBuildPowerUnit', powerUnits);
-            populateSelect('editBuildHDD', hdds);
-            populateSelect('editBuildSSD', ssds);
-
-            // Добавляем обработчики изменения для предпросмотра
             addEditPreviewHandlers();
+            console.log('Component loading completed successfully');
 
-            return true;
         } catch (error) {
             console.error('Ошибка при загрузке компонентов:', error);
             showToast('Ошибка при загрузке компонентов: ' + error.message, 'error');
-            return false;
+            throw error;
         }
-    }
-
-    function populateSelect(selectId, components) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-
-        // Очищаем селект, оставляя первый option
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-
-        // Проверяем, что components является массивом
-        if (!Array.isArray(components)) {
-            console.error(`Компоненты для ${selectId} не являются массивом:`, components);
-            return;
-        }
-
-        // Добавляем компоненты
-        components.forEach(component => {
-            const option = document.createElement('option');
-            option.value = component.id;
-            option.textContent = `${component.name} (${component.price} ₽)`;
-            select.appendChild(option);
-        });
-    }
+    };
 
     function addEditPreviewHandlers() {
         const components = {
@@ -926,14 +1311,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
         Object.entries(components).forEach(([selectId, previewId]) => {
             const select = document.getElementById(selectId);
-            if (select) {
-                select.addEventListener('change', () => updateEditPreview());
+            const preview = document.getElementById(previewId);
+            
+            if (select && preview) {
+                select.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    preview.textContent = selectedOption.text || 'Не выбран';
+                });
             }
         });
     }
 
-    function updateEditPreview() {
-        const components = {
+    // Вспомогательная функция для получения названия типа компонента
+    function getComponentTypeName(type) {
+        const typeNames = {
+            'cpu': 'процессор',
+            'gpu': 'видеокарту',
+            'motherboard': 'материнскую плату',
+            'body': 'корпус',
+            'ram': 'оперативную память',
+            'power_unit': 'блок питания',
+            'hdd': 'HDD',
+            'ssd': 'SSD'
+        };
+        return typeNames[type] || type;
+    }
+
+    // === ЛОГИКА ДЛЯ РЕДАКТИРОВАНИЯ СБОРКИ (editBuildModal) ===
+
+    // Функция для загрузки и заполнения компонентов для редактирования сборки
+    async function loadEditBuildComponentsAndSetValues(build) {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Требуется авторизация');
+        const categories = [
+            { key: 'cpu', selectId: 'editBuildCPU', idField: 'cpu_id' },
+            { key: 'gpu', selectId: 'editBuildGPU', idField: 'gpu_id' },
+            { key: 'motherboard', selectId: 'editBuildMotherboard', idField: 'motherboard_id' },
+            { key: 'body', selectId: 'editBuildBody', idField: 'body_id' },
+            { key: 'ram', selectId: 'editBuildRAM', idField: 'ram_id' },
+            { key: 'power_unit', selectId: 'editBuildPowerUnit', idField: 'power_unit_id' },
+            { key: 'hdd', selectId: 'editBuildHDD', idField: 'hdd_id' },
+            { key: 'ssd', selectId: 'editBuildSSD', idField: 'ssd_id' }
+        ];
+        // Загружаем все компоненты параллельно
+        const responses = await Promise.all(categories.map(cat =>
+            fetch(`${API_CONFIG.BASE_URL}/components?category=${cat.key}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ));
+        const data = await Promise.all(responses.map(r => r.json()));
+        // Заполняем селекты
+        categories.forEach((cat, idx) => {
+            const select = document.getElementById(cat.selectId);
+            if (!select) return;
+            select.innerHTML = '<option value="">Выберите компонент</option>';
+            data[idx].forEach(component => {
+                const option = document.createElement('option');
+                option.value = String(component.data.id);
+                let text = `${component.data.name} - ${component.data.price} ₽`;
+                if (component.data.cores) text += ` (${component.data.cores} ядер)`;
+                if (component.data.vram) text += ` (${component.data.vram}GB VRAM)`;
+                if (component.data.capacity) text += ` (${component.data.capacity})`;
+                if (component.data.wattage) text += ` (${component.data.wattage})`;
+                option.textContent = text;
+                select.appendChild(option);
+            });
+            // Устанавливаем значение из build
+            if (build && build[cat.idField]) {
+                select.value = String(build[cat.idField]);
+            } else {
+                select.value = '';
+            }
+        });
+        // Обновляем предпросмотр
+        updateEditBuildPreview();
+    }
+
+    function updateEditBuildPreview() {
+        const map = {
             'editBuildCPU': 'editPreviewCPU',
             'editBuildGPU': 'editPreviewGPU',
             'editBuildMotherboard': 'editPreviewMotherboard',
@@ -943,72 +1398,127 @@ document.addEventListener('DOMContentLoaded', function() {
             'editBuildHDD': 'editPreviewHDD',
             'editBuildSSD': 'editPreviewSSD'
         };
-
-        Object.entries(components).forEach(([selectId, previewId]) => {
+        Object.entries(map).forEach(([selectId, previewId]) => {
             const select = document.getElementById(selectId);
             const preview = document.getElementById(previewId);
             if (select && preview) {
                 const selectedOption = select.options[select.selectedIndex];
-                if (selectedOption) {
-                    preview.textContent = selectedOption.textContent || 'Не выбран';
-                } else {
-                    preview.textContent = 'Не выбран';
-                }
+                preview.textContent = selectedOption && selectedOption.value ? selectedOption.text : 'Не выбран';
             }
         });
     }
 
-    // Функция для загрузки пользователей
-    async function loadUsers() {
+    // Навешиваем обработчики предпросмотра только один раз
+    function addEditBuildPreviewHandlers() {
+        const map = {
+            'editBuildCPU': 'editPreviewCPU',
+            'editBuildGPU': 'editPreviewGPU',
+            'editBuildMotherboard': 'editPreviewMotherboard',
+            'editBuildBody': 'editPreviewBody',
+            'editBuildRAM': 'editPreviewRAM',
+            'editBuildPowerUnit': 'editPreviewPowerUnit',
+            'editBuildHDD': 'editPreviewHDD',
+            'editBuildSSD': 'editPreviewSSD'
+        };
+        Object.entries(map).forEach(([selectId, previewId]) => {
+            const select = document.getElementById(selectId);
+            if (select && !select.dataset.editPreviewHandler) {
+                select.addEventListener('change', updateEditBuildPreview);
+                select.dataset.editPreviewHandler = 'true';
+            }
+        });
+    }
+
+    // Основная функция для открытия модального окна редактирования сборки
+    window.showEditBuildModal = async function(buildId) {
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('Требуется авторизация');
+            if (!token) throw new Error('Требуется авторизация');
+            const modal = document.getElementById('editBuildModal');
+            const loadingOverlay = document.getElementById('editBuildLoading');
+            if (modal) {
+                modal.style.display = 'block';
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
             }
-
-            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS);
-
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке пользователей');
-            }
-
-            const users = await response.json();
-            const tbody = document.getElementById('usersTableBody');
-            tbody.innerHTML = '';
-
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.email}</td>
-                    <td>${user.role}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-
-                // Добавляем обработчики событий для кнопок в этой строке
-                const deleteBtn = row.querySelector('.action-btn.delete');
-                deleteBtn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-id');
-                    const userName = this.getAttribute('data-name');
-                    if (userId && userName) {
-                        showDeleteConfirmation(userId, userName);
-                    }
-                });
+            // Получаем данные сборки
+            const response = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) throw new Error('Ошибка при загрузке сборки');
+            const build = await response.json();
+            // Заполняем основные поля
+            document.getElementById('editBuildName').value = build.name || '';
+            document.getElementById('editBuildDescription').value = build.description || '';
+            document.getElementById('editBuildPrice').value = build.total_price || '';
+            // Загружаем и заполняем компоненты
+            await loadEditBuildComponentsAndSetValues(build);
+            addEditBuildPreviewHandlers();
+            // === Только теперь навешиваем обработчики и считаем стоимость ===
+            addEditBuildCostHandlers();
+            calculateEditBuildCost();
+            // Скрываем индикатор загрузки
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+            // Навешиваем обработчик submit только один раз
+            const form = document.getElementById('editBuildForm');
+            if (form) {
+                if (!form.dataset.editHandlerAdded) {
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        const data = {
+                            name: document.getElementById('editBuildName').value,
+                            description: document.getElementById('editBuildDescription').value,
+                            total_price: document.getElementById('editBuildPrice').value,
+                            cpu_id: document.getElementById('editBuildCPU').value ? parseInt(document.getElementById('editBuildCPU').value) : null,
+                            gpu_id: document.getElementById('editBuildGPU').value ? parseInt(document.getElementById('editBuildGPU').value) : null,
+                            motherboard_id: document.getElementById('editBuildMotherboard').value ? parseInt(document.getElementById('editBuildMotherboard').value) : null,
+                            body_id: document.getElementById('editBuildBody').value ? parseInt(document.getElementById('editBuildBody').value) : null,
+                            ram_id: document.getElementById('editBuildRAM').value ? parseInt(document.getElementById('editBuildRAM').value) : null,
+                            power_unit_id: document.getElementById('editBuildPowerUnit').value ? parseInt(document.getElementById('editBuildPowerUnit').value) : null,
+                            hdd_id: document.getElementById('editBuildHDD').value ? parseInt(document.getElementById('editBuildHDD').value) : null,
+                            ssd_id: document.getElementById('editBuildSSD').value ? parseInt(document.getElementById('editBuildSSD').value) : null
+                        };
+                        try {
+                            const resp = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(data)
+                            });
+                            if (!resp.ok) throw new Error('Ошибка при обновлении сборки');
+                            showToast('Сборка успешно обновлена', 'success');
+                            window.closeEditBuildModal();
+                            // Обновить список сборок, если нужно
+                        } catch (error) {
+                            showToast('Ошибка при обновлении сборки', 'error');
+                        }
+                    });
+                    form.dataset.editHandlerAdded = 'true';
+                }
+            }
         } catch (error) {
-            console.error('Ошибка при загрузке пользователей:', error);
-            showToast('Ошибка при загрузке пользователей: ' + error.message, 'error');
+            showToast('Ошибка при загрузке сборки: ' + error.message, 'error');
+            const loadingOverlay = document.getElementById('editBuildLoading');
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
         }
-    }
+    };
+
+    // Обновляем функцию закрытия модального окна
+    window.closeEditBuildModal = function() {
+        const modal = document.getElementById('editBuildModal');
+        const loadingOverlay = document.getElementById('editBuildLoading');
+        if (modal) {
+            modal.style.display = 'none';
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        // Сброс стоимости после закрытия
+        document.getElementById('editComponentsCost').textContent = '0 ₽';
+        document.getElementById('editMarkupCost').textContent = '0 ₽';
+        document.getElementById('editTotalCalculatedCost').textContent = '0 ₽';
+    };
 
     // Функция для показа подтверждения удаления
     function showDeleteConfirmation(userId, userName) {
@@ -1143,4 +1653,442 @@ document.addEventListener('DOMContentLoaded', function() {
             `).join('');
         }
     }
+
+    window.editUser = async function(userId) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS + `/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке данных пользователя');
+            }
+
+            const user = await response.json();
+            
+            // Создаем модальное окно для редактирования
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Редактирование пользователя</h2>
+                    <form id="editUserForm">
+                        <div class="form-group">
+                            <label for="editName">Имя:</label>
+                            <input type="text" id="editName" value="${user.name || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editEmail">Email:</label>
+                            <input type="email" id="editEmail" value="${user.email || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editPhone">Телефон:</label>
+                            <input type="tel" id="editPhone" value="${user.phone || ''}" placeholder="+7 (XXX) XXX-XX-XX">
+                        </div>
+                        <div class="form-group">
+                            <label for="editRole">Роль:</label>
+                            <select id="editRole">
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Пользователь</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Администратор</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                            <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Отмена</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Добавляем обработчик закрытия модального окна
+            modal.querySelector('.close').addEventListener('click', () => modal.remove());
+
+            // Добавляем обработчик отправки формы
+            modal.querySelector('#editUserForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = {
+                    name: document.getElementById('editName').value,
+                    email: document.getElementById('editEmail').value,
+                    phone: document.getElementById('editPhone').value,
+                    role: document.getElementById('editRole').value
+                };
+
+                try {
+                    const updateResponse = await fetch(API_CONFIG.BASE_URL + API_CONFIG.ENDPOINTS.ADMIN.USERS + `/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!updateResponse.ok) {
+                        throw new Error('Ошибка при обновлении данных пользователя');
+                    }
+
+                    modal.remove();
+                    showToast('Данные пользователя успешно обновлены', 'success');
+                    loadUsers(); // Перезагружаем список пользователей
+                } catch (error) {
+                    console.error('Ошибка при обновлении пользователя:', error);
+                    showToast('Ошибка при обновлении данных пользователя: ' + error.message, 'error');
+                }
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке пользователя:', error);
+            showToast('Ошибка при загрузке данных пользователя: ' + error.message, 'error');
+        }
+    };
+
+    // Функция для отображения сборок
+    function displayBuilds(builds) {
+        const buildsContainer = document.getElementById('buildsContainer');
+        if (!buildsContainer) return;
+
+        buildsContainer.innerHTML = builds.map(build => `
+            <tr>
+                <td>${build.name}</td>
+                <td>${build.total_price} ₽</td>
+                <td>
+                    <button class="action-btn view" onclick="viewBuild(${build.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn edit" data-id="${build.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteBuild(${build.id}, '${build.name}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Обработчики для кнопок действий
+    document.addEventListener('click', async function(e) {
+        if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+            const button = e.target.classList.contains('edit-btn') ? e.target : e.target.closest('.edit-btn');
+            const id = button.getAttribute('data-id');
+            console.log('[DEBUG] Клик по кнопке редактирования, id:', id);
+            if (id) {
+                await window.showEditBuildModal(id.toString());
+            } else {
+                console.error('[DEBUG] Не найден id для редактирования сборки');
+            }
+        }
+    });
+
+    // Функция для просмотра деталей заказа
+    window.viewOrderDetails = async function(orderId) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/orders/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке данных заказа');
+            }
+
+            const order = await response.json();
+            showOrderDetailsModal(order);
+        } catch (error) {
+            console.error('Ошибка при загрузке заказа:', error);
+            showToast('Ошибка', 'Не удалось загрузить данные заказа', 'error');
+        }
+    };
+
+    // Функция для показа модального окна с деталями заказа
+    function showOrderDetailsModal(order) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        console.log('Order data:', order); // Отладочная информация
+        
+        // Форматируем дату (используем created_at из GORM)
+        const orderDate = new Date(order.created_at || order.CreatedAt);
+        const formattedDate = orderDate.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Форматируем сумму (используем total_amount из модели)
+        const formattedAmount = new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB'
+        }).format(order.total_amount || 0);
+
+        // Формируем список товаров
+        const itemsList = order.items && order.items.length > 0 ? order.items.map(item => `
+            <div style="border: 1px solid #eee; padding: 10px; margin: 5px 0; border-radius: 4px;">
+                <strong>${item.build ? item.build.name : 'Товар'}</strong><br>
+                Количество: ${item.quantity}<br>
+                Цена: ${new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'RUB'}).format(item.price)}
+            </div>
+        `).join('') : '<p>Товары не найдены</p>';
+
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px;">
+                <span class="close" onclick="closeOrderDetailsModal()">&times;</span>
+                <h3>Детали заказа #${order.id || order.ID}</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4>Основная информация</h4>
+                        <p><strong>Дата заказа:</strong> ${formattedDate}</p>
+                        <p><strong>Статус:</strong> ${getOrderStatusText(order.status || order.Status)}</p>
+                        <p><strong>Сумма:</strong> ${formattedAmount}</p>
+                        <p><strong>ID пользователя:</strong> ${order.user_id || order.UserID}</p>
+                    </div>
+                    <div>
+                        <h4>Информация о доставке</h4>
+                        <p><strong>Адрес:</strong> ${order.shipping_address || order.ShippingAddress || 'Не указан'}</p>
+                        <p><strong>Способ доставки:</strong> ${(order.delivery_method || order.DeliveryMethod) === 'courier' ? 'Курьер' : 'Самовывоз'}</p>
+                        <p><strong>Способ оплаты:</strong> ${(order.payment_method || order.PaymentMethod) === 'card' ? 'Банковская карта' : 'Наличные'}</p>
+                        <p><strong>Комментарий:</strong> ${order.comment || order.Comment || 'Нет комментария'}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <h4>Товары в заказе</h4>
+                    ${itemsList}
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button onclick="closeOrderDetailsModal()" style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">
+                        Закрыть
+                    </button>
+                    <button onclick="editOrder(${order.id || order.ID})" style="padding: 8px 16px; border: none; background: #3498db; color: white; border-radius: 4px; cursor: pointer;">
+                        Редактировать
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    // Функция для закрытия модального окна с деталями заказа
+    window.closeOrderDetailsModal = function() {
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+    // Открыть модальное окно редактирования пользователя
+    window.showEditUserModal = function(user) {
+        console.log('[DEBUG] Открывается модалка пользователя', user);
+        // Закрыть модалку сборки, если она открыта
+        const buildModal = document.getElementById('editBuildModal');
+        if (buildModal) buildModal.style.display = 'none';
+        const modal = document.getElementById('editUserModal');
+        if (!modal) return;
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserName').value = user.name || '';
+        document.getElementById('editUserSurname').value = user.surname || '';
+        document.getElementById('editUserEmail').value = user.email || '';
+        document.getElementById('editUserPhone').value = user.phone || '';
+        document.getElementById('editUserRole').value = user.role || 'user';
+        modal.style.display = 'block';
+    };
+
+    // Закрыть модальное окно редактирования пользователя
+    window.closeEditUserModal = function() {
+        const modal = document.getElementById('editUserModal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    // Обработчик отправки формы редактирования пользователя
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editUserId').value;
+            const data = {
+                name: document.getElementById('editUserName').value,
+                surname: document.getElementById('editUserSurname').value,
+                email: document.getElementById('editUserEmail').value,
+                phone: document.getElementById('editUserPhone').value,
+                role: document.getElementById('editUserRole').value
+            };
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_CONFIG.BASE_URL}/users/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Ошибка при сохранении пользователя');
+                showToast('Пользователь успешно обновлен', 'success');
+                window.closeEditUserModal();
+                loadUsers();
+            } catch (error) {
+                showToast('Ошибка при сохранении пользователя', 'error');
+            }
+        });
+    }
+
+    // === Удаление пользователя ===
+    window.deleteUser = async function(userId) {
+        if (!userId) return;
+        if (!confirm('Вы уверены, что хотите удалить этого пользователя?')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) throw new Error('Ошибка при удалении пользователя');
+            showToast('Пользователь успешно удалён', 'success');
+            // Обновляем список пользователей
+            if (typeof loadUsers === 'function') loadUsers();
+        } catch (error) {
+            showToast('Ошибка при удалении пользователя', 'error');
+        }
+    };
+
+    // === Предпросмотр изображения для формы редактирования сборки ===
+    const editBuildImageInput = document.getElementById('editBuildImage');
+    const editBuildImagePreview = document.getElementById('editBuildImagePreview');
+    if (editBuildImageInput && editBuildImagePreview) {
+      editBuildImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            editBuildImagePreview.style.display = 'flex';
+            editBuildImagePreview.querySelector('img').src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          editBuildImagePreview.style.display = 'none';
+          editBuildImagePreview.querySelector('img').src = '';
+        }
+      });
+    }
+
+    // В обработчике submit формы добавляем отладочный вывод
+    const editBuildForm = document.getElementById('editBuildForm');
+    if (editBuildForm) {
+        editBuildForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const idInput = this.querySelector('input[name="id"]');
+            console.log('[DEBUG] Скрытое поле id:', idInput);
+            console.log('[DEBUG] Значение id:', idInput ? idInput.value : 'idInput не найден');
+            const buildId = idInput ? idInput.value : undefined;
+            console.log('[DEBUG] submit editBuildForm, buildId:', buildId);
+
+            // Собираем данные формы
+            const name = document.getElementById('editBuildName').value;
+            const description = document.getElementById('editBuildDescription').value;
+            const price = document.getElementById('editBuildPrice').value;
+            const cpu_id = document.getElementById('editBuildCPU').value ? parseInt(document.getElementById('editBuildCPU').value) : null;
+            const gpu_id = document.getElementById('editBuildGPU').value ? parseInt(document.getElementById('editBuildGPU').value) : null;
+            const motherboard_id = document.getElementById('editBuildMotherboard').value ? parseInt(document.getElementById('editBuildMotherboard').value) : null;
+            const body_id = document.getElementById('editBuildBody').value ? parseInt(document.getElementById('editBuildBody').value) : null;
+            const ram_id = document.getElementById('editBuildRAM').value ? parseInt(document.getElementById('editBuildRAM').value) : null;
+            const power_unit_id = document.getElementById('editBuildPowerUnit').value ? parseInt(document.getElementById('editBuildPowerUnit').value) : null;
+            const hdd_id = document.getElementById('editBuildHDD').value ? parseInt(document.getElementById('editBuildHDD').value) : null;
+            const ssd_id = document.getElementById('editBuildSSD').value ? parseInt(document.getElementById('editBuildSSD').value) : null;
+
+            const data = {
+                name,
+                description,
+                total_price: price,
+                cpu_id,
+                gpu_id,
+                motherboard_id,
+                body_id,
+                ram_id,
+                power_unit_id,
+                hdd_id,
+                ssd_id
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_CONFIG.BASE_URL}/builds/${buildId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Ошибка при обновлении сборки');
+                showToast('Сборка успешно обновлена', 'success');
+                window.closeEditBuildModal();
+                // Обновите список сборок, если нужно
+            } catch (error) {
+                showToast('Ошибка при обновлении сборки', 'error');
+            }
+        });
+    }
+
+    // === Примерная стоимость для editBuildModal ===
+    function calculateEditBuildCost() {
+        const selectIds = [
+            'editBuildCPU', 'editBuildGPU', 'editBuildMotherboard',
+            'editBuildBody', 'editBuildRAM', 'editBuildPowerUnit',
+            'editBuildHDD', 'editBuildSSD'
+        ];
+        let total = 0;
+        selectIds.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select && select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                // Извлекаем цену из текста опции
+                const match = selectedOption.textContent.match(/-\s*([\d\.]+)\s*₽/);
+                if (match) {
+                    total += parseFloat(match[1]);
+                }
+            }
+        });
+        const markup = Math.round(total * 0.15);
+        const final = total + markup;
+        document.getElementById('editComponentsCost').textContent = `${total.toLocaleString()} ₽`;
+        document.getElementById('editMarkupCost').textContent = `${markup.toLocaleString()} ₽`;
+        document.getElementById('editTotalCalculatedCost').textContent = `${final.toLocaleString()} ₽`;
+        const priceInput = document.getElementById('editBuildPrice');
+        if (priceInput) priceInput.value = final;
+    }
+
+    // Навешиваем расчет стоимости на все селекты editBuild*
+    function addEditBuildCostHandlers() {
+        const selectIds = [
+            'editBuildCPU', 'editBuildGPU', 'editBuildMotherboard',
+            'editBuildBody', 'editBuildRAM', 'editBuildPowerUnit',
+            'editBuildHDD', 'editBuildSSD'
+        ];
+        selectIds.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            if (select && !select.dataset.costHandlerAdded) {
+                select.addEventListener('change', calculateEditBuildCost);
+                select.dataset.costHandlerAdded = 'true';
+            }
+        });
+    }
+
+    // Вызов расчета стоимости при открытии модального окна и после заполнения селектов
+    // (добавить в showEditBuildModal после заполнения селектов и предпросмотра)
+    // ... existing code ...
+    // Внутри window.showEditBuildModal после addEditBuildPreviewHandlers();
+    addEditBuildCostHandlers();
+    calculateEditBuildCost();
+    // ... existing code ...
 }); 

@@ -29,6 +29,27 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-top: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .cart-checkout-section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .cart-summary h2 {
+            margin: 0 0 25px 0;
+            font-size: 24px;
+            color: #333;
+            font-weight: 600;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .cart-item {
@@ -162,55 +183,84 @@
         }
 
         .cart-total {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .cart-total-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
             font-size: 16px;
+            font-weight: 500;
+        }
+
+        .cart-total-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .cart-total-row.delivery {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
         }
 
         .cart-total-row.final {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            margin-top: 15px;
         }
 
         .checkout-btn {
             width: 100%;
-            padding: 15px;
-            background: var(--primary-color);
+            max-width: 400px;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 18px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
         }
 
         .checkout-btn:hover {
-            background: var(--secondary-color);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .checkout-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
 
         .checkout-btn:disabled {
-            background: #ccc;
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
             cursor: not-allowed;
             transform: none;
+            box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+        }
+
+        .checkout-btn i {
+            font-size: 20px;
         }
 
         .empty-cart {
@@ -258,20 +308,102 @@
         }
 
         @media (max-width: 768px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 15px;
+            }
+
+            .cart-items {
+                order: 1;
+            }
+
+            .cart-summary {
+                order: 2;
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .cart-checkout-section {
+                order: 3;
+                margin-top: 20px;
+                padding: 20px;
+            }
+
+            .cart-total {
+                margin-bottom: 25px;
+                padding: 20px;
+            }
+
+            .checkout-btn {
+                padding: 16px;
+                font-size: 16px;
+                max-width: 100%;
+            }
+
             .cart-item {
-                flex-direction: column;
+                padding: 15px;
             }
 
-            .cart-item img {
-                width: 100%;
-                height: auto;
-                margin-bottom: 15px;
+            .cart-item-info h3 {
+                font-size: 16px;
             }
 
-            .cart-item-actions {
-                flex-direction: column;
-                align-items: flex-start;
+            .cart-item-price {
+                font-size: 18px;
             }
+
+            .quantity-controls {
+                gap: 8px;
+            }
+
+            .quantity-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .quantity-input {
+                width: 50px;
+                font-size: 14px;
+            }
+        }
+
+        /* Стили для индикатора загрузки */
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #666;
+            text-align: center;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: #999;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -284,7 +416,10 @@
             <div class="nav-links">
                 <a href="index.html">Главная</a>
                 <a href="builds.html">Готовые сборки</a>
-                <a href="cart.html" class="active cart-link">
+                <a href="news.html">Новости</a>
+                <a href="articles.html">Статьи</a>
+                <a href="faq.html">FAQ</a>
+                <a href="cart.html" class="cart-link active">
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
                 </a>
@@ -311,28 +446,37 @@
                 <h1>Корзина</h1>
                 <div class="cart-container">
                     <div class="cart-items" id="cartItems">
+                        <!-- Индикатор загрузки -->
+                        <div class="loading-spinner" id="loadingSpinner">
+                            <div class="spinner"></div>
+                            <div class="loading-text">Загрузка корзины...</div>
+                            <div class="loading-subtext">Пожалуйста, подождите</div>
+                        </div>
                         <!-- Здесь будут отображаться товары -->
                     </div>
                     <div class="cart-summary">
-                        <h2>Итоговая сумма</h2>
+                        <h2>Итого</h2>
                         <div class="cart-total">
                             <div class="cart-total-row">
                                 <span>Товары:</span>
-                                <span id="subtotal">0 руб.</span>
+                                <span id="subtotal">0 ₽</span>
                             </div>
-                            <div class="cart-total-row">
+                            <div class="cart-total-row delivery">
                                 <span>Доставка:</span>
-                                <span>Бесплатно</span>
+                                <span id="deliveryCost">0 ₽</span>
                             </div>
                             <div class="cart-total-row final">
                                 <span>Итого:</span>
-                                <span id="cartTotal">0 руб.</span>
+                                <span id="cartTotal">0 ₽</span>
                             </div>
-                            <button class="checkout-btn" id="checkoutBtn">
-                                <i class="fas fa-shopping-bag"></i>
-                                Оформить заказ
-                            </button>
                         </div>
+                    </div>
+                    
+                    <div class="cart-checkout-section">
+                        <button id="checkoutBtn" class="checkout-btn" disabled>
+                            <i class="fas fa-shopping-cart"></i>
+                            Оформить заказ
+                        </button>
                     </div>
                 </div>
             </div>
@@ -344,25 +488,17 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>О нас</h3>
-                    <p>PC Tech Shop - ваш надежный помощник в выборе и сборке компьютера. Мы предлагаем качественные компоненты и готовые сборки по лучшим ценам.</p>
+                    <p>PC Tech Shop - ваш надежный помощник в выборе и покупке компьютерной техники. Мы предлагаем только качественные товары по лучшим ценам.</p>
                 </div>
                 <div class="footer-section">
                     <h3>Контакты</h3>
-                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
-                    <p><i class="fas fa-envelope"></i> info@pctechshop.ru</p>
-                    <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, д. 123</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Социальные сети</h3>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-vk"></i></a>
-                        <a href="#"><i class="fab fa-telegram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
+                    <p><i class="fas fa-phone"></i> +7 (993) 746-99-58</p>
+                    <p><i class="fas fa-envelope"></i> pc-tech-magazine@yandex.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Гусь-Хрустальный, ул. Микройрайон, д. 45</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 PC Tech Shop. Все права защищены.</p>
+                <p>&copy; 2025 PC Tech Shop. Все права защищены.</p>
             </div>
         </div>
     </footer>
@@ -435,6 +571,25 @@
                 return;
             }
 
+            // Показываем индикатор загрузки
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'flex';
+            }
+            
+            // Очищаем контейнер корзины, оставляя только спиннер
+            if (cartItemsContainer) {
+                cartItemsContainer.innerHTML = `
+                    <div class="loading-spinner" id="loadingSpinner">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Загрузка корзины...</div>
+                        <div class="loading-subtext">Пожалуйста, подождите</div>
+                    </div>
+                `;
+            }
+
             try {
                 console.log('Начало загрузки корзины...');
                 console.log('Используемый токен:', token.substring(0, 10) + '...');
@@ -449,8 +604,19 @@
                     const items = await response.json();
                     console.log('Успешно получены товары корзины:', items);
 
+                    // Показываем прогресс загрузки компонентов
+                    if (cartItemsContainer) {
+                        cartItemsContainer.innerHTML = `
+                            <div class="loading-spinner" id="loadingSpinner">
+                                <div class="spinner"></div>
+                                <div class="loading-text">Загрузка компонентов...</div>
+                                <div class="loading-subtext">Подготовка данных товаров</div>
+                            </div>
+                        `;
+                    }
+
                     // Загружаем компоненты для каждой сборки
-                    const itemsWithComponents = await Promise.all(items.map(async (item) => {
+                    const itemsWithComponents = await Promise.all(items.map(async (item, index) => {
                         if (item.build && item.build.id) {
                             try {
                                 console.log('Загрузка компонентов для сборки:', item.build.id);
@@ -492,12 +658,34 @@
                 } else {
                     console.error('Ошибка при загрузке корзины:', response.status, response.statusText);
                     showToast('Не удалось загрузить корзину', 'error');
+                    // Показываем сообщение об ошибке
+                    if (cartItemsContainer) {
+                        cartItemsContainer.innerHTML = `
+                            <div class="empty-cart">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h2>Ошибка загрузки</h2>
+                                <p>Не удалось загрузить корзину. Пожалуйста, попробуйте еще раз.</p>
+                                <button onclick="loadCart()" class="continue-shopping">Попробовать снова</button>
+                            </div>
+                        `;
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке корзины:', error);
                 console.error('Тип ошибки:', error.name);
                 console.error('Сообщение об ошибке:', error.message);
                 showToast('Произошла ошибка при загрузке корзины. Проверьте подключение к серверу.', 'error');
+                // Показываем сообщение об ошибке
+                if (cartItemsContainer) {
+                    cartItemsContainer.innerHTML = `
+                        <div class="empty-cart">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h2>Ошибка подключения</h2>
+                            <p>Не удалось подключиться к серверу. Проверьте интернет-соединение.</p>
+                            <button onclick="loadCart()" class="continue-shopping">Попробовать снова</button>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -517,6 +705,13 @@
                 cartItemsContainer.innerHTML = '<div class="empty-cart">Корзина пуста</div>';
                 cartTotal.textContent = '0 ₽';
                 subtotal.textContent = '0 ₽';
+                
+                // Обновляем стоимость доставки для пустой корзины
+                const deliveryCostElement = document.getElementById('deliveryCost');
+                if (deliveryCostElement) {
+                    deliveryCostElement.textContent = '0 ₽ (фиксированная стоимость доставки)';
+                }
+                
                 checkoutBtn.disabled = true;
                 return;
             }
@@ -538,13 +733,15 @@
                     imageUrl = API_CONFIG.BASE_URL + imageUrl;
                 }
 
-                const itemTotal = item.build.total_price * item.quantity;
-                total += itemTotal;
+                const itemPrice = Number(item.build.total_price || 0);
+                total += itemPrice;
 
                 const cartItem = document.createElement('div');
                 cartItem.className = 'cart-item';
                 cartItem.innerHTML = `
-                    <img src="${imageUrl}" alt="${item.build.name}" onerror="this.src='${API_CONFIG.BASE_URL}/images/builds/default.jpg'">
+                    <img src="${imageUrl}" 
+                         alt="${item.build.name}" 
+                         onerror="this.onerror=null; this.src='assets/default-build.jpg'">
                     <div class="cart-item-info">
                         <h3 class="cart-item-title">${item.build.name}</h3>
                         <p class="cart-item-description">${item.build.description || 'Описание отсутствует'}</p>
@@ -577,13 +774,8 @@
                             }
                         </div>
 
-                        <div class="cart-item-price">${itemTotal.toLocaleString()} ₽</div>
+                        <div class="cart-item-price">${itemPrice.toLocaleString()} ₽</div>
                         <div class="cart-item-actions">
-                            <div class="cart-item-quantity">
-                                <button onclick="updateQuantity(${item.id}, -1)">-</button>
-                                <span>${item.quantity}</span>
-                                <button onclick="updateQuantity(${item.id}, 1)">+</button>
-                            </div>
                             <button class="remove-btn" onclick="removeFromCart(${item.id})">
                                 <i class="fas fa-trash"></i>
                                 Удалить
@@ -594,9 +786,23 @@
                 cartItemsContainer.appendChild(cartItem);
             });
 
-            cartTotal.textContent = `${total.toLocaleString()} ₽`;
-            subtotal.textContent = `${total.toLocaleString()} ₽`;
-            checkoutBtn.disabled = false;
+            // Обновляем итоговые суммы
+            const formattedTotal = total.toLocaleString('ru-RU');
+            const deliveryCost = 2500; // Фиксированная стоимость доставки
+            const formattedDeliveryCost = deliveryCost.toLocaleString('ru-RU');
+            const finalTotal = total + deliveryCost;
+            const formattedFinalTotal = finalTotal.toLocaleString('ru-RU');
+            
+            subtotal.textContent = `${formattedTotal} ₽`;
+            
+            // Обновляем стоимость доставки
+            const deliveryCostElement = document.getElementById('deliveryCost');
+            if (deliveryCostElement) {
+                deliveryCostElement.textContent = `${formattedDeliveryCost} ₽ (фиксированная стоимость доставки)`;
+            }
+            
+            cartTotal.textContent = `${formattedFinalTotal} ₽`;
+            checkoutBtn.disabled = total <= 0;
         }
 
         // Функция для обновления количества товара

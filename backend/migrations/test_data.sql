@@ -68,23 +68,3 @@ INSERT INTO users (name, surname, phone, email, passwordhash, role) VALUES
 ('Анна', 'Сидорова', '+79993456789', 'anna@example.com', '$2a$10$YourHashedPasswordHere', 'user'),
 ('Мария', 'Козлова', '+79994567890', 'maria@example.com', '$2a$10$YourHashedPasswordHere', 'user');
 
--- Тестовые данные для таблицы заказов
-INSERT INTO orders (user_id, total_price, status, shipping_address, payment_method) VALUES
-(1, 349999.99, 'completed', 'г. Москва, ул. Ленина, д. 1, кв. 1', 'card'),
-(2, 299999.99, 'processing', 'г. Санкт-Петербург, ул. Пушкина, д. 2, кв. 2', 'card'),
-(3, 199999.99, 'new', 'г. Екатеринбург, ул. Гагарина, д. 3, кв. 3', 'cash'),
-(4, 249999.99, 'shipped', 'г. Новосибирск, ул. Мира, д. 4, кв. 4', 'card');
-
--- Тестовые данные для таблицы элементов заказа
-INSERT INTO order_items (order_id, pcbuild_id, quantity, price) VALUES
-(1, 1, 1, 349999.99),
-(2, 2, 1, 299999.99),
-(3, 3, 1, 199999.99),
-(4, 4, 1, 249999.99);
-
--- Тестовые данные для таблицы корзины
-INSERT INTO cart_items (user_id, pcbuild_id) VALUES
-(1, 2),
-(2, 3),
-(3, 4),
-(4, 1); 

@@ -8,54 +8,46 @@ type CartItem struct {
 	ID       uint    `json:"id" gorm:"primaryKey"`
 	UserID   int64   `json:"user_id"`
 	BuildID  uint    `json:"build_id" gorm:"column:pcbuild_id"`
-	Quantity int     `json:"quantity"`
+	Quantity int     `json:"quantity" gorm:"default:1"`
 	Build    Pcbuild `json:"build" gorm:"foreignKey:BuildID;references:ID"`
 }
 
 // GetCartItems получает все товары в корзине пользователя
 func GetCartItems(db *gorm.DB, userID int64) ([]CartItem, error) {
 	var items []CartItem
-	err := db.Preload("Build").
-		Where("user_id = ?", userID).
+	// Загружаем все сборки и их компоненты одним запросом
+	err := db.Where("user_id = ?", userID).
+		Preload("Build.CPU").
+		Preload("Build.GPU").
+		Preload("Build.Motherboard").
+		Preload("Build.RAM").
+		Preload("Build.PowerUnit").
+		Preload("Build.Body").
+		Preload("Build.HDD").
+		Preload("Build.SSD").
+		Preload("Build").
 		Find(&items).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	// Загружаем компоненты для каждой сборки отдельно
-	for i := range items {
-		if items[i].Build.ID != 0 {
-			var build Pcbuild
-			err := db.First(&build, items[i].BuildID).Error
-			if err != nil {
-				return nil, err
-			}
-			items[i].Build = build
-		}
-	}
-
 	return items, nil
 }
 
 // AddToCart добавляет товар в корзину
-func AddToCart(db *gorm.DB, userID int64, buildID uint, quantity int) error {
+func AddToCart(db *gorm.DB, userID int64, buildID uint) error {
 	var existingItem CartItem
 	result := db.Where("user_id = ? AND pcbuild_id = ?", userID, buildID).First(&existingItem)
 
 	if result.Error == nil {
-		// Если товар уже есть, обновляем количество
-		existingItem.Quantity += quantity
-		if err := db.Save(&existingItem).Error; err != nil {
-			return err
-		}
+		// Товар уже есть в корзине, ничего не делаем
 		return nil
 	} else if result.Error == gorm.ErrRecordNotFound {
 		// Если товара нет, создаем новую запись
 		cartItem := CartItem{
-			UserID:   userID,
-			BuildID:  buildID,
-			Quantity: quantity,
+			UserID:  userID,
+			BuildID: buildID,
 		}
 		if err := db.Create(&cartItem).Error; err != nil {
 			return err

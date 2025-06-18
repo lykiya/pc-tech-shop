@@ -130,6 +130,16 @@ CREATE TABLE IF NOT EXISTS cart_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS requests (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    messeage  VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Создание администратора по умолчанию
 INSERT INTO users (name, surname, phone, email, passwordhash, role)
 VALUES ('Admin', 'Admin', '+79999999999', 'admin@example.com', '$2a$10$YourHashedPasswordHere', 'admin')
