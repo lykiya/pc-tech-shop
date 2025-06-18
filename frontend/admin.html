@@ -1410,8 +1410,6 @@
                 <table class="admin-table" id="users-table">
                     <thead>
                         <tr>
-                            <th>№</th>
-                            <th>ID</th>
                             <th>Имя</th>
                             <th>Email</th>
                             <th>Роль</th>
@@ -1428,7 +1426,6 @@
                 <table class="admin-table" id="tickets-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Имя</th>
                             <th>Телефон</th>
                             <th>Сообщение</th>
@@ -2168,8 +2165,6 @@
                     users.forEach((user, index) => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${user.id}</td>
                             <td>${user.name} ${user.surname}</td>
                             <td>${user.email}</td>
                             <td>${getUserRoleText(user.role || user.type)}</td>
@@ -2218,7 +2213,6 @@
                     requests.forEach(request => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${request.id}</td>
                             <td>${request.name}</td>
                             <td>${request.phone}</td>
                             <td>${request.message}</td>
@@ -3411,23 +3405,7 @@
     </script>
 
     <!-- Последние действия -->
-    <div class="dashboard-latest" style="margin-top: 32px;">
-        <h4 style="color: #34495e; margin-bottom: 12px;">Последние действия</h4>
-        <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="padding: 8px 0; border-bottom: 1px solid #f0f2f5; color: #222;">
-                <i class="fas fa-user-plus" style="color: #27ae60; margin-right: 8px;"></i> Новый пользователь: <b>Иван Петров</b> зарегистрировался
-                <span style="float:right; color:#7f8c8d; font-size:12px;">2 мин назад</span>
-            </li>
-            <li style="padding: 8px 0; border-bottom: 1px solid #f0f2f5; color: #222;">
-                <i class="fas fa-shopping-cart" style="color: #2980b9; margin-right: 8px;"></i> Новый заказ: <b>Сборка "Геймер"</b>
-                <span style="float:right; color:#7f8c8d; font-size:12px;">10 мин назад</span>
-            </li>
-            <li style="padding: 8px 0; color: #222;">
-                <i class="fas fa-box" style="color: #e67e22; margin-right: 8px;"></i> Добавлен новый товар: <b>SSD Samsung 980 PRO</b>
-                <span style="float:right; color:#7f8c8d; font-size:12px;">30 мин назад</span>
-            </li>
-        </ul>
-    </div>
+
 
     <script>
     // Устанавливаем сегодняшнюю дату в дашборде

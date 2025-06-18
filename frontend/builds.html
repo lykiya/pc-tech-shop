@@ -709,7 +709,6 @@
 
             builds.forEach(build => {
                 let imageUrl = build.image_url;
-                // Если URL локальный, добавляем базовый URL сервера
                 if (imageUrl && !imageUrl.startsWith('http')) {
                     imageUrl = API_CONFIG.BASE_URL + imageUrl;
                 }
@@ -721,7 +720,7 @@
                         <img src="${imageUrl || '../assets/default-build.jpg'}" alt="${build.name}" onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
                     </div>
                     <div class="build-info">
-                        <h3>${build.name}</h3>
+                        <h3 class="build-title" style="cursor:pointer;color:#3498db;text-decoration:underline;">${build.name}</h3>
                         <p>${build.description}</p>
                         <div class="build-price">
                             <span class="price">${build.total_price.toLocaleString()} ₽</span>
@@ -731,6 +730,17 @@
                         </div>
                     </div>
                 `;
+                // Добавляю переход по клику на карточку или название
+                buildCard.addEventListener('click', function(e) {
+                    // Не срабатывает, если клик по кнопке корзины
+                    if (e.target.closest('.add-to-cart-btn')) return;
+                    window.location.href = `product-details.html?id=${build.id}`;
+                });
+                // Также по клику на название
+                buildCard.querySelector('.build-title').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.location.href = `product-details.html?id=${build.id}`;
+                });
                 buildsContainer.appendChild(buildCard);
             });
         }
