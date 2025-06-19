@@ -2118,11 +2118,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${ticket.phone}</td>
                 <td>${ticket.message}</td>
                 <td>${ticket.status}</td>
-                <td>
-                    <button class="action-btn delete" onclick="window.deleteTicket(${ticket.id})" title="Удалить">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
             </tr>
         `).join('');
     }

@@ -1433,7 +1433,7 @@
                             <th>Телефон</th>
                             <th>Сообщение</th>
                             <th>Статус</th>
-                            <th>Действия</th>
+                            <!-- <th>Действия</th> -->
                         </tr>
                     </thead>
                     <tbody id="ticketsTableBody">
@@ -2228,10 +2228,10 @@
                                     <option value="completed" ${request.status === 'completed' ? 'selected' : ''}>Завершено</option>
                                 </select>
                             </td>
-                            <td>
+                            <!-- <td>
                                 <button class="edit-btn" data-id="${request.id}">Редактировать</button>
                                 <button class="delete-btn" data-id="${request.id}">Удалить</button>
-                            </td>
+                            </td> -->
                         `;
                         tbody.appendChild(tr);
                     });
