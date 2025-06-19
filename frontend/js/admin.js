@@ -892,12 +892,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Ошибка при удалении компонента');
-                showToast('Компонент успешно удален', 'success');
+            showToast('Компонент успешно удален', 'success');
             window.closeDeleteComponentModal();
-            loadComponents(componentCategoryToDelete);
-            } catch (error) {
-                showToast('Ошибка при удалении компонента', 'error');
-            }
+            // Загружаем все компоненты и обновляем только нужную категорию
+            const allComponents = await loadComponents();
+            displayComponents(allComponents[componentCategoryToDelete] || [], componentCategoryToDelete);
+        } catch (error) {
+            showToast('Ошибка при удалении компонента', 'error');
+        }
     };
 
     // Обработчик отправки формы компонента
@@ -2117,7 +2119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${ticket.message}</td>
                 <td>${ticket.status}</td>
                 <td>
-                    <button class="action-btn delete" onclick="deleteTicket(${ticket.id})" title="Удалить">
+                    <button class="action-btn delete" onclick="window.deleteTicket(${ticket.id})" title="Удалить">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -2126,20 +2128,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.deleteTicket = async function(id) {
-        if (!confirm('Удалить это обращение?')) return;
+        if (!id) return;
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(API_CONFIG.BASE_URL + `/requests/${id}`, {
+            const response = await fetch(`${API_CONFIG.BASE_URL}/requests/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Ошибка при удалении обращения');
-            showToast('Успешно', 'Обращение удалено', 'success');
-            loadTickets();
+            showToast('Обращение удалено', 'success');
+            await loadTickets();
         } catch (error) {
-            showToast('Ошибка', 'Не удалось удалить обращение', 'error');
+            showToast('Ошибка при удалении обращения', 'error');
         }
-    }
+    };
+
+    document.getElementById('deleteCompletedRequestsBtn').onclick = async function() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_CONFIG.BASE_URL}/requests/completed`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Ошибка при удалении завершённых обращений');
+            showToast('Завершённые обращения удалены', 'success');
+            await loadTickets();
+        } catch (error) {
+            showToast('Ошибка при удалении завершённых обращений', 'error');
+        }
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
         // ... existing code ...
