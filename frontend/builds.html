@@ -720,7 +720,7 @@
                         <img src="${imageUrl || '../assets/default-build.jpg'}" alt="${build.name}" onerror="this.onerror=null; this.src='../assets/default-build.jpg'">
                     </div>
                     <div class="build-info">
-                        <h3 class="build-title" style="cursor:pointer;color:#3498db;text-decoration:underline;">${build.name}</h3>
+                        <h3><a href="product-details.html?id=${build.id}&type=build" class="build-link">${build.name}</a></h3>
                         <p>${build.description}</p>
                         <div class="build-price">
                             <span class="price">${build.total_price.toLocaleString()} ₽</span>
