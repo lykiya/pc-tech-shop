@@ -2091,4 +2091,87 @@ document.addEventListener('DOMContentLoaded', function() {
     addEditBuildCostHandlers();
     calculateEditBuildCost();
     // ... existing code ...
+
+    // === ОТРИСОВКА И УПРАВЛЕНИЕ ОБРАЩЕНИЯМИ ===
+    async function loadTickets() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(API_CONFIG.BASE_URL + '/requests', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Ошибка при загрузке обращений');
+            const tickets = await response.json();
+            updateTicketsList(tickets);
+        } catch (error) {
+            showToast('Ошибка', 'Не удалось загрузить обращения', 'error');
+        }
+    }
+
+    function updateTicketsList(tickets) {
+        const tbody = document.getElementById('ticketsTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = tickets.map(ticket => `
+            <tr>
+                <td>${ticket.name}</td>
+                <td>${ticket.phone}</td>
+                <td>${ticket.message}</td>
+                <td>${ticket.status}</td>
+                <td>
+                    <button class="action-btn delete" onclick="deleteTicket(${ticket.id})" title="Удалить">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.deleteTicket = async function(id) {
+        if (!confirm('Удалить это обращение?')) return;
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(API_CONFIG.BASE_URL + `/requests/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Ошибка при удалении обращения');
+            showToast('Успешно', 'Обращение удалено', 'success');
+            loadTickets();
+        } catch (error) {
+            showToast('Ошибка', 'Не удалось удалить обращение', 'error');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... existing code ...
+        // Добавляем обработчик для кнопки массового удаления завершённых обращений
+        const delCompletedBtn = document.getElementById('deleteCompletedRequestsBtn');
+        if (delCompletedBtn) {
+            delCompletedBtn.onclick = async function() {
+                if (!confirm('Удалить все завершённые обращения?')) return;
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(API_CONFIG.BASE_URL + '/requests/completed', {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) throw new Error('Ошибка при удалении завершённых обращений');
+                    showToast('Успешно', 'Завершённые обращения удалены', 'success');
+                    loadTickets();
+                } catch (error) {
+                    showToast('Ошибка', 'Не удалось удалить завершённые обращения', 'error');
+                }
+            };
+        }
+        // ... существующий код ...
+        // Загружаем обращения при открытии секции
+        const ticketsTab = document.querySelector('a[data-section="tickets"]');
+        if (ticketsTab) {
+            ticketsTab.addEventListener('click', loadTickets);
+        }
+        // Если секция обращений активна по умолчанию
+        if (document.getElementById('tickets').style.display !== 'none') {
+            loadTickets();
+        }
+    });
+    // ... existing code ...
 }); 
