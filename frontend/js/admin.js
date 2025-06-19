@@ -2186,4 +2186,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     // ... existing code ...
+
+    // ... существующий код ...
+    const addBuildForm = document.getElementById('addBuildForm');
+    if (addBuildForm) {
+        addBuildForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('buildName').value;
+            const description = document.getElementById('buildDescription').value;
+            const total_price = String(document.getElementById('buildPrice').value); // всегда строка
+            const cpu_id = document.getElementById('buildCPU').value ? parseInt(document.getElementById('buildCPU').value) : null;
+            const gpu_id = document.getElementById('buildGPU').value ? parseInt(document.getElementById('buildGPU').value) : null;
+            const motherboard_id = document.getElementById('buildMotherboard').value ? parseInt(document.getElementById('buildMotherboard').value) : null;
+            const body_id = document.getElementById('buildBody').value ? parseInt(document.getElementById('buildBody').value) : null;
+            const ram_id = document.getElementById('buildRAM').value ? parseInt(document.getElementById('buildRAM').value) : null;
+            const power_unit_id = document.getElementById('buildPowerUnit').value ? parseInt(document.getElementById('buildPowerUnit').value) : null;
+            const hdd_id = document.getElementById('buildHDD').value ? parseInt(document.getElementById('buildHDD').value) : null;
+            const ssd_id = document.getElementById('buildSSD').value ? parseInt(document.getElementById('buildSSD').value) : null;
+            const data = {
+                name,
+                description,
+                total_price,
+                cpu_id,
+                gpu_id,
+                motherboard_id,
+                body_id,
+                ram_id,
+                power_unit_id,
+                hdd_id,
+                ssd_id
+            };
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_CONFIG.BASE_URL}/builds`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error('Ошибка при создании сборки');
+                showToast('Сборка успешно создана', 'success');
+                addBuildForm.reset();
+                loadProducts();
+            } catch (error) {
+                showToast('Ошибка при создании сборки: ' + error.message, 'error');
+            }
+        });
+    }
+    // ... существующий код ...
 }); 
