@@ -102,6 +102,8 @@ func UserRoutes(router *gin.Engine, db *gorm.DB) {
 		// Protected request routes (admin only)
 		protected.GET("/requests", requestController.GetRequests)
 		protected.PUT("/requests/:id", requestController.UpdateRequestStatus)
+		protected.DELETE("/requests/:id", requestController.DeleteRequest)
+		protected.DELETE("/requests/completed", requestController.DeleteCompletedRequests)
 
 		// Component routes
 		protected.GET("/components", controllers.GetComponents)

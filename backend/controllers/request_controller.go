@@ -78,3 +78,22 @@ func (c *RequestController) UpdateRequestStatus(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, request)
 }
+
+// Удалить обращение по id
+func (c *RequestController) DeleteRequest(ctx *gin.Context) {
+	id := ctx.Param("id")
+	if err := c.DB.Delete(&models.Request{}, id).Error; err != nil {
+		ctx.JSON(500, gin.H{"error": "Не удалось удалить обращение"})
+		return
+	}
+	ctx.JSON(200, gin.H{"message": "Обращение удалено"})
+}
+
+// Массовое удаление завершённых обращений
+func (c *RequestController) DeleteCompletedRequests(ctx *gin.Context) {
+	if err := c.DB.Where("status = ?", "completed").Delete(&models.Request{}).Error; err != nil {
+		ctx.JSON(500, gin.H{"error": "Не удалось удалить завершённые обращения"})
+		return
+	}
+	ctx.JSON(200, gin.H{"message": "Завершённые обращения удалены"})
+}
