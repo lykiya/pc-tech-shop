@@ -1410,6 +1410,8 @@
                 <table class="admin-table" id="users-table">
                     <thead>
                         <tr>
+                            <th>№</th>
+                            <th>ID</th>
                             <th>Имя</th>
                             <th>Email</th>
                             <th>Роль</th>
@@ -2165,6 +2167,8 @@
                     users.forEach((user, index) => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${user.id}</td>
                             <td>${user.name} ${user.surname}</td>
                             <td>${user.email}</td>
                             <td>${getUserRoleText(user.role || user.type)}</td>
